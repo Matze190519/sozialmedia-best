@@ -1,12 +1,474 @@
 /**
- * External API clients for GoViralBitch and Blotato.
- * These wrap the actual HTTP calls to the deployed services.
+ * External API clients for GoViralBitch, Blotato, fal.ai Video-KI,
+ * Brand Voice System, Quality Gate und Viral Script Engine.
+ * Alles aus den GitHub-Vorlagen (Agent Brain, CTA-Templates, Hook-Formulas).
  */
+
+import { fal } from "@fal-ai/client";
 
 const GOVIRALBITCH_URL = process.env.GOVIRALBITCH_API_URL || "https://goviralbitch-deploy.onrender.com";
 const BLOTATO_API_KEY = process.env.BLOTATO_API_KEY || "";
+const FAL_API_KEY = process.env.FAL_API_KEY || "";
 
-// ─── GoViralBitch API Client ────────────────────────────────
+// Configure fal.ai client
+if (FAL_API_KEY) {
+  fal.config({ credentials: FAL_API_KEY });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BRAND VOICE SYSTEM - aus Agent Brain (GoViralBitch GitHub)
+// ═══════════════════════════════════════════════════════════════
+
+export const LR_BRAND_VOICE = {
+  identity: {
+    name: "LR Lifestyle Team",
+    leader: "Mathias Vinzing",
+    company: "LR Health & Beauty",
+    companyAge: "40+ Jahre",
+    certifications: ["Fresenius-geprüft", "Dermatest-zertifiziert"],
+    notCertified: ["TÜV"], // NICHT TÜV!
+    entryPrice: "99 Euro",
+    previousPrice: "1.200 Euro",
+    countries: 32,
+    aiAssistant: "Lina",
+  },
+  pillars: [
+    { name: "Autokonzept", emoji: "🚗", description: "Firmenwagen durch LR - Mercedes, BMW, Porsche als Bonus" },
+    { name: "Business Opportunity", emoji: "💼", description: "Nebeneinkommen, Karriere, finanzielle Freiheit" },
+    { name: "Produkt-Highlight", emoji: "🌿", description: "Aloe Vera, Mind Master, Zeitgard - Fresenius-geprüft" },
+    { name: "Lina KI-Demo", emoji: "🤖", description: "KI-Assistentin die Social Media und Kontakte übernimmt" },
+    { name: "Lifestyle & Erfolg", emoji: "✨", description: "Reisen, Events, Team-Erfolge, Transformation" },
+    { name: "Einwandbehandlung", emoji: "🛡️", description: "Häufige Einwände zerstören mit Fakten" },
+  ],
+  tonePerPlatform: {
+    instagram: { tone: "inspirierend, persönlich, Story-driven", format: "Reels, Carousels, Stories", frequency: "1-2x täglich" },
+    tiktok: { tone: "authentisch, direkt, unterhaltsam, provokant", format: "Kurzvideos 15-60s", frequency: "1-4x täglich" },
+    linkedin: { tone: "professionell, Business-fokussiert, Thought Leadership", format: "Artikel, Carousels, Storys", frequency: "3-5x wöchentlich" },
+    facebook: { tone: "community-orientiert, informativ, persönlich", format: "Posts, Videos, Gruppen", frequency: "1-2x täglich" },
+    twitter: { tone: "kurz, provokant, Hot Takes", format: "Threads, Tweets", frequency: "3-10x täglich" },
+    youtube: { tone: "ausführlich, lehrreich, professionell", format: "Longform, Shorts", frequency: "2-3x wöchentlich" },
+    threads: { tone: "casual, authentisch, community", format: "Kurze Posts", frequency: "1-2x täglich" },
+    pinterest: { tone: "visuell, aspirational, Lifestyle", format: "Pins, Idea Pins", frequency: "5-10x täglich" },
+    bluesky: { tone: "early-adopter, authentisch", format: "Posts", frequency: "1-2x täglich" },
+  },
+  audienceBlockers: [
+    { lie: "Network Marketing ist ein Schneeballsystem", destruction: "LR ist seit über 40 Jahren am Markt, in 32 Ländern aktiv, und ein seriös deutsches Unternehmen", pillar: "Business Opportunity" },
+    { lie: "Ich habe keine Kontakte für Network Marketing", destruction: "Unsere KI Lina übernimmt Social Media und die Kontaktaufnahme. Du brauchst keine eigenen Kontakte.", pillar: "Lina KI-Demo" },
+    { lie: "Ich habe keine Zeit für ein Nebenbusiness", destruction: "Mit Lina und unserer Automatisierung brauchst du nur 30 Min am Tag. Den Rest macht die KI.", pillar: "Lina KI-Demo" },
+    { lie: "99 Euro ist zu viel Risiko", destruction: "Früher hat der Start 1.200 Euro gekostet. 99 Euro ist weniger als ein Abendessen für zwei.", pillar: "Business Opportunity" },
+    { lie: "Die Produkte sind zu teuer", destruction: "Fresenius-geprüfte Qualität zum fairen Preis. Vergleich mit Apothekenpreisen zeigt: LR ist günstiger.", pillar: "Produkt-Highlight" },
+    { lie: "Ich kann nicht verkaufen", destruction: "Du musst nicht verkaufen. Teile einfach deine Erfahrung. Lina macht den Rest.", pillar: "Lina KI-Demo" },
+  ],
+  ctaPreferences: [
+    "Link in Bio",
+    "Schreib mir eine DM",
+    "Kommentiere STARTEN für mehr Infos",
+    "Kostenlose Beratung buchen",
+  ],
+  funnel: "Meta Ad → Landing Page (lr-job.eu) → Lead-Formular → Automatische Verteilung an Partner → Follow-Up → Telefonat → Abschluss",
+};
+
+// ═══════════════════════════════════════════════════════════════
+// CTA TEMPLATES - aus GoViralBitch GitHub (cta-templates.json)
+// ═══════════════════════════════════════════════════════════════
+
+export const CTA_TEMPLATES: Record<string, Record<string, string[]>> = {
+  instagram: {
+    community: [
+      "Kommentiere '{{keyword}}' und ich schicke dir den Link",
+      "Link in Bio für alle Details",
+      "DM mir '{{keyword}}' für die kostenlose Beratung",
+    ],
+    lead_magnet: [
+      "Kommentiere '{{keyword}}' und ich DM dir die kostenlose {{resource}}",
+      "Kostenlose {{resource}} — Link in Bio",
+      "DM mir '{{keyword}}' für die kostenlose {{resource}}",
+    ],
+    dm: [
+      "DM mir '{{keyword}}' und ich schicke dir alles",
+      "Kommentiere '{{keyword}}' und ich DM dir die Details",
+    ],
+    booking: [
+      "DM mir 'STARTEN' für ein kostenloses Beratungsgespräch",
+      "Kostenlose Beratung — Link in Bio",
+    ],
+  },
+  tiktok: {
+    community: [
+      "Link in Bio für alle Details",
+      "Kommentiere '{{keyword}}' für den Link",
+    ],
+    lead_magnet: [
+      "Kommentiere '{{keyword}}' und ich schicke dir die kostenlose {{resource}}",
+      "Kostenlose {{resource}} — Link in Bio",
+    ],
+    dm: [
+      "DM mir '{{keyword}}' für den kompletten Walkthrough",
+      "Kommentiere '{{keyword}}' und ich DM dir",
+    ],
+  },
+  linkedin: {
+    community: [
+      "Kommentiere 'INFO' und ich schicke dir die Details per DM",
+      "Mehr dazu in meinem Profil — Link zum kostenlosen Gespräch",
+    ],
+    lead_magnet: [
+      "Kommentiere 'GUIDE' und ich schicke dir die kostenlose {{resource}}",
+      "Lade dir die {{resource}} herunter — Link im ersten Kommentar",
+    ],
+    dm: [
+      "Schreib mir eine Nachricht für ein persönliches Gespräch",
+      "Kommentiere und ich melde mich bei dir",
+    ],
+  },
+  youtube: {
+    community: [
+      "Alle Details findest du in der Beschreibung",
+      "Link in der Beschreibung für die kostenlose Beratung",
+    ],
+    lead_magnet: [
+      "Lade dir die kostenlose {{resource}} herunter — Link in der Beschreibung",
+      "Hol dir die {{resource}} mit allen Schritten — Link unten",
+    ],
+  },
+  facebook: {
+    community: [
+      "Kommentiere 'INFO' und ich schicke dir die Details",
+      "Mehr Infos in meinem Profil",
+    ],
+    dm: [
+      "Schreib mir eine Nachricht für ein persönliches Gespräch",
+      "Kommentiere und ich melde mich bei dir",
+    ],
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════
+// HOOK FORMULAS - aus marketingskills GitHub (social-content)
+// ═══════════════════════════════════════════════════════════════
+
+export const HOOK_FORMULAS = {
+  curiosity: [
+    "Ich lag falsch über {{common_belief}}.",
+    "Der wahre Grund warum {{outcome}} passiert, ist nicht was du denkst.",
+    "{{impressive_result}} — und es hat nur {{short_time}} gedauert.",
+    "Niemand spricht über {{insider_knowledge}}.",
+    "Was passiert wenn {{unexpected_scenario}}?",
+  ],
+  story: [
+    "Letzte Woche ist {{unexpected_thing}} passiert.",
+    "Ich hätte fast {{big_mistake}} gemacht.",
+    "Vor 3 Jahren war ich {{past_state}}. Heute {{current_state}}.",
+    "{{person}} hat mir etwas gesagt, das ich nie vergessen werde.",
+    "Der Moment der alles verändert hat...",
+  ],
+  value: [
+    "Wie du {{desirable_outcome}} erreichst (ohne {{common_pain}}):",
+    "{{number}} {{things}} die {{outcome}}:",
+    "Der einfachste Weg zu {{outcome}}:",
+    "Hör auf mit {{common_mistake}}. Mach stattdessen das:",
+    "Die {{number}}-Schritte-Formel für {{outcome}}:",
+  ],
+  contrarian: [
+    "Unpopuläre Meinung: {{bold_statement}}",
+    "{{common_advice}} ist falsch. Hier ist warum:",
+    "Ich habe aufgehört {{common_practice}} und {{positive_result}}.",
+    "Alle sagen {{X}}. Die Wahrheit ist {{Y}}.",
+    "Das will dir niemand über {{topic}} erzählen.",
+  ],
+  socialProof: [
+    "Wir haben {{result}} in {{timeframe}} erreicht. Hier ist die ganze Geschichte:",
+    "{{number}} Leute haben mich nach {{topic}} gefragt. Hier ist meine Antwort:",
+    "{{authority_figure}} hat mir {{lesson}} beigebracht.",
+    "Warum {{number}} Menschen bereits {{action}} gemacht haben.",
+  ],
+};
+
+// ═══════════════════════════════════════════════════════════════
+// VIRAL SCRIPT TEMPLATES - aus GoViralBitch GitHub
+// ═══════════════════════════════════════════════════════════════
+
+export const VIRAL_SCRIPT_TEMPLATES = {
+  reelScript: {
+    name: "Reel/TikTok Script",
+    structure: `Hook (0-2 Sek): {{pattern_interrupt}}
+Setup (2-5 Sek): {{context}}
+Value (5-25 Sek): {{actual_advice}}
+CTA (25-30 Sek): {{call_to_action}}`,
+  },
+  storyPost: {
+    name: "Story Post (LinkedIn/Facebook)",
+    structure: `{{hook_unexpected_outcome}}
+
+{{set_the_scene}}
+
+{{the_challenge}}
+
+{{what_happened}}
+
+{{the_turning_point}}
+
+{{the_result}}
+
+{{the_lesson}}
+
+{{question_for_engagement}}`,
+  },
+  contrarianTake: {
+    name: "Contrarian Take",
+    structure: `{{unpopular_opinion}}
+
+Hier ist warum:
+
+{{reason_1}}
+
+{{reason_2}}
+
+{{reason_3}}
+
+{{what_to_do_instead}}
+
+{{invite_discussion}}`,
+  },
+  listPost: {
+    name: "List Post",
+    structure: `{{number}} Dinge die ich über {{topic}} gelernt habe nach {{credibility_builder}}:
+
+1. {{point_1}} — {{explanation_1}}
+2. {{point_2}} — {{explanation_2}}
+3. {{point_3}} — {{explanation_3}}
+
+{{wrap_up_insight}}
+
+Was davon resoniert am meisten mit dir?`,
+  },
+  howTo: {
+    name: "How-To Post",
+    structure: `Wie du {{outcome}} in {{timeframe}} erreichst:
+
+Schritt 1: {{action_1}}
+↳ {{why_it_matters}}
+
+Schritt 2: {{action_2}}
+↳ {{key_detail}}
+
+Schritt 3: {{action_3}}
+↳ {{common_mistake_to_avoid}}
+
+{{expected_result}}
+
+{{cta}}`,
+  },
+  carouselHook: {
+    name: "Carousel (Instagram/LinkedIn)",
+    structure: `Slide 1: {{bold_statement_or_question}}
+Slides 2-9: Je ein Punkt pro Slide mit Visual + Text
+Slide 10: Zusammenfassung + CTA
+Caption: {{expand_topic_add_context_cta}}`,
+  },
+  youtubeThread: {
+    name: "YouTube Longform Script",
+    structure: `HOOK (0-30 Sek): {{attention_grabber}}
+INTRO (30-60 Sek): {{what_youll_learn}}
+KAPITEL 1: {{main_point_1}}
+KAPITEL 2: {{main_point_2}}
+KAPITEL 3: {{main_point_3}}
+ZUSAMMENFASSUNG: {{key_takeaways}}
+CTA: {{subscribe_comment_link}}`,
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════
+// QUALITY GATE - Automatische Prüfung vor Veröffentlichung
+// ═══════════════════════════════════════════════════════════════
+
+export interface QualityCheckResult {
+  passed: boolean;
+  score: number; // 0-100
+  checks: {
+    name: string;
+    passed: boolean;
+    message: string;
+    severity: "error" | "warning" | "info";
+  }[];
+}
+
+export function runQualityGate(content: string, platform: string): QualityCheckResult {
+  const checks: QualityCheckResult["checks"] = [];
+  let score = 100;
+
+  // 1. Mindestlänge
+  if (content.length < 50) {
+    checks.push({ name: "Mindestlänge", passed: false, message: "Content ist zu kurz (min. 50 Zeichen)", severity: "error" });
+    score -= 30;
+  } else {
+    checks.push({ name: "Mindestlänge", passed: true, message: `${content.length} Zeichen - OK`, severity: "info" });
+  }
+
+  // 2. Maximallänge pro Plattform
+  const maxLengths: Record<string, number> = {
+    twitter: 280, threads: 500, instagram: 2200, facebook: 63206,
+    linkedin: 3000, tiktok: 2200, youtube: 5000, pinterest: 500, bluesky: 300,
+  };
+  const maxLen = maxLengths[platform.toLowerCase()] || 5000;
+  if (content.length > maxLen) {
+    checks.push({ name: "Maximallänge", passed: false, message: `Content zu lang für ${platform} (max. ${maxLen} Zeichen)`, severity: "error" });
+    score -= 20;
+  } else {
+    checks.push({ name: "Maximallänge", passed: true, message: `Passt für ${platform}`, severity: "info" });
+  }
+
+  // 3. Brand Safety - Falsche Zertifizierungen
+  const forbiddenTerms = ["TÜV-geprüft", "TÜV geprüft", "TÜV zertifiziert", "Schneeballsystem", "Pyramidensystem", "MLM-Scam"];
+  for (const term of forbiddenTerms) {
+    if (content.toLowerCase().includes(term.toLowerCase())) {
+      checks.push({ name: "Brand Safety", passed: false, message: `Verbotener Begriff gefunden: "${term}"`, severity: "error" });
+      score -= 25;
+    }
+  }
+  if (!checks.some(c => c.name === "Brand Safety")) {
+    checks.push({ name: "Brand Safety", passed: true, message: "Keine verbotenen Begriffe", severity: "info" });
+  }
+
+  // 4. Hook-Check - Erster Satz muss stark sein
+  const firstLine = content.split("\n")[0] || "";
+  const hasHook = firstLine.length > 10 && (
+    firstLine.includes("?") || firstLine.includes("!") || firstLine.includes("...") ||
+    firstLine.includes("Wie") || firstLine.includes("Warum") || firstLine.includes("Der") ||
+    firstLine.includes("Die") || firstLine.includes("Das") || /\d/.test(firstLine)
+  );
+  if (!hasHook) {
+    checks.push({ name: "Hook-Qualität", passed: false, message: "Erster Satz könnte stärker sein - nutze eine Hook-Formel", severity: "warning" });
+    score -= 10;
+  } else {
+    checks.push({ name: "Hook-Qualität", passed: true, message: "Starker Hook erkannt", severity: "info" });
+  }
+
+  // 5. CTA-Check
+  const ctaKeywords = ["Link in Bio", "DM", "Kommentiere", "Schreib", "klick", "Link", "Beratung", "buchen", "starten", "STARTEN", "INFO"];
+  const hasCTA = ctaKeywords.some(kw => content.toLowerCase().includes(kw.toLowerCase()));
+  if (!hasCTA) {
+    checks.push({ name: "CTA vorhanden", passed: false, message: "Kein Call-to-Action gefunden - füge einen CTA hinzu", severity: "warning" });
+    score -= 10;
+  } else {
+    checks.push({ name: "CTA vorhanden", passed: true, message: "CTA erkannt", severity: "info" });
+  }
+
+  // 6. Emoji-Check (für Social Media wichtig)
+  const hasEmoji = /[\uD83C-\uDBFF\uDC00-\uDFFF]+/.test(content) || /[\u2600-\u27BF]/.test(content);
+  if (platform !== "linkedin" && !hasEmoji) {
+    checks.push({ name: "Emojis", passed: false, message: "Keine Emojis gefunden - für Social Media empfohlen", severity: "warning" });
+    score -= 5;
+  } else {
+    checks.push({ name: "Emojis", passed: true, message: "OK", severity: "info" });
+  }
+
+  // 7. Hashtag-Check
+  const hashtagCount = (content.match(/#\w+/g) || []).length;
+  if (["instagram", "tiktok", "linkedin"].includes(platform.toLowerCase()) && hashtagCount === 0) {
+    checks.push({ name: "Hashtags", passed: false, message: "Keine Hashtags gefunden - für diese Plattform empfohlen", severity: "warning" });
+    score -= 5;
+  } else if (hashtagCount > 30) {
+    checks.push({ name: "Hashtags", passed: false, message: "Zu viele Hashtags (max. 30)", severity: "warning" });
+    score -= 5;
+  } else {
+    checks.push({ name: "Hashtags", passed: true, message: `${hashtagCount} Hashtags - OK`, severity: "info" });
+  }
+
+  // 8. LR-Branding Check
+  const lrTerms = ["LR", "Aloe Vera", "Mind Master", "Zeitgard", "Fresenius", "Dermatest", "Lina", "Autokonzept"];
+  const hasLRBranding = lrTerms.some(term => content.includes(term));
+  if (hasLRBranding) {
+    checks.push({ name: "LR-Branding", passed: true, message: "LR-Bezug erkannt", severity: "info" });
+    score = Math.min(score + 5, 100);
+  } else {
+    checks.push({ name: "LR-Branding", passed: true, message: "Kein direkter LR-Bezug (kann gewollt sein)", severity: "info" });
+  }
+
+  return {
+    passed: score >= 60 && !checks.some(c => c.severity === "error" && !c.passed),
+    score: Math.max(0, Math.min(100, score)),
+    checks,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// fal.ai VIDEO-KI - Kling 3.0 Pro, Veo 3.1
+// ═══════════════════════════════════════════════════════════════
+
+export interface VideoGenerationRequest {
+  prompt: string;
+  imageUrl?: string;
+  model?: "kling-3" | "veo-3" | "minimax";
+  duration?: "5" | "10";
+  aspectRatio?: "16:9" | "9:16" | "1:1";
+}
+
+export interface VideoGenerationResult {
+  videoUrl: string;
+  model: string;
+  duration: string;
+}
+
+export async function generateVideoWithFal(req: VideoGenerationRequest): Promise<VideoGenerationResult> {
+  if (!FAL_API_KEY) {
+    throw new Error("FAL_API_KEY ist nicht konfiguriert. Bitte in den Settings hinterlegen.");
+  }
+
+  const model = req.model || "kling-3";
+  const duration = req.duration || "5";
+  const aspectRatio = req.aspectRatio || "16:9";
+
+  let falModel: string;
+  let input: Record<string, unknown>;
+
+  switch (model) {
+    case "kling-3":
+      if (req.imageUrl) {
+        falModel = "fal-ai/kling-video/v2.1/master/image-to-video";
+        input = {
+          prompt: req.prompt,
+          image_url: req.imageUrl,
+          duration,
+          aspect_ratio: aspectRatio,
+        };
+      } else {
+        falModel = "fal-ai/kling-video/v2.1/master/text-to-video";
+        input = {
+          prompt: req.prompt,
+          duration,
+          aspect_ratio: aspectRatio,
+        };
+      }
+      break;
+    case "minimax":
+      falModel = "fal-ai/minimax-video/image-to-video";
+      input = {
+        prompt: req.prompt,
+        image_url: req.imageUrl,
+      };
+      break;
+    default:
+      falModel = "fal-ai/kling-video/v2.1/master/text-to-video";
+      input = {
+        prompt: req.prompt,
+        duration,
+        aspect_ratio: aspectRatio,
+      };
+  }
+
+  const result = await fal.subscribe(falModel, { input }) as { data: { video: { url: string } } };
+
+  return {
+    videoUrl: result.data?.video?.url || "",
+    model,
+    duration,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GoViralBitch API Client
+// ═══════════════════════════════════════════════════════════════
 
 export interface GoViralBitchPostRequest {
   topic?: string;
@@ -117,7 +579,9 @@ export async function generateBatch(req: GoViralBitchBatchRequest) {
   return callGoViralBitch("batch", req as Record<string, unknown>);
 }
 
-// ─── Blotato API Client ─────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// Blotato API Client
+// ═══════════════════════════════════════════════════════════════
 
 const BLOTATO_BASE = "https://backend.blotato.com/v2";
 
@@ -126,19 +590,6 @@ export interface BlotatoAccount {
   platform: string;
   username: string;
   displayName?: string;
-}
-
-export interface BlotatoPostRequest {
-  accountId: number;
-  content: {
-    text: string;
-    mediaUrls?: string[];
-    platform: string;
-  };
-  target: {
-    targetType: string;
-    pageId?: string;
-  };
 }
 
 async function callBlotato(endpoint: string, method: string = "GET", body?: unknown) {
@@ -168,10 +619,6 @@ export async function getBlotatoAccounts(): Promise<BlotatoAccount[]> {
   }
 }
 
-/**
- * Schedule a post on Blotato. Returns the created post data.
- * IMPORTANT: This should ONLY be called after explicit user approval!
- */
 export async function scheduleOnBlotato(
   accountId: number,
   text: string,
@@ -201,10 +648,6 @@ export async function scheduleOnBlotato(
   return callBlotato("/posts", "POST", postData);
 }
 
-/**
- * Publish an approved post to all selected platforms via Blotato.
- * Returns array of Blotato post IDs.
- */
 export async function publishToAllPlatforms(
   content: string,
   platforms: string[],
@@ -239,8 +682,7 @@ export async function publishToAllPlatforms(
   return postIds;
 }
 
-// ─── Blotato Account Mapping ────────────────────────────────
-// Known Blotato accounts for LR Lifestyle Team
+// Blotato Account Mapping - LR Lifestyle Team
 export const LR_BLOTATO_ACCOUNTS: BlotatoAccount[] = [
   { id: 3978, platform: "facebook", username: "Sven Sven" },
   { id: 4089, platform: "youtube", username: "Mathias Vinzing" },

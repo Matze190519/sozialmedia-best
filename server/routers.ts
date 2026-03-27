@@ -73,19 +73,15 @@ export const appRouter = router({
         platform: z.string().optional(),
         platforms: z.array(z.string()).optional(),
         count: z.number().optional(),
-        // For follow_up
         leadName: z.string().optional(),
         step: z.number().optional(),
         interest: z.string().optional(),
         partnerName: z.string().optional(),
-        // For objection
         objection: z.string().optional(),
         context: z.string().optional(),
-        // For ad_copy
         product: z.string().optional(),
         objective: z.string().optional(),
         format: z.string().optional(),
-        // For reel
         duration: z.number().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -119,7 +115,6 @@ export const appRouter = router({
             throw new TRPCError({ code: "BAD_REQUEST", message: "Unbekannter Content-Typ" });
         }
 
-        // Save to DB as PENDING - requires approval before publishing!
         const postId = await db.createContentPost({
           createdById: ctx.user.id,
           contentType: input.contentType,
@@ -157,7 +152,6 @@ export const appRouter = router({
           posts_per_day: input.postsPerDay,
         });
 
-        // Save the entire batch as a single pending post
         const postId = await db.createContentPost({
           createdById: ctx.user.id,
           contentType: "batch",
@@ -223,7 +217,6 @@ export const appRouter = router({
         const result = await generateImage({ prompt: input.prompt });
         if (!result.url) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Bild konnte nicht generiert werden" });
 
-        // If linked to a content post, update it
         if (input.contentPostId) {
           await db.updateContentPost(input.contentPostId, {
             mediaUrl: result.url,
@@ -235,52 +228,34 @@ export const appRouter = router({
         return { url: result.url };
       }),
 
-    // KI-Video generieren via LLM-gesteuerte Video-Beschreibung + Image-to-Video
+    // Echte Video-KI via fal.ai (Kling 3.0 Pro, Veo 3.1, Minimax)
     generateVideo: protectedProcedure
       .input(z.object({
         prompt: z.string().min(1),
         imageUrl: z.string().optional(),
+        model: z.enum(["kling-3", "veo-3", "minimax"]).optional(),
+        duration: z.enum(["5", "10"]).optional(),
+        aspectRatio: z.enum(["16:9", "9:16", "1:1"]).optional(),
         contentPostId: z.number().optional(),
       }))
       .mutation(async ({ input }) => {
-        // Step 1: Generate a base image if no image provided
-        let baseImageUrl = input.imageUrl;
-        if (!baseImageUrl) {
-          const { generateImage } = await import("./_core/imageGeneration");
-          const imgResult = await generateImage({
-            prompt: `Erstelle ein visuelles Social-Media-Bild für folgendes Thema: ${input.prompt}. Stil: modern, professionell, eye-catching, viral-tauglich. Kein Text im Bild.`,
-          });
-          baseImageUrl = imgResult.url;
-        }
-
-        // Step 2: Use LLM to create an optimized video prompt
-        const { invokeLLM } = await import("./_core/llm");
-        const llmRes = await invokeLLM({
-          messages: [
-            { role: "system", content: "Du bist ein Video-Prompt-Experte. Erstelle einen kurzen, präzisen englischen Prompt für ein 5-Sekunden Social-Media-Video. Der Prompt soll Bewegung, Kamerafahrt und Stimmung beschreiben. Maximal 2 Sätze." },
-            { role: "user", content: `Erstelle einen Video-Prompt basierend auf: ${input.prompt}` },
-          ],
+        const result = await api.generateVideoWithFal({
+          prompt: input.prompt,
+          imageUrl: input.imageUrl,
+          model: input.model,
+          duration: input.duration,
+          aspectRatio: input.aspectRatio,
         });
-        const videoPromptText = typeof llmRes.choices?.[0]?.message?.content === "string" ? llmRes.choices[0].message.content : input.prompt;
-
-        // Step 3: Generate video via Image Generation API (image-to-video with motion prompt)
-        const { generateImage } = await import("./_core/imageGeneration");
-        const videoResult = await generateImage({
-          prompt: `Create a smooth 5-second video animation: ${videoPromptText}`,
-          originalImages: baseImageUrl ? [{ url: baseImageUrl, mimeType: "image/png" }] : undefined,
-        });
-
-        const videoUrl = videoResult.url || baseImageUrl;
 
         if (input.contentPostId) {
           await db.updateContentPost(input.contentPostId, {
-            videoUrl,
-            mediaType: baseImageUrl ? "image_and_video" : "video",
-            videoPrompt: videoPromptText,
+            videoUrl: result.videoUrl,
+            mediaType: input.imageUrl ? "image_and_video" : "video",
+            videoPrompt: input.prompt,
           } as any);
         }
 
-        return { url: videoUrl, baseImageUrl, videoPrompt: videoPromptText };
+        return result;
       }),
 
     // Upload eigenes Bild/Video
@@ -380,17 +355,20 @@ export const appRouter = router({
         const contentToPublish = post.post.editedContent || post.post.content;
         const platforms = post.post.platforms as string[];
 
-        // Get Blotato accounts
         let accounts = await api.getBlotatoAccounts();
         if (accounts.length === 0) {
           accounts = api.LR_BLOTATO_ACCOUNTS;
         }
 
+        const mediaUrls: string[] = [];
+        if (post.post.mediaUrl) mediaUrls.push(post.post.mediaUrl);
+        if (post.post.videoUrl) mediaUrls.push(post.post.videoUrl);
+
         const postIds = await api.publishToAllPlatforms(
           contentToPublish,
           platforms,
           accounts,
-          post.post.mediaUrl ? [post.post.mediaUrl] : undefined,
+          mediaUrls.length > 0 ? mediaUrls : undefined,
           input.scheduledDate,
         );
 
@@ -413,6 +391,161 @@ export const appRouter = router({
       .input(z.object({ contentPostId: z.number() }))
       .query(async ({ input }) => {
         return db.getApprovalLogsForPost(input.contentPostId);
+      }),
+  }),
+
+  // ─── Quality Gate ──────────────────────────────────────────
+  qualityGate: router({
+    check: protectedProcedure
+      .input(z.object({
+        content: z.string(),
+        platform: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        return api.runQualityGate(input.content, input.platform);
+      }),
+  }),
+
+  // ─── Brand Voice & Viral Tools ─────────────────────────────
+  brandVoice: router({
+    // Get the complete Brand Voice config
+    get: protectedProcedure.query(() => {
+      return api.LR_BRAND_VOICE;
+    }),
+
+    // Get CTA templates for a platform
+    getCTAs: protectedProcedure
+      .input(z.object({ platform: z.string() }))
+      .query(({ input }) => {
+        return api.CTA_TEMPLATES[input.platform.toLowerCase()] || {};
+      }),
+
+    // Get Hook Formulas
+    getHooks: protectedProcedure.query(() => {
+      return api.HOOK_FORMULAS;
+    }),
+
+    // Get Viral Script Templates
+    getScriptTemplates: protectedProcedure.query(() => {
+      return api.VIRAL_SCRIPT_TEMPLATES;
+    }),
+
+    // Get Audience Blockers (Einwandbehandlung)
+    getBlockers: protectedProcedure.query(() => {
+      return api.LR_BRAND_VOICE.audienceBlockers;
+    }),
+
+    // Generate content with Brand Voice using LLM
+    generateWithVoice: protectedProcedure
+      .input(z.object({
+        contentType: z.enum(["post", "reel_script", "story", "carousel", "ad_copy", "linkedin", "youtube_script"]),
+        platform: z.string(),
+        pillar: z.string(),
+        topic: z.string(),
+        hookStyle: z.enum(["curiosity", "story", "value", "contrarian", "socialProof"]).optional(),
+        scriptTemplate: z.string().optional(),
+        includeBlocker: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { invokeLLM } = await import("./_core/llm");
+        const voice = api.LR_BRAND_VOICE;
+        const platformVoice = voice.tonePerPlatform[input.platform.toLowerCase() as keyof typeof voice.tonePerPlatform];
+        const pillarInfo = voice.pillars.find(p => p.name === input.pillar);
+
+        // Build hook examples
+        const hookExamples = input.hookStyle
+          ? api.HOOK_FORMULAS[input.hookStyle].slice(0, 3).join("\n")
+          : api.HOOK_FORMULAS.curiosity.slice(0, 2).join("\n");
+
+        // Build CTA examples
+        const ctaExamples = api.CTA_TEMPLATES[input.platform.toLowerCase()]?.dm?.slice(0, 2).join("\n") || "Link in Bio";
+
+        // Build blocker info
+        let blockerInfo = "";
+        if (input.includeBlocker) {
+          const relevantBlockers = voice.audienceBlockers.filter(b => b.pillar === input.pillar || b.pillar === pillarInfo?.name);
+          if (relevantBlockers.length > 0) {
+            blockerInfo = `\n\nEinwandbehandlung einbauen:\n${relevantBlockers.map(b => `Einwand: "${b.lie}" → Antwort: "${b.destruction}"`).join("\n")}`;
+          }
+        }
+
+        // Build script template
+        let templateInfo = "";
+        if (input.scriptTemplate && api.VIRAL_SCRIPT_TEMPLATES[input.scriptTemplate as keyof typeof api.VIRAL_SCRIPT_TEMPLATES]) {
+          const tmpl = api.VIRAL_SCRIPT_TEMPLATES[input.scriptTemplate as keyof typeof api.VIRAL_SCRIPT_TEMPLATES];
+          templateInfo = `\n\nVerwende dieses Script-Template:\n${tmpl.structure}`;
+        }
+
+        const systemPrompt = `Du bist der Content-Creator für das ${voice.identity.name} von ${voice.identity.leader}.
+Unternehmen: ${voice.identity.company} (${voice.identity.companyAge}, ${voice.identity.countries} Länder)
+Zertifizierungen: ${voice.identity.certifications.join(", ")} (NICHT ${voice.identity.notCertified.join(", ")}!)
+Einstiegspreis: ${voice.identity.entryPrice} (früher ${voice.identity.previousPrice})
+KI-Assistentin: ${voice.identity.aiAssistant}
+
+PLATTFORM: ${input.platform}
+Ton: ${platformVoice?.tone || "professionell, authentisch"}
+Format: ${platformVoice?.format || "Posts"}
+
+CONTENT-PILLAR: ${pillarInfo?.emoji || ""} ${input.pillar}
+${pillarInfo?.description || ""}
+
+HOOK-BEISPIELE (verwende ähnliche Hooks):
+${hookExamples}
+
+CTA-BEISPIELE (verwende einen passenden CTA):
+${ctaExamples}
+${blockerInfo}${templateInfo}
+
+REGELN:
+1. Schreibe auf Deutsch
+2. Verwende den richtigen Ton für ${input.platform}
+3. Der Hook MUSS in den ersten 2 Sekunden fesseln
+4. IMMER einen CTA am Ende
+5. NIEMALS "TÜV" erwähnen - nur "Fresenius-geprüft" und "Dermatest-zertifiziert"
+6. Content muss viral-tauglich sein - provokant, emotional, überraschend
+7. Nutze Emojis passend zur Plattform
+8. Ziel: Kontakte generieren, Leads anziehen, Business aufbauen`;
+
+        const llmResponse = await invokeLLM({
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: `Erstelle einen ${input.contentType} über "${input.topic}" für ${input.platform}. Pillar: ${input.pillar}. Mach es viral!` },
+          ],
+        });
+
+        const generatedContent = typeof llmResponse.choices?.[0]?.message?.content === "string"
+          ? llmResponse.choices[0].message.content
+          : "Content konnte nicht generiert werden";
+
+        // Auto Quality Gate
+        const qualityResult = api.runQualityGate(generatedContent, input.platform);
+
+        // Save to DB
+        const postId = await db.createContentPost({
+          createdById: ctx.user.id,
+          contentType: input.contentType,
+          content: generatedContent,
+          platforms: [input.platform],
+          status: "pending",
+          topic: input.topic,
+          pillar: input.pillar,
+          apiMetadata: { hookStyle: input.hookStyle, scriptTemplate: input.scriptTemplate, qualityScore: qualityResult.score },
+        });
+
+        await db.createApprovalLog({
+          contentPostId: postId,
+          userId: ctx.user.id,
+          action: "edited",
+          comment: `Content mit Brand Voice generiert (Quality Score: ${qualityResult.score}/100)`,
+          previousStatus: null,
+          newStatus: "pending",
+        });
+
+        return {
+          id: postId,
+          content: generatedContent,
+          qualityGate: qualityResult,
+        };
       }),
   }),
 
@@ -496,6 +629,8 @@ Erstelle einen detaillierten Report mit:
 3. PERFORMANCE-TIER: S (viral), A (sehr gut), B (gut) - für jeden analysierten Trend
 4. TOP 5 NACHMACH-IDEEN: Konkrete Content-Ideen die das LR Team adaptieren kann
 5. TREND-WARNUNG: Was kommt als nächstes in der Nische?
+6. CONTENT-GAPS: Was machen Wettbewerber NICHT, wo das LR Team einsteigen kann?
+7. PLATTFORM-TRENDS: Welche Formate performen gerade am besten auf welcher Plattform?
 
 WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Einstieg kostet 99 Euro.
 Format: Klar strukturiert mit Emojis für bessere Lesbarkeit.`
@@ -510,14 +645,13 @@ Format: Klar strukturiert mit Emojis für bessere Lesbarkeit.`
         const rawContent = llmResponse.choices?.[0]?.message?.content;
         const reportContent: string = typeof rawContent === "string" ? rawContent : "Kein Report generiert";
 
-        // Extract hooks and ideas from the report
         const hookMatches = reportContent.match(/(?:HOOK|Hook)[^:]*:\s*["""]?([^"""\n]+)/g) || [];
         const topHooks = hookMatches.slice(0, 5).map((h: string) => h.replace(/(?:HOOK|Hook)[^:]*:\s*["""]?/, "").trim());
 
         const ideaMatches = reportContent.match(/(?:IDEE|Idee|NACHMACH)[^:]*:\s*([^\n]+)/g) || [];
         const contentIdeas = ideaMatches.slice(0, 5).map((i: string) => i.replace(/(?:IDEE|Idee|NACHMACH)[^:]*:\s*/, "").trim());
 
-        const trendMatch = (reportContent as string).match(/(?:TREND|Trend)[^:]*:\s*([^\n]+(?:\n(?![A-Z#🔥📊])[^\n]+)*)/);
+        const trendMatch = (reportContent as string).match(/(?:TREND|Trend)[^:]*:\s*([^\n]+(?:\n(?![A-Z#])[^\n]+)*)/);
         const trendWarnings = trendMatch ? trendMatch[1].trim() : null;
 
         const id = await db.createCreatorSpyReport({
@@ -565,7 +699,7 @@ Format: Klar strukturiert mit Emojis für bessere Lesbarkeit.`
       }),
   }),
 
-  // ─── GoViralBitch Health ───────────────────────────────────
+  // ─── API Health ────────────────────────────────────────────
   apiHealth: router({
     goViralBitch: publicProcedure.query(async () => {
       const healthy = await api.goViralBitchHealthCheck();

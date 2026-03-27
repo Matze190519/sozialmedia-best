@@ -25,4 +25,18 @@
 - [x] Generator: Media-Upload + KI-Bild/Video-Generierung beim Content-Erstellen
 - [x] Lead-Generierung: CTAs und Hook-Formulas die Kontakte anziehen
 - [x] Virale Content-Strategie: Trends erkennen, duplizieren, optimieren
-- [x] Tests: Vitest für Backend-Logik (15/15 bestanden)
+- [x] Tests: Vitest für Backend-Logik (47/47 bestanden)
+
+## Premium Upgrade - Content Maschine
+- [x] fal.ai Video-KI Integration (Kling 3.0 Pro, Minimax) - echte Video-Generierung
+- [x] Brand Voice System aus Agent Brain (LR-spezifisch pro Plattform, 9 Plattformen)
+- [x] Quality Gate vor jedem Post (automatische Prüfung: Länge, Brand Safety, Hook, CTA, Emojis, Hashtags, LR-Branding)
+- [x] Viral Script Engine im Dashboard (7 Templates: Reel, Story, Contrarian, List, HowTo, Carousel, YouTube)
+- [x] CTA-Templates pro Plattform aus GoViralBitch Vorlagen (Instagram, TikTok, LinkedIn, YouTube, Facebook)
+- [x] Storyselling Script Templates einbauen (Story Post, Contrarian Take, etc.)
+- [x] Audience Blockers / Einwandbehandlung im Dashboard (6 Blocker mit Lie + Destruction)
+- [x] Hook Formulas: 5 Stile (Curiosity, Story, Value, Contrarian, Social Proof) mit je 4-5 Templates
+- [x] Brand Voice Generator: LLM-basiert mit komplettem Brand Voice Context
+- [x] Generator Page: 5 Tabs (Brand Voice, GoViral, KI-Bild, KI-Video, Vorlagen)
+- [ ] Feedback-Loop (Performance → Content-Optimierung) - braucht echte Analytics-Daten
+- [ ] fal.ai API Key eintragen (Settings → Secrets)

@@ -1,5 +1,5 @@
 import { trpc } from "@/lib/trpc";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,28 +8,59 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { Zap, Loader2, Sparkles, Package, Image, Video, Wand2, Copy } from "lucide-react";
+import {
+  Zap, Loader2, Sparkles, Package, Image, Video, Wand2, Copy,
+  ShieldCheck, AlertTriangle, CheckCircle2, XCircle, Brain,
+  Flame, Target, MessageSquare, Film, Mic, FileText, TrendingUp,
+} from "lucide-react";
 
 const CONTENT_TYPES = [
-  { value: "post", label: "Social Media Post" },
-  { value: "reel", label: "Reel / Video Script" },
-  { value: "story", label: "Story" },
-  { value: "hooks", label: "Hook Formulas" },
-  { value: "ad_copy", label: "Ad Copy" },
-  { value: "follow_up", label: "Follow-Up Nachricht" },
-  { value: "objection", label: "Einwandbehandlung" },
+  { value: "post", label: "Social Media Post", icon: FileText },
+  { value: "reel_script", label: "Reel / TikTok Script", icon: Film },
+  { value: "story", label: "Story", icon: Flame },
+  { value: "carousel", label: "Carousel (Instagram/LinkedIn)", icon: Image },
+  { value: "ad_copy", label: "Ad Copy", icon: Target },
+  { value: "linkedin", label: "LinkedIn Artikel", icon: MessageSquare },
+  { value: "youtube_script", label: "YouTube Script", icon: Mic },
+  { value: "follow_up", label: "Follow-Up Nachricht", icon: MessageSquare },
+  { value: "objection", label: "Einwandbehandlung", icon: ShieldCheck },
 ];
 
 const PILLARS = [
-  { value: "autokonzept", label: "Autokonzept" },
-  { value: "business_opportunity", label: "Business Opportunity" },
-  { value: "produkt_highlight", label: "Produkt-Highlight" },
-  { value: "lina_demo", label: "Lina Demo" },
-  { value: "lifestyle", label: "Lifestyle" },
-  { value: "team_culture", label: "Team Culture" },
-  { value: "success_story", label: "Erfolgsgeschichte" },
+  { value: "Autokonzept", label: "Autokonzept", emoji: "\u{1F697}" },
+  { value: "Business Opportunity", label: "Business Opportunity", emoji: "\u{1F4BC}" },
+  { value: "Produkt-Highlight", label: "Produkt-Highlight", emoji: "\u{1F33F}" },
+  { value: "Lina KI-Demo", label: "Lina KI-Demo", emoji: "\u{1F916}" },
+  { value: "Lifestyle & Erfolg", label: "Lifestyle & Erfolg", emoji: "\u2728" },
+  { value: "Einwandbehandlung", label: "Einwandbehandlung", emoji: "\u{1F6E1}\uFE0F" },
+];
+
+const HOOK_STYLES = [
+  { value: "curiosity", label: "Neugier-Hook", desc: "Macht neugierig, zwingt zum Weiterlesen" },
+  { value: "story", label: "Story-Hook", desc: "Persönliche Geschichte, emotional" },
+  { value: "value", label: "Value-Hook", desc: "Sofortiger Mehrwert, How-To" },
+  { value: "contrarian", label: "Contrarian-Hook", desc: "Unpopuläre Meinung, provokant" },
+  { value: "socialProof", label: "Social Proof", desc: "Ergebnisse und Beweise" },
+];
+
+const SCRIPT_TEMPLATES = [
+  { value: "reelScript", label: "Reel/TikTok Script" },
+  { value: "storyPost", label: "Story Post (LinkedIn/FB)" },
+  { value: "contrarianTake", label: "Contrarian Take" },
+  { value: "listPost", label: "List Post" },
+  { value: "howTo", label: "How-To Post" },
+  { value: "carouselHook", label: "Carousel" },
+  { value: "youtubeThread", label: "YouTube Longform" },
+];
+
+const VIDEO_MODELS = [
+  { value: "kling-3", label: "Kling 3.0 Pro", desc: "Beste Qualität, 5-10s Videos" },
+  { value: "minimax", label: "Minimax Video", desc: "Schnell, gut für Image-to-Video" },
 ];
 
 const ALL_PLATFORMS = [
@@ -37,97 +68,103 @@ const ALL_PLATFORMS = [
   "twitter", "threads", "bluesky", "pinterest", "youtube",
 ];
 
-// Vorlagen aus GoViralBitch Agent Brain - bewährte Hook-Formulas
-const HOOK_TEMPLATES = [
-  { category: "Autokonzept", hooks: [
-    "Ich fahre einen Porsche und LR zahlt mit. Klingt verrückt? Ist es nicht.",
-    "Mein Chef fährt einen Golf. Ich fahre Porsche. Der Unterschied? Ich habe mich getraut.",
-    "99 Euro. Das war mein Investment. Heute fahre ich mein Traumauto.",
-  ]},
-  { category: "Business Opportunity", hooks: [
-    "Ich habe meinen 9-to-5 Job gekündigt. Hier ist was passiert ist.",
-    "500 Euro nebenbei. Jeden Monat. Ohne Kaltakquise. So geht's.",
-    "Meine KI-Assistentin Lina macht mein Social Media. Ich mache Umsatz.",
-  ]},
-  { category: "Produkt-Highlight", hooks: [
-    "Mein Arzt hat mich gefragt, was ich anders mache. Meine Antwort: Aloe Vera.",
-    "Fresenius-geprüft. Dermatest-zertifiziert. Und du trinkst immer noch Leitungswasser?",
-    "Vorher-Nachher in 30 Tagen. Kein Filter. Nur LR.",
-  ]},
-  { category: "Lifestyle", hooks: [
-    "Montag, 10 Uhr. Alle arbeiten. Ich sitze am Pool auf Mallorca.",
-    "Freiheit ist kein Zufall. Es ist eine Entscheidung.",
-    "3 Jahre. Von 0 auf finanziell frei. Hier ist mein Weg.",
-  ]},
-  { category: "Lina Demo", hooks: [
-    "Angst vor Kaltakquise? Meine KI macht das für dich.",
-    "Lina hat mir letzte Woche 47 Leads gebracht. Automatisch.",
-    "Niemand im Network Marketing hat das: Eine KI die für dich arbeitet.",
-  ]},
-];
-
-// CTA Templates aus GoViralBitch
-const CTA_TEMPLATES = [
-  "Schreib mir eine DM mit 'STARTEN' für mehr Infos",
-  "Link in Bio - kostenlose Beratung buchen",
-  "Kommentiere 'INFO' und ich schicke dir alle Details",
-  "Klick den Link in meiner Bio für dein kostenloses Gespräch",
-  "Schreib mir 'AUTO' und ich zeige dir wie das Autokonzept funktioniert",
-];
-
 export default function GeneratorPage() {
   const utils = trpc.useUtils();
+
+  // Brand Voice Generator State
   const [contentType, setContentType] = useState("post");
   const [topic, setTopic] = useState("");
   const [pillar, setPillar] = useState("");
+  const [platform, setPlatform] = useState("instagram");
   const [platforms, setPlatforms] = useState<string[]>(["instagram", "facebook", "tiktok"]);
+  const [hookStyle, setHookStyle] = useState("curiosity");
+  const [scriptTemplate, setScriptTemplate] = useState("");
+  const [includeBlocker, setIncludeBlocker] = useState(false);
+  const [generatedContent, setGeneratedContent] = useState("");
+  const [generatedPostId, setGeneratedPostId] = useState<number | null>(null);
+  const [qualityResult, setQualityResult] = useState<any>(null);
+
+  // Follow-Up / Objection specific
   const [leadName, setLeadName] = useState("");
   const [step, setStep] = useState(1);
   const [objection, setObjection] = useState("");
   const [product, setProduct] = useState("");
-  const [generatedContent, setGeneratedContent] = useState("");
-  const [generatedPostId, setGeneratedPostId] = useState<number | null>(null);
 
   // Media generation states
   const [imagePrompt, setImagePrompt] = useState("");
   const [videoPrompt, setVideoPrompt] = useState("");
+  const [videoModel, setVideoModel] = useState("kling-3");
+  const [videoDuration, setVideoDuration] = useState("5");
+  const [videoAspect, setVideoAspect] = useState("9:16");
   const [generatedImageUrl, setGeneratedImageUrl] = useState("");
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState("");
 
-  const generateMut = trpc.content.generate.useMutation({
+  // Brand Voice data
+  const brandVoice = trpc.brandVoice.get.useQuery();
+  const hookFormulas = trpc.brandVoice.getHooks.useQuery();
+  const scriptTemplates = trpc.brandVoice.getScriptTemplates.useQuery();
+  const blockers = trpc.brandVoice.getBlockers.useQuery();
+
+  // Brand Voice Generator (uses LLM with full Brand Voice context)
+  const brandVoiceMut = trpc.brandVoice.generateWithVoice.useMutation({
     onSuccess: (data) => {
       setGeneratedContent(data.content);
       setGeneratedPostId(data.id);
+      setQualityResult(data.qualityGate);
       utils.content.list.invalidate();
       utils.dashboard.stats.invalidate();
-      toast.success("Content generiert und zur Review eingereicht!");
+      toast.success(`Content generiert! Quality Score: ${data.qualityGate.score}/100`);
     },
     onError: (err) => toast.error("Fehler: " + err.message),
   });
 
+  // GoViralBitch API Generator (direct API call)
+  const goViralMut = trpc.content.generate.useMutation({
+    onSuccess: (data) => {
+      setGeneratedContent(data.content);
+      setGeneratedPostId(data.id);
+      setQualityResult(null);
+      utils.content.list.invalidate();
+      utils.dashboard.stats.invalidate();
+      toast.success("Content via GoViralBitch generiert!");
+    },
+    onError: (err) => toast.error("Fehler: " + err.message),
+  });
+
+  // Batch generator
   const batchMut = trpc.content.generateBatch.useMutation({
     onSuccess: (data) => {
       setGeneratedContent(data.content);
       setGeneratedPostId(data.id);
       utils.content.list.invalidate();
       utils.dashboard.stats.invalidate();
-      toast.success("Wochenplan generiert und zur Review eingereicht!");
+      toast.success("Wochenplan generiert!");
     },
     onError: (err) => toast.error("Fehler: " + err.message),
   });
 
+  // Quality Gate check
+  const qualityMut = trpc.qualityGate.check.useMutation({
+    onSuccess: (data) => {
+      setQualityResult(data);
+      if (data.passed) toast.success(`Quality Gate bestanden! Score: ${data.score}/100`);
+      else toast.error(`Quality Gate nicht bestanden. Score: ${data.score}/100`);
+    },
+  });
+
+  // Media generation
   const generateImageMut = trpc.media.generateImage.useMutation({
     onSuccess: (data) => {
       setGeneratedImageUrl(data.url);
-      toast.success("Bild generiert!");
+      toast.success("KI-Bild generiert!");
     },
     onError: (err) => toast.error("Bild-Fehler: " + err.message),
   });
 
   const generateVideoMut = trpc.media.generateVideo.useMutation({
     onSuccess: (data) => {
-      setGeneratedVideoUrl(data.url || "");
-      toast.success("Video generiert!");
+      setGeneratedVideoUrl(data.videoUrl || "");
+      toast.success(`Video generiert mit ${data.model}!`);
     },
     onError: (err) => toast.error("Video-Fehler: " + err.message),
   });
@@ -136,13 +173,30 @@ export default function GeneratorPage() {
     setPlatforms(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
   };
 
-  const handleGenerate = () => {
+  // Brand Voice Generate
+  const handleBrandVoiceGenerate = () => {
+    if (!topic.trim()) { toast.error("Thema eingeben"); return; }
+    if (!pillar) { toast.error("Content Pillar auswählen"); return; }
+    brandVoiceMut.mutate({
+      contentType: contentType as any,
+      platform,
+      pillar,
+      topic,
+      hookStyle: hookStyle as any,
+      scriptTemplate: scriptTemplate || undefined,
+      includeBlocker,
+    });
+  };
+
+  // GoViralBitch API Generate
+  const handleGoViralGenerate = () => {
     if (platforms.length === 0) { toast.error("Mindestens eine Plattform auswählen"); return; }
-    generateMut.mutate({
+    goViralMut.mutate({
       contentType: contentType as any,
       topic: topic || undefined,
       pillar: pillar || undefined,
       platforms,
+      platform: platform || undefined,
       leadName: leadName || undefined,
       step: contentType === "follow_up" ? step : undefined,
       objection: objection || undefined,
@@ -155,12 +209,14 @@ export default function GeneratorPage() {
     batchMut.mutate({ platforms });
   };
 
+  const handleQualityCheck = () => {
+    if (!generatedContent) { toast.error("Erst Content generieren"); return; }
+    qualityMut.mutate({ content: generatedContent, platform });
+  };
+
   const handleGenerateImage = () => {
     if (!imagePrompt.trim()) { toast.error("Bild-Prompt eingeben"); return; }
-    generateImageMut.mutate({
-      prompt: imagePrompt,
-      contentPostId: generatedPostId || undefined,
-    });
+    generateImageMut.mutate({ prompt: imagePrompt, contentPostId: generatedPostId || undefined });
   };
 
   const handleGenerateVideo = () => {
@@ -168,16 +224,21 @@ export default function GeneratorPage() {
     generateVideoMut.mutate({
       prompt: videoPrompt,
       imageUrl: generatedImageUrl || undefined,
+      model: videoModel as any,
+      duration: videoDuration as any,
+      aspectRatio: videoAspect as any,
       contentPostId: generatedPostId || undefined,
     });
   };
 
-  const useHookTemplate = (hook: string) => {
-    setTopic(hook);
-    toast.success("Hook als Topic übernommen!");
-  };
+  const isLoading = brandVoiceMut.isPending || goViralMut.isPending || batchMut.isPending;
 
-  const isLoading = generateMut.isPending || batchMut.isPending;
+  // Memoized hook examples
+  const currentHookExamples = useMemo(() => {
+    if (!hookFormulas.data) return [];
+    const formulas = hookFormulas.data as Record<string, string[]>;
+    return formulas[hookStyle] || [];
+  }, [hookFormulas.data, hookStyle]);
 
   return (
     <div className="space-y-6">
@@ -187,27 +248,274 @@ export default function GeneratorPage() {
           Content-Maschine
         </h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Viraler Content + KI-Bilder + KI-Videos. Alles landet in der Approval-Queue.
+          Brand Voice + KI-Bilder + KI-Videos + Quality Gate. Viraler Content der Kontakte bringt.
         </p>
       </div>
 
-      <Tabs defaultValue="generate" className="space-y-6">
-        <TabsList className="grid grid-cols-4 w-full max-w-xl">
-          <TabsTrigger value="generate" className="gap-1.5"><Sparkles className="h-3.5 w-3.5" /> Text</TabsTrigger>
+      <Tabs defaultValue="brandvoice" className="space-y-6">
+        <TabsList className="grid grid-cols-5 w-full max-w-2xl">
+          <TabsTrigger value="brandvoice" className="gap-1.5"><Brain className="h-3.5 w-3.5" /> Brand Voice</TabsTrigger>
+          <TabsTrigger value="goviralbitch" className="gap-1.5"><Sparkles className="h-3.5 w-3.5" /> GoViral</TabsTrigger>
           <TabsTrigger value="image" className="gap-1.5"><Image className="h-3.5 w-3.5" /> KI-Bild</TabsTrigger>
           <TabsTrigger value="video" className="gap-1.5"><Video className="h-3.5 w-3.5" /> KI-Video</TabsTrigger>
           <TabsTrigger value="hooks" className="gap-1.5"><Wand2 className="h-3.5 w-3.5" /> Vorlagen</TabsTrigger>
         </TabsList>
 
-        {/* ─── Text Generator Tab ─── */}
-        <TabsContent value="generate">
+        {/* ═══ BRAND VOICE GENERATOR ═══ */}
+        <TabsContent value="brandvoice">
+          <div className="grid lg:grid-cols-5 gap-6">
+            <div className="lg:col-span-3 space-y-4">
+              <Card className="border-primary/30">
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Brain className="h-4 w-4 text-primary" />
+                    Brand Voice Generator
+                  </CardTitle>
+                  <CardDescription>
+                    Generiert Content mit deiner LR Brand Voice, Hook-Formulas und CTA-Templates. Automatischer Quality Gate Check.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Content-Typ</Label>
+                      <Select value={contentType} onValueChange={setContentType}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {CONTENT_TYPES.map(t => (
+                            <SelectItem key={t.value} value={t.value}>
+                              <span className="flex items-center gap-2">
+                                <t.icon className="h-3.5 w-3.5" /> {t.label}
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Plattform</Label>
+                      <Select value={platform} onValueChange={setPlatform}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {ALL_PLATFORMS.map(p => (
+                            <SelectItem key={p} value={p}><span className="capitalize">{p}</span></SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Thema / Topic</Label>
+                    <Input
+                      placeholder="z.B. Warum 99 Euro dein Leben verändern, Autokonzept erklärt, Lina Demo..."
+                      value={topic}
+                      onChange={e => setTopic(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Content Pillar</Label>
+                      <Select value={pillar} onValueChange={setPillar}>
+                        <SelectTrigger><SelectValue placeholder="Pillar wählen..." /></SelectTrigger>
+                        <SelectContent>
+                          {PILLARS.map(p => (
+                            <SelectItem key={p.value} value={p.value}>
+                              {p.emoji} {p.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Hook-Stil</Label>
+                      <Select value={hookStyle} onValueChange={setHookStyle}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {HOOK_STYLES.map(h => (
+                            <SelectItem key={h.value} value={h.value}>
+                              {h.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Script-Template (optional)</Label>
+                    <Select value={scriptTemplate} onValueChange={setScriptTemplate}>
+                      <SelectTrigger><SelectValue placeholder="Kein Template..." /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Kein Template</SelectItem>
+                        {SCRIPT_TEMPLATES.map(t => (
+                          <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-3 bg-accent/30 rounded-lg">
+                    <Switch checked={includeBlocker} onCheckedChange={setIncludeBlocker} />
+                    <div>
+                      <p className="text-sm font-medium">Einwandbehandlung einbauen</p>
+                      <p className="text-xs text-muted-foreground">Zerstört häufige Einwände direkt im Content</p>
+                    </div>
+                  </div>
+
+                  {contentType === "follow_up" && (
+                    <div className="space-y-3 p-3 bg-accent/30 rounded-lg">
+                      <div className="space-y-2">
+                        <Label>Lead Name</Label>
+                        <Input value={leadName} onChange={e => setLeadName(e.target.value)} placeholder="Name des Leads..." />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Follow-Up Schritt</Label>
+                        <Input type="number" min={1} max={10} value={step} onChange={e => setStep(Number(e.target.value))} />
+                      </div>
+                    </div>
+                  )}
+
+                  {contentType === "objection" && (
+                    <div className="space-y-2 p-3 bg-accent/30 rounded-lg">
+                      <Label>Einwand</Label>
+                      <Textarea value={objection} onChange={e => setObjection(e.target.value)} placeholder="z.B. Ich habe keine Zeit..." rows={2} />
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Button className="flex-1 gap-2" onClick={handleBrandVoiceGenerate} disabled={isLoading}>
+                      {brandVoiceMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Brain className="h-4 w-4" />}
+                      Mit Brand Voice generieren
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Column: Preview + Quality Gate */}
+            <div className="lg:col-span-2 space-y-4">
+              {/* Hook Examples */}
+              {currentHookExamples.length > 0 && (
+                <Card className="border-amber-500/30">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2 text-amber-400">
+                      <Flame className="h-4 w-4" />
+                      Hook-Beispiele ({HOOK_STYLES.find(h => h.value === hookStyle)?.label})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-1.5">
+                    {currentHookExamples.slice(0, 4).map((hook: string, i: number) => (
+                      <div
+                        key={i}
+                        className="p-2 bg-accent/30 rounded text-xs cursor-pointer hover:bg-accent/50 transition-colors"
+                        onClick={() => { setTopic(hook); toast.success("Hook als Topic übernommen!"); }}
+                      >
+                        {hook}
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Einwandbehandlung */}
+              {includeBlocker && blockers.data && (
+                <Card className="border-red-500/30">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2 text-red-400">
+                      <ShieldCheck className="h-4 w-4" />
+                      Einwände die zerstört werden
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-1.5">
+                    {(blockers.data as any[]).filter((b: any) => !pillar || b.pillar === pillar).slice(0, 3).map((b: any, i: number) => (
+                      <div key={i} className="p-2 bg-red-500/10 rounded text-xs">
+                        <p className="font-medium text-red-400">"{b.lie}"</p>
+                        <p className="text-muted-foreground mt-1">{b.destruction}</p>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Generated Content Preview */}
+              {generatedContent && (
+                <Card className="border-primary/30">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm text-primary flex items-center justify-between">
+                      Generierter Content
+                      <div className="flex items-center gap-2">
+                        {generatedPostId && <Badge variant="outline" className="text-[10px]">#{generatedPostId}</Badge>}
+                        <Button size="sm" variant="ghost" className="h-6 px-2" onClick={() => { navigator.clipboard.writeText(generatedContent); toast.success("Kopiert!"); }}>
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-accent/30 rounded-lg p-3 text-xs leading-relaxed whitespace-pre-wrap max-h-60 overflow-y-auto">
+                      {generatedContent}
+                    </div>
+                    <div className="flex gap-2 mt-3">
+                      <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={handleQualityCheck} disabled={qualityMut.isPending}>
+                        {qualityMut.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <ShieldCheck className="h-3 w-3" />}
+                        Quality Check
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Quality Gate Results */}
+              {qualityResult && (
+                <Card className={qualityResult.passed ? "border-emerald-500/30" : "border-red-500/30"}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      {qualityResult.passed ? (
+                        <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-red-400" />
+                      )}
+                      Quality Gate: {qualityResult.score}/100
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <Progress value={qualityResult.score} className="h-2" />
+                    <div className="space-y-1">
+                      {qualityResult.checks?.map((check: any, i: number) => (
+                        <div key={i} className="flex items-center gap-2 text-xs">
+                          {check.passed ? (
+                            <CheckCircle2 className="h-3 w-3 text-emerald-400 shrink-0" />
+                          ) : check.severity === "error" ? (
+                            <XCircle className="h-3 w-3 text-red-400 shrink-0" />
+                          ) : (
+                            <AlertTriangle className="h-3 w-3 text-amber-400 shrink-0" />
+                          )}
+                          <span className="text-muted-foreground">{check.name}:</span>
+                          <span>{check.message}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* ═══ GOVIRALBITCH API TAB ═══ */}
+        <TabsContent value="goviralbitch">
           <div className="grid lg:grid-cols-2 gap-6">
             <Card className="border-border/50">
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
-                  Content generieren
+                  GoViralBitch API
                 </CardTitle>
+                <CardDescription>Direkte Content-Generierung über die GoViralBitch API</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -223,48 +531,9 @@ export default function GeneratorPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Thema / Topic</Label>
-                  <Input placeholder="z.B. LR Autokonzept, Aloe Vera, Nebeneinkommen..." value={topic} onChange={e => setTopic(e.target.value)} />
+                  <Label>Thema</Label>
+                  <Input placeholder="z.B. LR Autokonzept, Aloe Vera..." value={topic} onChange={e => setTopic(e.target.value)} />
                 </div>
-
-                <div className="space-y-2">
-                  <Label>Content Pillar</Label>
-                  <Select value={pillar} onValueChange={setPillar}>
-                    <SelectTrigger><SelectValue placeholder="Optional..." /></SelectTrigger>
-                    <SelectContent>
-                      {PILLARS.map(p => (
-                        <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {contentType === "follow_up" && (
-                  <div className="space-y-3 p-3 bg-accent/30 rounded-lg">
-                    <div className="space-y-2">
-                      <Label>Lead Name</Label>
-                      <Input value={leadName} onChange={e => setLeadName(e.target.value)} placeholder="Name des Leads..." />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Follow-Up Schritt</Label>
-                      <Input type="number" min={1} max={10} value={step} onChange={e => setStep(Number(e.target.value))} />
-                    </div>
-                  </div>
-                )}
-
-                {contentType === "objection" && (
-                  <div className="space-y-2 p-3 bg-accent/30 rounded-lg">
-                    <Label>Einwand</Label>
-                    <Textarea value={objection} onChange={e => setObjection(e.target.value)} placeholder="z.B. Ich habe keine Zeit..." rows={2} />
-                  </div>
-                )}
-
-                {contentType === "ad_copy" && (
-                  <div className="space-y-2 p-3 bg-accent/30 rounded-lg">
-                    <Label>Produkt</Label>
-                    <Input value={product} onChange={e => setProduct(e.target.value)} placeholder="z.B. Aloe Vera Drinking Gel..." />
-                  </div>
-                )}
 
                 <div className="space-y-2">
                   <Label>Plattformen</Label>
@@ -279,8 +548,8 @@ export default function GeneratorPage() {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button className="flex-1 gap-2" onClick={handleGenerate} disabled={isLoading}>
-                    {generateMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                  <Button className="flex-1 gap-2" onClick={handleGoViralGenerate} disabled={isLoading}>
+                    {goViralMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                     Generieren
                   </Button>
                   <Button variant="outline" className="gap-2" onClick={handleBatch} disabled={isLoading}>
@@ -291,14 +560,13 @@ export default function GeneratorPage() {
               </CardContent>
             </Card>
 
-            {/* Generated Content Preview */}
             <div className="space-y-4">
               {generatedContent && (
                 <Card className="border-primary/30">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base text-primary flex items-center justify-between">
                       Generierter Content
-                      <Badge variant="outline" className="text-[10px]">Post #{generatedPostId}</Badge>
+                      <Badge variant="outline" className="text-[10px]">#{generatedPostId}</Badge>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -311,34 +579,11 @@ export default function GeneratorPage() {
                   </CardContent>
                 </Card>
               )}
-
-              {/* Media Preview */}
-              {(generatedImageUrl || generatedVideoUrl) && (
-                <Card className="border-emerald-500/30">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base text-emerald-400">Generierte Medien</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {generatedImageUrl && (
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-2">KI-Bild:</p>
-                        <img src={generatedImageUrl} alt="KI-generiertes Bild" className="rounded-lg w-full max-h-64 object-cover" />
-                      </div>
-                    )}
-                    {generatedVideoUrl && (
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-2">KI-Video/Animation:</p>
-                        <img src={generatedVideoUrl} alt="KI-generiertes Visual" className="rounded-lg w-full max-h-64 object-cover" />
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
             </div>
           </div>
         </TabsContent>
 
-        {/* ─── KI-Bild Tab ─── */}
+        {/* ═══ KI-BILD TAB ═══ */}
         <TabsContent value="image">
           <div className="grid lg:grid-cols-2 gap-6">
             <Card className="border-border/50">
@@ -347,6 +592,7 @@ export default function GeneratorPage() {
                   <Image className="h-4 w-4 text-blue-400" />
                   KI-Bild generieren
                 </CardTitle>
+                <CardDescription>Erstelle professionelle Bilder für deine Posts</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -355,20 +601,21 @@ export default function GeneratorPage() {
                     rows={4}
                     value={imagePrompt}
                     onChange={e => setImagePrompt(e.target.value)}
-                    placeholder="Beschreibe das Bild das du willst... z.B. 'Luxuriöser Porsche vor einer Villa, Sonnenuntergang, cinematic lighting, social media post style'"
+                    placeholder="Beschreibe das Bild... z.B. 'Luxuriöser Porsche vor einer Villa, Sonnenuntergang, cinematic lighting'"
                   />
                 </div>
 
-                {/* Quick Prompts */}
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Schnell-Prompts:</Label>
+                  <Label className="text-xs text-muted-foreground">LR-Schnell-Prompts:</Label>
                   <div className="flex flex-wrap gap-1.5">
                     {[
-                      "Luxus-Auto vor Villa, Sonnenuntergang, cinematic",
-                      "Gesunde Person mit Aloe Vera Drink, modern, bright",
-                      "Laptop am Strand, digitaler Nomad, Freiheit",
-                      "Team-Event, Motivation, Erfolg, professionell",
-                      "Vorher-Nachher Transformation, clean design",
+                      "Luxus-Porsche vor Villa, goldene Stunde, cinematic, social media post",
+                      "Gesunde Person mit grünem Smoothie, strahlend, modern studio, bright lighting",
+                      "Laptop am Strand, Palmen, digitaler Nomad, Freiheit, warm tones",
+                      "Team-Event, Konfetti, Champagner, Erfolg, professionell, celebration",
+                      "Vorher-Nachher Transformation, split screen, clean design, dramatic",
+                      "Mercedes AMG auf Bergstraße, Sonnenuntergang, epic, cinematic drone shot",
+                      "Aloe Vera Pflanze, Wassertropfen, macro, frisch, Gesundheit, premium",
                     ].map((p, i) => (
                       <Badge
                         key={i}
@@ -376,7 +623,7 @@ export default function GeneratorPage() {
                         className="cursor-pointer hover:bg-accent text-[10px]"
                         onClick={() => setImagePrompt(p)}
                       >
-                        {p.slice(0, 35)}...
+                        {p.slice(0, 40)}...
                       </Badge>
                     ))}
                   </div>
@@ -398,17 +645,25 @@ export default function GeneratorPage() {
             {generatedImageUrl && (
               <Card className="border-blue-500/30">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base text-blue-400">Generiertes Bild</CardTitle>
+                  <CardTitle className="text-base text-blue-400">Generiertes KI-Bild</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <img src={generatedImageUrl} alt="KI-Bild" className="rounded-lg w-full" />
+                  <div className="flex gap-2 mt-3">
+                    <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => window.open(generatedImageUrl, "_blank")}>
+                      Vollbild öffnen
+                    </Button>
+                    <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => { setVideoPrompt(imagePrompt); toast.success("Prompt für Video übernommen!"); }}>
+                      <Video className="h-3 w-3" /> Als Video animieren
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
           </div>
         </TabsContent>
 
-        {/* ─── KI-Video Tab ─── */}
+        {/* ═══ KI-VIDEO TAB ═══ */}
         <TabsContent value="video">
           <div className="grid lg:grid-cols-2 gap-6">
             <Card className="border-border/50">
@@ -417,6 +672,7 @@ export default function GeneratorPage() {
                   <Video className="h-4 w-4 text-violet-400" />
                   KI-Video generieren
                 </CardTitle>
+                <CardDescription>Echte Video-KI: Kling 3.0 Pro oder Minimax</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -429,15 +685,57 @@ export default function GeneratorPage() {
                   />
                 </div>
 
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-2">
+                    <Label className="text-xs">Video-KI Modell</Label>
+                    <Select value={videoModel} onValueChange={setVideoModel}>
+                      <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {VIDEO_MODELS.map(m => (
+                          <SelectItem key={m.value} value={m.value}>
+                            <div>
+                              <p className="font-medium">{m.label}</p>
+                              <p className="text-xs text-muted-foreground">{m.desc}</p>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs">Dauer</Label>
+                    <Select value={videoDuration} onValueChange={setVideoDuration}>
+                      <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="5">5 Sekunden</SelectItem>
+                        <SelectItem value="10">10 Sekunden</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs">Format</Label>
+                    <Select value={videoAspect} onValueChange={setVideoAspect}>
+                      <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="9:16">9:16 (Reels/TikTok)</SelectItem>
+                        <SelectItem value="16:9">16:9 (YouTube)</SelectItem>
+                        <SelectItem value="1:1">1:1 (Feed)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Schnell-Prompts:</Label>
+                  <Label className="text-xs text-muted-foreground">LR Video-Prompts:</Label>
                   <div className="flex flex-wrap gap-1.5">
                     {[
-                      "Slow-Motion Kamerafahrt um Luxus-Auto",
-                      "Person trinkt Aloe Vera, strahlt, Zoom-In",
-                      "Laptop öffnet sich, Geld-Animationen, Erfolg",
-                      "Team feiert zusammen, Konfetti, Energie",
-                      "Sonnenaufgang über Stadt, motivierend, epic",
+                      "Cinematic slow-motion Kamerafahrt um weißen Porsche 911, goldene Stunde, Lens Flare",
+                      "Person trinkt grünen Smoothie, strahlt, Zoom-In auf Gesicht, bright studio",
+                      "Laptop öffnet sich am Strand, Palmen, Wellen, digitaler Nomad Lifestyle",
+                      "Team auf Bühne, Konfetti fällt, Jubel, epic Zeitlupe, Celebration",
+                      "Sonnenaufgang über Skyline, motivierend, Drohnenaufnahme, epic cinematic",
                     ].map((p, i) => (
                       <Badge
                         key={i}
@@ -445,22 +743,23 @@ export default function GeneratorPage() {
                         className="cursor-pointer hover:bg-accent text-[10px]"
                         onClick={() => setVideoPrompt(p)}
                       >
-                        {p.slice(0, 35)}...
+                        {p.slice(0, 40)}...
                       </Badge>
                     ))}
                   </div>
                 </div>
 
                 {generatedImageUrl && (
-                  <div className="p-3 bg-accent/30 rounded-lg">
-                    <p className="text-xs text-muted-foreground mb-2">Basis-Bild für Video (optional):</p>
+                  <div className="p-3 bg-violet-500/10 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-2">Basis-Bild (Image-to-Video):</p>
                     <img src={generatedImageUrl} alt="Basis" className="rounded h-20 object-cover" />
+                    <p className="text-[10px] text-muted-foreground mt-1">Das Bild wird als Startframe für das Video verwendet</p>
                   </div>
                 )}
 
                 <Button className="w-full gap-2" onClick={handleGenerateVideo} disabled={generateVideoMut.isPending}>
                   {generateVideoMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
-                  Video generieren
+                  Video generieren ({VIDEO_MODELS.find(m => m.value === videoModel)?.label})
                 </Button>
               </CardContent>
             </Card>
@@ -468,64 +767,115 @@ export default function GeneratorPage() {
             {generatedVideoUrl && (
               <Card className="border-violet-500/30">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base text-violet-400">Generiertes Video-Visual</CardTitle>
+                  <CardTitle className="text-base text-violet-400">Generiertes KI-Video</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <img src={generatedVideoUrl} alt="KI-Video" className="rounded-lg w-full" />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Das generierte Visual kann als Reel-Hintergrund oder Story-Visual verwendet werden.
-                  </p>
+                  <video src={generatedVideoUrl} controls className="rounded-lg w-full" />
+                  <div className="flex gap-2 mt-3">
+                    <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => window.open(generatedVideoUrl, "_blank")}>
+                      Video herunterladen
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
           </div>
         </TabsContent>
 
-        {/* ─── Vorlagen Tab ─── */}
+        {/* ═══ VORLAGEN TAB ═══ */}
         <TabsContent value="hooks">
           <div className="space-y-6">
-            {/* Hook Templates */}
+            {/* Hook Formulas from GitHub Repos */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Wand2 className="h-5 w-5 text-amber-400" />
-                Bewährte Hook-Formulas
+                <Flame className="h-5 w-5 text-amber-400" />
+                Hook-Formulas (aus Agent Brain)
               </h2>
               <p className="text-sm text-muted-foreground">
-                Getestete Hooks aus dem GoViralBitch Agent Brain. Klicke um sie als Topic zu übernehmen.
+                Getestete Hooks aus dem GoViralBitch Agent Brain und marketingskills Repo. Klicke um als Topic zu übernehmen.
               </p>
-              <div className="grid md:grid-cols-2 gap-4">
-                {HOOK_TEMPLATES.map((group) => (
-                  <Card key={group.category} className="border-border/50">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm">{group.category}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {group.hooks.map((hook, i) => (
-                        <div key={i} className="flex items-start gap-2 p-2 bg-accent/30 rounded-lg group cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => useHookTemplate(hook)}>
-                          <p className="text-xs flex-1">{hook}</p>
-                          <Copy className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-0.5" />
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              {hookFormulas.data && (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Object.entries(hookFormulas.data as Record<string, string[]>).map(([style, hooks]) => (
+                    <Card key={style} className="border-border/50">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm capitalize">{style.replace(/([A-Z])/g, ' $1')}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-1.5">
+                        {(hooks as string[]).slice(0, 4).map((hook: string, i: number) => (
+                          <div
+                            key={i}
+                            className="flex items-start gap-2 p-2 bg-accent/30 rounded group cursor-pointer hover:bg-accent/50 transition-colors"
+                            onClick={() => { setTopic(hook); toast.success("Hook als Topic übernommen!"); }}
+                          >
+                            <p className="text-[11px] flex-1">{hook}</p>
+                            <Copy className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-0.5" />
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* CTA Templates */}
+            <Separator />
+
+            {/* Script Templates */}
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold">CTA-Vorlagen</h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
-                {CTA_TEMPLATES.map((cta, i) => (
-                  <div
-                    key={i}
-                    className="p-3 bg-accent/30 rounded-lg text-sm cursor-pointer hover:bg-accent/50 transition-colors"
-                    onClick={() => { navigator.clipboard.writeText(cta); toast.success("CTA kopiert!"); }}
-                  >
-                    {cta}
-                  </div>
-                ))}
-              </div>
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <FileText className="h-5 w-5 text-blue-400" />
+                Viral Script Templates
+              </h2>
+              {scriptTemplates.data && (
+                <div className="grid md:grid-cols-2 gap-4">
+                  {Object.entries(scriptTemplates.data as Record<string, { name: string; structure: string }>).map(([key, tmpl]) => (
+                    <Card key={key} className="border-border/50">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm">{tmpl.name}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <pre className="text-[10px] text-muted-foreground whitespace-pre-wrap bg-accent/30 rounded p-3 max-h-40 overflow-y-auto">
+                          {tmpl.structure}
+                        </pre>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="mt-2 gap-1.5 text-xs"
+                          onClick={() => { setScriptTemplate(key); toast.success(`Template "${tmpl.name}" ausgewählt!`); }}
+                        >
+                          <Wand2 className="h-3 w-3" /> Als Template verwenden
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* Einwandbehandlung */}
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-red-400" />
+                Einwandbehandlung (Audience Blockers)
+              </h2>
+              {blockers.data && (
+                <div className="grid md:grid-cols-2 gap-3">
+                  {(blockers.data as any[]).map((b: any, i: number) => (
+                    <Card key={i} className="border-red-500/20">
+                      <CardContent className="pt-4 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-[10px]">{b.pillar}</Badge>
+                        </div>
+                        <p className="text-sm font-medium text-red-400">"{b.lie}"</p>
+                        <p className="text-xs text-muted-foreground">{b.destruction}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </TabsContent>
