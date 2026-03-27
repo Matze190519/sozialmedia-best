@@ -18,6 +18,7 @@ import {
   ShieldCheck, AlertTriangle, CheckCircle2, XCircle, Brain,
   Flame, Target, MessageSquare, Film, Mic, FileText, TrendingUp,
 } from "lucide-react";
+import { ProductImagePicker } from "@/components/ProductImagePicker";
 
 const CONTENT_TYPES = [
   { value: "post", label: "Social Media Post", icon: FileText },
@@ -586,69 +587,79 @@ export default function GeneratorPage() {
         {/* ═══ KI-BILD TAB ═══ */}
         <TabsContent value="image">
           <div className="grid lg:grid-cols-2 gap-6">
-            <Card className="border-border/50">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Image className="h-4 w-4 text-blue-400" />
-                  KI-Bild generieren
-                </CardTitle>
-                <CardDescription>Erstelle professionelle Bilder für deine Posts</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Bild-Prompt</Label>
-                  <Textarea
-                    rows={4}
-                    value={imagePrompt}
-                    onChange={e => setImagePrompt(e.target.value)}
-                    placeholder="Beschreibe das Bild... z.B. 'Luxuriöser Porsche vor einer Villa, Sonnenuntergang, cinematic lighting'"
-                  />
-                </div>
+            <div className="space-y-4">
+              {/* Product Image Picker */}
+              <ProductImagePicker
+                contentPostId={generatedPostId}
+                onImageSelected={(url: string) => {
+                  setGeneratedImageUrl(url);
+                }}
+              />
 
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">LR-Schnell-Prompts:</Label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {[
-                      "Luxus-Porsche vor Villa, goldene Stunde, cinematic, social media post",
-                      "Gesunde Person mit grünem Smoothie, strahlend, modern studio, bright lighting",
-                      "Laptop am Strand, Palmen, digitaler Nomad, Freiheit, warm tones",
-                      "Team-Event, Konfetti, Champagner, Erfolg, professionell, celebration",
-                      "Vorher-Nachher Transformation, split screen, clean design, dramatic",
-                      "Mercedes AMG auf Bergstraße, Sonnenuntergang, epic, cinematic drone shot",
-                      "Aloe Vera Pflanze, Wassertropfen, macro, frisch, Gesundheit, premium",
-                    ].map((p, i) => (
-                      <Badge
-                        key={i}
-                        variant="outline"
-                        className="cursor-pointer hover:bg-accent text-[10px]"
-                        onClick={() => setImagePrompt(p)}
-                      >
-                        {p.slice(0, 40)}...
-                      </Badge>
-                    ))}
+              <Card className="border-border/50">
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Image className="h-4 w-4 text-blue-400" />
+                    KI-Bild generieren
+                  </CardTitle>
+                  <CardDescription>Oder erstelle ein neues Bild mit KI</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Bild-Prompt</Label>
+                    <Textarea
+                      rows={4}
+                      value={imagePrompt}
+                      onChange={e => setImagePrompt(e.target.value)}
+                      placeholder="Beschreibe das Bild... z.B. 'Luxuriöser Porsche vor einer Villa, Sonnenuntergang, cinematic lighting'"
+                    />
                   </div>
-                </div>
 
-                <Button className="w-full gap-2" onClick={handleGenerateImage} disabled={generateImageMut.isPending}>
-                  {generateImageMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
-                  Bild generieren
-                </Button>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">LR-Schnell-Prompts:</Label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        "Luxus-Porsche vor Villa, goldene Stunde, cinematic, social media post",
+                        "Gesunde Person mit grünem Smoothie, strahlend, modern studio, bright lighting",
+                        "Laptop am Strand, Palmen, digitaler Nomad, Freiheit, warm tones",
+                        "Team-Event, Konfetti, Champagner, Erfolg, professionell, celebration",
+                        "Vorher-Nachher Transformation, split screen, clean design, dramatic",
+                        "Mercedes AMG auf Bergstraße, Sonnenuntergang, epic, cinematic drone shot",
+                        "Aloe Vera Pflanze, Wassertropfen, macro, frisch, Gesundheit, premium",
+                      ].map((p, i) => (
+                        <Badge
+                          key={i}
+                          variant="outline"
+                          className="cursor-pointer hover:bg-accent text-[10px]"
+                          onClick={() => setImagePrompt(p)}
+                        >
+                          {p.slice(0, 40)}...
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
 
-                {generatedPostId && (
-                  <p className="text-xs text-muted-foreground text-center">
-                    Wird automatisch an Post #{generatedPostId} angehängt
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+                  <Button className="w-full gap-2" onClick={handleGenerateImage} disabled={generateImageMut.isPending}>
+                    {generateImageMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
+                    Bild generieren
+                  </Button>
+
+                  {generatedPostId && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      Wird automatisch an Post #{generatedPostId} angehängt
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
 
             {generatedImageUrl && (
               <Card className="border-blue-500/30">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base text-blue-400">Generiertes KI-Bild</CardTitle>
+                  <CardTitle className="text-base text-blue-400">Generiertes / Ausgewähltes Bild</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <img src={generatedImageUrl} alt="KI-Bild" className="rounded-lg w-full" />
+                  <img src={generatedImageUrl} alt="Bild" className="rounded-lg w-full" />
                   <div className="flex gap-2 mt-3">
                     <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => window.open(generatedImageUrl, "_blank")}>
                       Vollbild öffnen

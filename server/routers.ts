@@ -285,6 +285,22 @@ export const appRouter = router({
         return result;
       }),
 
+    // Attach a product image URL directly to a content post
+    attachProductImage: protectedProcedure
+      .input(z.object({
+        contentPostId: z.number(),
+        imageUrl: z.string(),
+        productName: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await db.updateContentPost(input.contentPostId, {
+          mediaUrl: input.imageUrl,
+          mediaType: "image",
+          imagePrompt: input.productName ? `Produktbild: ${input.productName}` : "Produktbild",
+        } as any);
+        return { url: input.imageUrl };
+      }),
+
     uploadMedia: protectedProcedure
       .input(z.object({
         contentPostId: z.number(),

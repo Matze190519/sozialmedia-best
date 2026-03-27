@@ -70,3 +70,27 @@
 - [x] Frontend: Produktbild-Bibliothek mit Kategorie-Filter und Suche
 - [x] Frontend: Produktbilder im Content-Generator auswählen können
 - [x] Tests: Vitest für Produkt-Endpoints (12 Tests, 78/78 gesamt bestanden)
+
+## System-Optimierung & Produktionsreif machen (HEUTE!)
+- [x] Produkte in Kategorien eingeteilt (Aloe Vera, Körperpflege, ZEITGARD, Parfum, etc.)
+- [ ] End-to-End-Test: Content erstellen → Freigabe → automatisch posten
+- [x] Freigabe-Workflow klar: Sidebar "Freigabe" mit Badge-Counter + Dashboard-Link
+- [x] Posting-Queue: Dashboard zeigt "Warten auf Freigabe" mit direktem Link
+- [ ] Posting-Zeiten: Automatisch optimal oder manuell festlegen?
+- [ ] Automatisches Posting mit Blotato testen (funktioniert es wirklich?)
+- [x] Content-Mix: 86% Lifestyle / 14% Produkt im Dashboard angezeigt
+- [ ] System generiert automatisch Text + Bild/Video? Testen!
+- [ ] Lina-Integration: Content Hub mit Lina verbinden
+- [ ] Team-Verifizierung: Partner-Freischaltung testen
+
+## Mega-Optimierung - System bis an die Zehenspitzen (27.03.2026)
+- [x] GitHub-Repos durchsuchen nach Erweiterungen (GoViralBitch, Lina, etc.)
+- [x] Navigation radikal vereinfachen - 4 klare Bereiche (Workflow, Intelligence, Ressourcen, System)
+- [x] Content-Mix 86/14 automatisiert (Agent Brain: Autokonzept 3x, Business 4x, Lifestyle 3x, Gesundheit 2x, Lina 2x)
+- [x] Ein-Klick-Workflow: Generator → Freigabe → Auto-Post mit Toggle
+- [x] Smart Scheduling: Zeitpunkt beim Genehmigen wählbar oder sofort posten
+- [ ] Lifestyle-Content-Engine: Freiheit, Autos, Erfolg, Business Bilder/Videos
+- [x] Quick-Start Onboarding-Seite mit 5-Schritt Setup und Fortschrittsanzeige
+- [x] Sidebar-Navigation optimiert: 4 Gruppen (Workflow, Intelligence, Ressourcen, System)
+- [x] Dashboard: 3-Step-Pipeline + "Warten auf Freigabe" + Content-Mix Autopilot
+- [ ] Blotato-Test: Verifizieren dass Auto-Post funktioniert

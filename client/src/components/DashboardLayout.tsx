@@ -23,44 +23,53 @@ import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
 import {
   LayoutDashboard, LogOut, PanelLeft, Users,
-  FileText, CheckCircle, Calendar, Zap,
-  Eye, BookTemplate, BarChart3, Shield,
-  Library, Settings, FlaskConical, TrendingUp, Package,
+  CheckCircle, Calendar, Zap,
+  Eye, BarChart3, Shield,
+  Settings, Package, Rocket, Library,
+  FileText, FlaskConical, TrendingUp, BookTemplate,
+  HelpCircle,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
+import { trpc } from "@/lib/trpc";
 
 const menuSections = [
   {
-    title: "Content",
+    title: "Workflow",
     items: [
-      { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-      { icon: Zap, label: "Generator", path: "/generator" },
-      { icon: FileText, label: "Content Queue", path: "/queue" },
-      { icon: CheckCircle, label: "Freigabe", path: "/approval" },
-      { icon: Calendar, label: "Kalender", path: "/calendar" },
+      { icon: LayoutDashboard, label: "Dashboard", path: "/", desc: "Übersicht & Nächste Posts" },
+      { icon: Zap, label: "Content erstellen", path: "/generator", desc: "Text, Bild & Video" },
+      { icon: CheckCircle, label: "Freigabe", path: "/approval", desc: "Posts prüfen & posten", badge: "pending" as const },
+      { icon: Calendar, label: "Kalender", path: "/calendar", desc: "Posting-Zeitplan" },
     ],
   },
   {
-    title: "Strategie",
+    title: "Intelligence",
     items: [
-      { icon: Eye, label: "Creator Spy", path: "/creator-spy" },
-      { icon: FlaskConical, label: "A/B Tests", path: "/ab-test" },
-      { icon: TrendingUp, label: "Feedback", path: "/feedback" },
-      { icon: BarChart3, label: "Analytics", path: "/analytics" },
+      { icon: Eye, label: "Creator Spy", path: "/creator-spy", desc: "Was geht viral?" },
+      { icon: FlaskConical, label: "A/B Tests", path: "/ab-test", desc: "Was performt besser?" },
+      { icon: TrendingUp, label: "Feedback", path: "/feedback", desc: "Top-Performer analysieren" },
+      { icon: BarChart3, label: "Analytics", path: "/analytics", desc: "Zahlen & Insights" },
     ],
   },
   {
-    title: "Team",
+    title: "Ressourcen",
     items: [
-      { icon: Library, label: "Bibliothek", path: "/library" },
-      { icon: Package, label: "Produktbilder", path: "/products" },
-      { icon: BookTemplate, label: "Vorlagen", path: "/templates" },
-      { icon: Users, label: "Team", path: "/team" },
-      { icon: Settings, label: "Einstellungen", path: "/settings" },
+      { icon: Package, label: "Produktbilder", path: "/products", desc: "226 LR Produkte" },
+      { icon: Library, label: "Bibliothek", path: "/library", desc: "Geteilter Content" },
+      { icon: BookTemplate, label: "Vorlagen", path: "/templates", desc: "Templates & Hooks" },
+      { icon: FileText, label: "Content Queue", path: "/queue", desc: "Alle Posts" },
+    ],
+  },
+  {
+    title: "System",
+    items: [
+      { icon: Users, label: "Team", path: "/team", desc: "Partner verwalten" },
+      { icon: Settings, label: "Einstellungen", path: "/settings", desc: "Blotato, Zeiten, Branding" },
+      { icon: HelpCircle, label: "Quick-Start", path: "/onboarding", desc: "Setup-Anleitung" },
     ],
   },
 ];
@@ -97,11 +106,11 @@ export default function DashboardLayout({
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
           <div className="flex flex-col items-center gap-4">
             <div className="flex items-center gap-3">
-              <Shield className="h-10 w-10 text-primary" />
+              <Rocket className="h-10 w-10 text-primary" />
               <h1 className="text-3xl font-bold tracking-tight">LR Content Hub</h1>
             </div>
             <p className="text-sm text-muted-foreground text-center max-w-sm">
-              Approval Dashboard für das LR Lifestyle Team. Melde dich an um Content zu erstellen, zu reviewen und freizugeben.
+              Die Content-Maschine für das LR Lifestyle Team. Erstelle viralen Content, lass ihn freigeben und poste automatisch auf allen Plattformen.
             </p>
           </div>
           <Button
@@ -145,6 +154,10 @@ function DashboardLayoutContent({
   const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
 
+  // Get pending count for badge
+  const { data: stats } = trpc.dashboard.stats.useQuery();
+  const pendingCount = stats?.pending ?? 0;
+
   useEffect(() => {
     if (isCollapsed) setIsResizing(false);
   }, [isCollapsed]);
@@ -185,8 +198,8 @@ function DashboardLayoutContent({
                 <PanelLeft className="h-4 w-4 text-muted-foreground" />
               </button>
               {!isCollapsed ? (
-                <div className="flex items-center gap-2 min-w-0">
-                  <Shield className="h-5 w-5 text-primary shrink-0" />
+                <div className="flex items-center gap-2 min-w-0 cursor-pointer" onClick={() => setLocation("/")}>
+                  <Rocket className="h-5 w-5 text-primary shrink-0" />
                   <span className="font-bold tracking-tight truncate text-sm">LR Content Hub</span>
                 </div>
               ) : null}
@@ -204,6 +217,7 @@ function DashboardLayoutContent({
                 <SidebarMenu className="px-2">
                   {section.items.map(item => {
                     const isActive = location === item.path;
+                    const showBadge = 'badge' in item && item.badge === "pending" && pendingCount > 0;
                     return (
                       <SidebarMenuItem key={item.path}>
                         <SidebarMenuButton
@@ -213,7 +227,14 @@ function DashboardLayoutContent({
                           className="h-9 transition-all font-normal"
                         >
                           <item.icon className={`h-4 w-4 ${isActive ? "text-primary" : ""}`} />
-                          <span>{item.label}</span>
+                          <span className="flex items-center gap-2">
+                            {item.label}
+                            {showBadge && (
+                              <Badge variant="destructive" className="text-[9px] px-1.5 py-0 h-4 min-w-[1.25rem] flex items-center justify-center">
+                                {pendingCount}
+                              </Badge>
+                            )}
+                          </span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     );
