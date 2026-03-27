@@ -241,3 +241,23 @@ export const optimalPostingTimes = mysqlTable("optimal_posting_times", {
 
 export type OptimalPostingTime = typeof optimalPostingTimes.$inferSelect;
 export type InsertOptimalPostingTime = typeof optimalPostingTimes.$inferInsert;
+
+/**
+ * LR Products - imported from Botpress ProductTable (Lina's database).
+ * Contains all 226+ LR products with original product images from mhware.de.
+ */
+export const lrProducts = mysqlTable("lr_products", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  category: varchar("category", { length: 128 }).notNull(),
+  price: varchar("price", { length: 32 }),
+  imageUrl: text("imageUrl").notNull(),
+  description: text("description"),
+  descriptionWA: text("descriptionWA"),
+  whatsappText: text("whatsappText"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type LRProduct = typeof lrProducts.$inferSelect;
+export type InsertLRProduct = typeof lrProducts.$inferInsert;

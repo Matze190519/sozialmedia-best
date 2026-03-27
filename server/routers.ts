@@ -1077,6 +1077,106 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       }),
   }),
 
+  // ─── LR Products (Botpress Produktbild-Bibliothek) ────────
+  products: router({
+    list: protectedProcedure
+      .input(z.object({
+        category: z.string().optional(),
+        search: z.string().optional(),
+        limit: z.number().optional(),
+        offset: z.number().optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        return db.getLRProducts({
+          category: input?.category,
+          search: input?.search,
+          limit: input?.limit,
+          offset: input?.offset,
+        });
+      }),
+
+    categories: protectedProcedure.query(async () => {
+      return db.getLRProductCategories();
+    }),
+
+    count: protectedProcedure
+      .input(z.object({ category: z.string().optional() }).optional())
+      .query(async ({ input }) => {
+        return db.getLRProductCount(input?.category);
+      }),
+
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const product = await db.getLRProductById(input.id);
+        if (!product) throw new TRPCError({ code: "NOT_FOUND" });
+        return product;
+      }),
+
+    import: adminProcedure.mutation(async () => {
+      // Import products from Botpress ProductTable
+      const https = await import("https");
+      const TOKEN = "bp_bak_0JrsLy9xuwOrJinDMZwYxOXbymwyQ7oguOhh";
+      const BOT_ID = "cac882a1-cf8f-4b8f-9740-8f96ea9558db";
+      const TABLE_ID = "table_01JTKAZKTK0P69PRWZ3PMEYDR9";
+
+      const fetchRows = (offset: number, limit: number): Promise<any> => {
+        return new Promise((resolve, reject) => {
+          const url = `https://api.botpress.cloud/v1/tables/${TABLE_ID}/rows/find`;
+          const body = JSON.stringify({ offset, limit });
+          const options = {
+            method: "POST",
+            headers: {
+              Authorization: `bearer ${TOKEN}`,
+              "x-bot-id": BOT_ID,
+              "Content-Type": "application/json",
+              "Content-Length": String(Buffer.byteLength(body)),
+            },
+          };
+          const req = https.request(url, options, (res: any) => {
+            let data = "";
+            res.on("data", (chunk: string) => (data += chunk));
+            res.on("end", () => {
+              try { resolve(JSON.parse(data)); } catch (e) { reject(e); }
+            });
+          });
+          req.on("error", reject);
+          req.write(body);
+          req.end();
+        });
+      };
+
+      let allRows: any[] = [];
+      let offset = 0;
+      const limit = 100;
+      while (true) {
+        const result = await fetchRows(offset, limit);
+        if (result.rows && result.rows.length > 0) {
+          allRows = allRows.concat(result.rows);
+          if (result.rows.length < limit) break;
+          offset += limit;
+        } else break;
+      }
+
+      // Clear existing and import fresh
+      await db.clearLRProducts();
+      const products = allRows
+        .filter((r: any) => r.Image)
+        .map((r: any) => ({
+          name: r.Name || "Unbekannt",
+          category: r.Categories || "Sonstige",
+          price: r.Price ? String(Math.round(r.Price * 100) / 100) : null,
+          imageUrl: r.Image,
+          description: r.Beschreibung_kurz || null,
+          descriptionWA: r.Beschreibung_kurz_wa || null,
+          whatsappText: r.WhatsApp_Text || null,
+        }));
+
+      const imported = await db.importLRProducts(products);
+      return { imported, total: allRows.length };
+    }),
+  }),
+
   // ─── API Health ────────────────────────────────────────────
   apiHealth: router({
     goViralBitch: publicProcedure.query(async () => {

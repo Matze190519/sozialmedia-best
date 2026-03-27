@@ -15,6 +15,7 @@ import TemplatesPage from "./pages/TemplatesPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import TeamPage from "./pages/TeamPage";
 import LibraryPage from "./pages/LibraryPage";
+import ProductsPage from "./pages/ProductsPage";
 import SettingsPage from "./pages/SettingsPage";
 import ABTestPage from "./pages/ABTestPage";
 import FeedbackPage from "./pages/FeedbackPage";
@@ -31,6 +32,7 @@ function Router() {
         <Route path="/creator-spy" component={CreatorSpyPage} />
         <Route path="/templates" component={TemplatesPage} />
         <Route path="/library" component={LibraryPage} />
+        <Route path="/products" component={ProductsPage} />
         <Route path="/analytics" component={AnalyticsPage} />
         <Route path="/ab-test" component={ABTestPage} />
         <Route path="/feedback" component={FeedbackPage} />

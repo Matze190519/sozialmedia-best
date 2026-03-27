@@ -62,3 +62,11 @@
 - [x] Partner sperren: Admin kann Zugang entziehen
 - [x] Lina API-Endpoint für Content-Abruf (öffentlicher Endpoint)
 - [x] 66/66 Tests bestanden (7 Test-Dateien)
+
+## Produktbild-Bibliothek (Originale LR-Bilder)
+- [x] Botpress ProductTable API-Integration: 226 Produkte mit Originalbildern
+- [x] Datenbank: products Tabelle mit Name, Kategorie, Preis, Bild-URL, Beschreibungen
+- [x] Backend: Produkte importieren und abrufen (tRPC Procedures)
+- [x] Frontend: Produktbild-Bibliothek mit Kategorie-Filter und Suche
+- [x] Frontend: Produktbilder im Content-Generator auswählen können
+- [x] Tests: Vitest für Produkt-Endpoints (12 Tests, 78/78 gesamt bestanden)

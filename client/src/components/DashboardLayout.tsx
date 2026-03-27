@@ -25,7 +25,7 @@ import {
   LayoutDashboard, LogOut, PanelLeft, Users,
   FileText, CheckCircle, Calendar, Zap,
   Eye, BookTemplate, BarChart3, Shield,
-  Library, Settings, FlaskConical, TrendingUp,
+  Library, Settings, FlaskConical, TrendingUp, Package,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -57,6 +57,7 @@ const menuSections = [
     title: "Team",
     items: [
       { icon: Library, label: "Bibliothek", path: "/library" },
+      { icon: Package, label: "Produktbilder", path: "/products" },
       { icon: BookTemplate, label: "Vorlagen", path: "/templates" },
       { icon: Users, label: "Team", path: "/team" },
       { icon: Settings, label: "Einstellungen", path: "/settings" },

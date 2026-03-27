@@ -10,8 +10,10 @@ import {
   contentLibrary, InsertContentLibraryItem,
   abTestGroups, InsertABTestGroup,
   optimalPostingTimes, InsertOptimalPostingTime,
+  lrProducts, InsertLRProduct,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { like } from "drizzle-orm";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -505,5 +507,70 @@ export async function getPartnerByNumber(partnerNumber: string) {
   const result = await db.select().from(users)
     .where(and(eq(users.partnerNumber, partnerNumber), eq(users.isApproved, true)))
     .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+
+// ─── LR Products (from Botpress) ────────────────────────────
+
+export async function getLRProducts(opts?: {
+  category?: string;
+  search?: string;
+  limit?: number;
+  offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions: any[] = [];
+  if (opts?.category) conditions.push(eq(lrProducts.category, opts.category));
+  if (opts?.search) conditions.push(like(lrProducts.name, `%${opts.search}%`));
+  const query = db.select().from(lrProducts);
+  if (conditions.length > 0) {
+    return query.where(and(...conditions)).limit(opts?.limit || 50).offset(opts?.offset || 0);
+  }
+  return query.limit(opts?.limit || 50).offset(opts?.offset || 0);
+}
+
+export async function getLRProductCategories() {
+  const db = await getDb();
+  if (!db) return [];
+  const result = await db.selectDistinct({ category: lrProducts.category }).from(lrProducts);
+  return result.map(r => r.category);
+}
+
+export async function getLRProductCount(category?: string) {
+  const db = await getDb();
+  if (!db) return 0;
+  const conditions: any[] = [];
+  if (category) conditions.push(eq(lrProducts.category, category));
+  const result = conditions.length > 0
+    ? await db.select({ count: sql<number>`count(*)` }).from(lrProducts).where(and(...conditions))
+    : await db.select({ count: sql<number>`count(*)` }).from(lrProducts);
+  return result[0]?.count || 0;
+}
+
+export async function importLRProducts(products: InsertLRProduct[]) {
+  const db = await getDb();
+  if (!db) return 0;
+  let imported = 0;
+  // Insert in batches of 50
+  for (let i = 0; i < products.length; i += 50) {
+    const batch = products.slice(i, i + 50);
+    await db.insert(lrProducts).values(batch);
+    imported += batch.length;
+  }
+  return imported;
+}
+
+export async function clearLRProducts() {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(lrProducts);
+}
+
+export async function getLRProductById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(lrProducts).where(eq(lrProducts.id, id)).limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
