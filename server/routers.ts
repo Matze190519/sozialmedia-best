@@ -238,43 +238,67 @@ export const appRouter = router({
 
   // ─── KI Media Generation ──────────────────────────────────
   media: router({
+    // Premium Bildgenerierung - Nano Banana Pro (Google Gemini 3 Pro Image)
     generateImage: protectedProcedure
       .input(z.object({
         prompt: z.string().min(1),
         contentPostId: z.number().optional(),
+        usePremium: z.boolean().optional(), // true = Nano Banana Pro via fal.ai
+        aspectRatio: z.string().optional(),
+        resolution: z.enum(["1K", "2K", "4K"]).optional(),
       }))
       .mutation(async ({ input }) => {
-        const { generateImage } = await import("./_core/imageGeneration");
-        const result = await generateImage({ prompt: input.prompt });
-        if (!result.url) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Bild konnte nicht generiert werden" });
+        let imageUrl: string;
+
+        if (input.usePremium !== false && process.env.FAL_API_KEY) {
+          // Premium: Nano Banana Pro (beste Qualität)
+          const result = await api.generatePremiumImage({
+            prompt: input.prompt,
+            aspectRatio: (input.aspectRatio as any) || "1:1",
+            resolution: input.resolution || "2K",
+          });
+          imageUrl = result.imageUrl;
+          console.log(`[Premium Image] Nano Banana Pro: ${result.model}`);
+        } else {
+          // Fallback: Built-in Image Generation
+          const { generateImage } = await import("./_core/imageGeneration");
+          const result = await generateImage({ prompt: input.prompt });
+          if (!result.url) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Bild konnte nicht generiert werden" });
+          imageUrl = result.url;
+        }
 
         if (input.contentPostId) {
           await db.updateContentPost(input.contentPostId, {
-            mediaUrl: result.url,
+            mediaUrl: imageUrl,
             mediaType: "image",
             imagePrompt: input.prompt,
           } as any);
         }
 
-        return { url: result.url };
+        return { url: imageUrl };
       }),
 
+    // Premium Videogenerierung - Auto: Veo 3.1 (<=8s) / Kling 3.0 Pro (>8s)
     generateVideo: protectedProcedure
       .input(z.object({
         prompt: z.string().min(1),
         imageUrl: z.string().optional(),
-        model: z.enum(["kling-3", "veo-3", "minimax"]).optional(),
-        duration: z.enum(["5", "10"]).optional(),
+        model: z.enum(["kling-3", "veo-3", "minimax", "auto"]).optional(),
+        duration: z.string().optional(),
         aspectRatio: z.enum(["16:9", "9:16", "1:1"]).optional(),
+        generateAudio: z.boolean().optional(),
+        resolution: z.enum(["720p", "1080p", "4k"]).optional(),
         contentPostId: z.number().optional(),
       }))
       .mutation(async ({ input }) => {
         const result = await api.generateVideoWithFal({
           prompt: input.prompt,
           imageUrl: input.imageUrl,
-          model: input.model,
-          duration: input.duration,
+          model: input.model || "auto", // Auto = immer das Beste
+          duration: input.duration || "5",
           aspectRatio: input.aspectRatio,
+          generateAudio: input.generateAudio,
+          resolution: input.resolution,
         });
 
         if (input.contentPostId) {
@@ -1349,12 +1373,18 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         let imageUrl: string | null = null;
         if (input.generateImage !== false) {
           try {
-            const { generateImage } = await import("./_core/imageGeneration");
-            const result = await generateImage({ prompt: generated.imagePrompt });
-            if (result.url) {
-              imageUrl = result.url;
+            // Premium: Nano Banana Pro wenn FAL_API_KEY vorhanden
+            if (process.env.FAL_API_KEY) {
+              const premiumResult = await api.generatePremiumImage({ prompt: generated.imagePrompt, aspectRatio: "1:1" });
+              imageUrl = premiumResult.imageUrl;
+            } else {
+              const { generateImage } = await import("./_core/imageGeneration");
+              const fallbackResult = await generateImage({ prompt: generated.imagePrompt });
+              imageUrl = fallbackResult.url || null;
+            }
+            if (imageUrl) {
               await db.updateContentPost(postId, {
-                mediaUrl: result.url,
+                mediaUrl: imageUrl,
                 mediaType: "image",
               } as any);
             }
@@ -1624,12 +1654,18 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
           // Generate image automatically
           if (input.includeImage !== false) {
             try {
-              const { generateImage } = await import("./_core/imageGeneration");
-              const imgResult = await generateImage({ prompt: result.imagePrompt });
-              if (imgResult.url) {
-                imageUrl = imgResult.url;
+              // Premium: Nano Banana Pro
+              if (process.env.FAL_API_KEY) {
+                const premiumResult = await api.generatePremiumImage({ prompt: result.imagePrompt, aspectRatio: "1:1" });
+                imageUrl = premiumResult.imageUrl;
+              } else {
+                const { generateImage } = await import("./_core/imageGeneration");
+                const fallbackResult = await generateImage({ prompt: result.imagePrompt });
+                imageUrl = fallbackResult.url || null;
+              }
+              if (imageUrl) {
                 await db.updateContentPost(postId, {
-                  mediaUrl: imgResult.url,
+                  mediaUrl: imageUrl,
                   mediaType: "image",
                   imagePrompt: result.imagePrompt,
                 } as any);
@@ -1645,9 +1681,10 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
               const videoResult = await api.generateVideoWithFal({
                 prompt: result.videoPrompt,
                 imageUrl: imageUrl || undefined,
-                model: "kling-3",
+                model: "auto", // Automatisch: Veo 3.1 (<=8s) oder Kling 3.0 Pro (>8s)
                 duration: "5",
                 aspectRatio: "9:16",
+                generateAudio: true,
               });
               if (videoResult.videoUrl) {
                 await db.updateContentPost(postId, {
@@ -1711,13 +1748,20 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
           });
           postIds.push(postId);
 
-          // Generate image for each
+          // Generate image for each (Premium: Nano Banana Pro)
           try {
-            const { generateImage } = await import("./_core/imageGeneration");
-            const imgResult = await generateImage({ prompt: result.imagePrompt });
-            if (imgResult.url) {
+            let imgUrl: string | null = null;
+            if (process.env.FAL_API_KEY) {
+              const premiumResult = await api.generatePremiumImage({ prompt: result.imagePrompt, aspectRatio: "1:1" });
+              imgUrl = premiumResult.imageUrl;
+            } else {
+              const { generateImage } = await import("./_core/imageGeneration");
+              const fallbackResult = await generateImage({ prompt: result.imagePrompt });
+              imgUrl = fallbackResult.url || null;
+            }
+            if (imgUrl) {
               await db.updateContentPost(postId, {
-                mediaUrl: imgResult.url,
+                mediaUrl: imgUrl,
                 mediaType: "image",
                 imagePrompt: result.imagePrompt,
               } as any);

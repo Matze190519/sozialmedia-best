@@ -60,8 +60,9 @@ const SCRIPT_TEMPLATES = [
 ];
 
 const VIDEO_MODELS = [
-  { value: "kling-3", label: "Kling 3.0 Pro", desc: "Beste Qualität, 5-10s Videos" },
-  { value: "minimax", label: "Minimax Video", desc: "Schnell, gut für Image-to-Video" },
+  { value: "auto", label: "Auto (Beste Qualität)", desc: "Veo 3.1 (<=8s) / Kling 3.0 Pro (>8s)" },
+  { value: "veo-3", label: "Veo 3.1 Fast", desc: "Google, 4K, Audio+Lip-Sync, max 8s" },
+  { value: "kling-3", label: "Kling 3.0 Pro", desc: "Kuaishou, Audio, bis 15s" },
 ];
 
 const ALL_PLATFORMS = [
@@ -94,7 +95,7 @@ export default function GeneratorPage() {
   // Media generation states
   const [imagePrompt, setImagePrompt] = useState("");
   const [videoPrompt, setVideoPrompt] = useState("");
-  const [videoModel, setVideoModel] = useState("kling-3");
+  const [videoModel, setVideoModel] = useState("auto");
   const [videoDuration, setVideoDuration] = useState("5");
   const [videoAspect, setVideoAspect] = useState("9:16");
   const [generatedImageUrl, setGeneratedImageUrl] = useState("");
@@ -217,7 +218,7 @@ export default function GeneratorPage() {
 
   const handleGenerateImage = () => {
     if (!imagePrompt.trim()) { toast.error("Bild-Prompt eingeben"); return; }
-    generateImageMut.mutate({ prompt: imagePrompt, contentPostId: generatedPostId || undefined });
+    generateImageMut.mutate({ prompt: imagePrompt, contentPostId: generatedPostId || undefined, usePremium: true });
   };
 
   const handleGenerateVideo = () => {
@@ -226,8 +227,9 @@ export default function GeneratorPage() {
       prompt: videoPrompt,
       imageUrl: generatedImageUrl || undefined,
       model: videoModel as any,
-      duration: videoDuration as any,
+      duration: videoDuration,
       aspectRatio: videoAspect as any,
+      generateAudio: true,
       contentPostId: generatedPostId || undefined,
     });
   };
@@ -719,8 +721,13 @@ export default function GeneratorPage() {
                     <Select value={videoDuration} onValueChange={setVideoDuration}>
                       <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="5">5 Sekunden</SelectItem>
-                        <SelectItem value="10">10 Sekunden</SelectItem>
+                        <SelectItem value="4">4s</SelectItem>
+                        <SelectItem value="5">5s (Standard)</SelectItem>
+                        <SelectItem value="6">6s</SelectItem>
+                        <SelectItem value="8">8s (Veo 3.1 Max)</SelectItem>
+                        <SelectItem value="10">10s (Kling 3.0)</SelectItem>
+                        <SelectItem value="12">12s (Kling 3.0)</SelectItem>
+                        <SelectItem value="15">15s (Kling 3.0 Max)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

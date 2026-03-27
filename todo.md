@@ -144,3 +144,25 @@
 - [x] Frontend: Kalender-View mit Blotato-Daten synchronisieren (Tabs: Blotato + Dashboard)
 - [x] Frontend: Edit-Dialog (Post-Text bearbeiten), Reschedule-Dialog, Delete-Funktion
 - [x] Tests: Calendar API Integration getestet (14 Tests bestanden)
+
+## Blotato End-to-End Test (27.03.2026)
+- [ ] End-to-End: Post erstellen → freigeben → automatisch über Blotato posten verifizieren
+- [ ] Blotato Slot-Fallback testen (wenn kein Slot frei → nächster optimaler Zeitpunkt)
+
+## Blotato AI Agent Features (27.03.2026)
+- [ ] Blotato AI Agent API recherchieren (Nano Banana 2, Veo 3, neue Bild/Video-Generierung)
+- [ ] Blotato Bildgenerierung via API einbauen (statt/zusätzlich zu fal.ai)
+- [ ] Blotato Videogenerierung via API einbauen (Veo 3 etc.)
+- [ ] Frontend: Blotato AI als Option im Content-Generator
+
+## Lina-Integration mit Botpress (27.03.2026)
+- [ ] Content Hub API-Endpoint für Botpress Lina erstellen (öffentlich)
+- [ ] Endpoint liefert: neueste Posts, Kategorien, Status
+- [ ] Anleitung für Botpress Studio: API-Aufruf einrichten
+- [ ] Testen ob Lina den Content Hub korrekt abruft
+
+## Premium KI-Modelle Upgrade (27.03.2026)
+- [x] Bild: Nano Banana Pro (immer das Beste, $0.15/Bild)
+- [x] Video: Veo 3.1 Fast (Standard, bis 8s, 4K, Audio) + Kling 3.0 Pro (Fallback >8s, bis 15s)
+- [x] Automatische Modellwahl: Veo 3.1 für kurze Videos, Kling 3.0 Pro für lange
+- [x] Blotato Visual Templates als Zusatz-Option (Carousels, Quote Cards)

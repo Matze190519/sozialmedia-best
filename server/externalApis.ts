@@ -393,15 +393,64 @@ export function runQualityGate(content: string, platform: string): QualityCheckR
 }
 
 // ═══════════════════════════════════════════════════════════════
-// fal.ai VIDEO-KI - Kling 3.0 Pro, Veo 3.1
+// fal.ai PREMIUM BILD-KI - Nano Banana Pro (Google Gemini 3 Pro Image)
+// ═══════════════════════════════════════════════════════════════
+
+export interface PremiumImageRequest {
+  prompt: string;
+  aspectRatio?: "21:9" | "16:9" | "3:2" | "4:3" | "5:4" | "1:1" | "4:5" | "3:4" | "2:3" | "9:16";
+  resolution?: "1K" | "2K" | "4K";
+  outputFormat?: "jpeg" | "png" | "webp";
+}
+
+export interface PremiumImageResult {
+  imageUrl: string;
+  model: string;
+  description: string;
+}
+
+export async function generatePremiumImage(req: PremiumImageRequest): Promise<PremiumImageResult> {
+  const currentKey = process.env.FAL_API_KEY || "";
+  if (!currentKey) {
+    throw new Error("FAL_API_KEY ist nicht konfiguriert. Bitte in den Settings hinterlegen.");
+  }
+
+  fal.config({ credentials: currentKey });
+
+  const input: any = {
+    prompt: req.prompt,
+    num_images: 1,
+    aspect_ratio: req.aspectRatio || "1:1",
+    resolution: req.resolution || "2K",
+    output_format: req.outputFormat || "png",
+  };
+  const result = await fal.subscribe("fal-ai/nano-banana-pro", { input }) as { data: { images: Array<{ url: string; content_type: string }>; description: string } };
+
+  const imageUrl = result.data?.images?.[0]?.url || "";
+  if (!imageUrl) {
+    throw new Error("Nano Banana Pro hat kein Bild generiert");
+  }
+
+  return {
+    imageUrl,
+    model: "nano-banana-pro",
+    description: result.data?.description || "",
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// fal.ai PREMIUM VIDEO-KI - Veo 3.1 Fast + Kling 3.0 Pro
+// Automatische Modellwahl: Veo 3.1 (bis 8s), Kling 3.0 Pro (>8s bis 15s)
 // ═══════════════════════════════════════════════════════════════
 
 export interface VideoGenerationRequest {
   prompt: string;
   imageUrl?: string;
-  model?: "kling-3" | "veo-3" | "minimax";
-  duration?: "5" | "10";
+  model?: "kling-3" | "veo-3" | "minimax" | "auto";
+  duration?: string;
   aspectRatio?: "16:9" | "9:16" | "1:1";
+  generateAudio?: boolean;
+  resolution?: "720p" | "1080p" | "4k";
 }
 
 export interface VideoGenerationResult {
@@ -410,61 +459,110 @@ export interface VideoGenerationResult {
   duration: string;
 }
 
+/** Automatische Premium-Modellwahl: Veo 3.1 für <=8s, Kling 3.0 Pro für >8s */
+function selectBestVideoModel(duration: string, hasImage: boolean): { model: "veo-3" | "kling-3"; reason: string } {
+  const dur = parseInt(duration, 10) || 5;
+  if (dur <= 8) {
+    return { model: "veo-3", reason: `Veo 3.1 Fast (${dur}s, 4K, Audio+Lip-Sync)` };
+  }
+  return { model: "kling-3", reason: `Kling 3.0 Pro (${dur}s, bis 15s, Audio)` };
+}
+
 export async function generateVideoWithFal(req: VideoGenerationRequest): Promise<VideoGenerationResult> {
   const currentKey = process.env.FAL_API_KEY || "";
   if (!currentKey) {
     throw new Error("FAL_API_KEY ist nicht konfiguriert. Bitte in den Settings hinterlegen.");
   }
 
-  const model = req.model || "kling-3";
   const duration = req.duration || "5";
-  const aspectRatio = req.aspectRatio || "16:9";
+  const aspectRatio = req.aspectRatio || "9:16";
+  const generateAudio = req.generateAudio !== false;
+
+  // Auto-Modellwahl: Immer das Beste
+  let effectiveModel = req.model || "auto";
+  if (effectiveModel === "auto" || effectiveModel === "minimax") {
+    const best = selectBestVideoModel(duration, !!req.imageUrl);
+    effectiveModel = best.model;
+    console.log(`[Premium Video] Auto-Wahl: ${best.reason}`);
+  }
 
   let falModel: string;
   let input: Record<string, unknown>;
 
-  switch (model) {
-    case "kling-3":
+  switch (effectiveModel) {
+    case "veo-3": {
+      // Veo 3.1 Fast - Bestes Modell, max 8s, 4K, nativer Audio+Lip-Sync
+      const veoDuration = Math.min(parseInt(duration, 10) || 5, 8);
+      const veoAspect = aspectRatio === "1:1" ? "16:9" : aspectRatio; // Veo unterstützt nur 16:9 und 9:16
+
       if (req.imageUrl) {
-        falModel = "fal-ai/kling-video/v2.1/master/image-to-video";
+        falModel = "fal-ai/veo3.1/image-to-video";
         input = {
           prompt: req.prompt,
           image_url: req.imageUrl,
-          duration,
-          aspect_ratio: aspectRatio,
+          duration: `${veoDuration}s`,
+          aspect_ratio: veoAspect,
+          resolution: req.resolution || "1080p",
+          generate_audio: generateAudio,
         };
       } else {
-        falModel = "fal-ai/kling-video/v2.1/master/text-to-video";
+        falModel = "fal-ai/veo3.1";
         input = {
           prompt: req.prompt,
-          duration,
-          aspect_ratio: aspectRatio,
+          duration: `${veoDuration}s`,
+          aspect_ratio: veoAspect,
+          resolution: req.resolution || "1080p",
+          generate_audio: generateAudio,
         };
       }
       break;
-    case "minimax":
-      falModel = "fal-ai/minimax-video/image-to-video";
-      input = {
-        prompt: req.prompt,
-        image_url: req.imageUrl,
-      };
+    }
+    case "kling-3": {
+      // Kling 3.0 Pro - Für längere Videos (bis 15s), Audio
+      const klingDuration = Math.min(Math.max(parseInt(duration, 10) || 5, 3), 15).toString();
+
+      if (req.imageUrl) {
+        falModel = "fal-ai/kling-video/v3/pro/image-to-video";
+        input = {
+          prompt: req.prompt,
+          start_image_url: req.imageUrl, // Kling v3 nutzt start_image_url!
+          duration: klingDuration,
+          generate_audio: generateAudio,
+          negative_prompt: "blur, distort, and low quality",
+        };
+      } else {
+        falModel = "fal-ai/kling-video/v3/pro/text-to-video";
+        input = {
+          prompt: req.prompt,
+          duration: klingDuration,
+          aspect_ratio: aspectRatio,
+          generate_audio: generateAudio,
+          negative_prompt: "blur, distort, and low quality",
+        };
+      }
       break;
-    default:
-      falModel = "fal-ai/kling-video/v2.1/master/text-to-video";
+    }
+    default: {
+      // Fallback auf Veo 3.1
+      falModel = "fal-ai/veo3.1";
       input = {
         prompt: req.prompt,
-        duration,
-        aspect_ratio: aspectRatio,
+        duration: "5s",
+        aspect_ratio: aspectRatio === "1:1" ? "16:9" : aspectRatio,
+        resolution: "1080p",
+        generate_audio: generateAudio,
       };
+    }
   }
 
   // Configure fal with current key at runtime
   fal.config({ credentials: currentKey });
+  console.log(`[Premium Video] Generiere mit ${falModel}, Duration: ${duration}, Audio: ${generateAudio}`);
   const result = await fal.subscribe(falModel, { input }) as { data: { video: { url: string } } };
 
   return {
     videoUrl: result.data?.video?.url || "",
-    model,
+    model: effectiveModel,
     duration,
   };
 }
@@ -828,3 +926,69 @@ export const LR_BLOTATO_ACCOUNTS: BlotatoAccount[] = [
   { id: 6683, platform: "tiktok", username: "lr_lifestyleteam" },
   { id: 2961, platform: "twitter", username: "Matze39063828" },
 ];
+
+// ═══════════════════════════════════════════════════════════════
+// BLOTATO VISUAL API - Carousels, Quote Cards, Infografiken
+// ═══════════════════════════════════════════════════════════════
+
+export interface BlotatoVisualRequest {
+  prompt: string;
+  templateId?: string;
+  apiKey?: string;
+}
+
+export interface BlotatoVisualResult {
+  id: string;
+  status: "pending" | "processing" | "completed" | "failed";
+  mediaUrl?: string;
+  imageUrls?: string[];
+}
+
+/** Blotato Visual erstellen (Carousel, Quote Card, Infografik) */
+export async function createBlotatoVisual(req: BlotatoVisualRequest): Promise<BlotatoVisualResult> {
+  const body: Record<string, unknown> = {
+    prompt: req.prompt,
+  };
+  if (req.templateId) body.templateId = req.templateId;
+
+  const data = await callBlotato("/visuals", "POST", body, req.apiKey);
+  return {
+    id: data?.id || data?.visual?.id || "",
+    status: data?.status || "pending",
+    mediaUrl: data?.mediaUrl,
+    imageUrls: data?.imageUrls,
+  };
+}
+
+/** Blotato Visual Status abfragen (Polling) */
+export async function getBlotatoVisualStatus(visualId: string, apiKey?: string): Promise<BlotatoVisualResult> {
+  const data = await callBlotato(`/visuals/${visualId}`, "GET", undefined, apiKey);
+  return {
+    id: visualId,
+    status: data?.status || "pending",
+    mediaUrl: data?.mediaUrl || data?.visual?.mediaUrl,
+    imageUrls: data?.imageUrls || data?.visual?.imageUrls,
+  };
+}
+
+/** Blotato Visual erstellen und auf Fertigstellung warten (max 60s) */
+export async function createAndWaitForVisual(req: BlotatoVisualRequest): Promise<BlotatoVisualResult> {
+  const created = await createBlotatoVisual(req);
+  if (!created.id) throw new Error("Blotato Visual konnte nicht erstellt werden");
+
+  // Polling: max 60 Sekunden warten
+  const maxWait = 60000;
+  const interval = 3000;
+  let elapsed = 0;
+
+  while (elapsed < maxWait) {
+    await new Promise(resolve => setTimeout(resolve, interval));
+    elapsed += interval;
+
+    const status = await getBlotatoVisualStatus(created.id, req.apiKey);
+    if (status.status === "completed") return status;
+    if (status.status === "failed") throw new Error("Blotato Visual Generierung fehlgeschlagen");
+  }
+
+  throw new Error("Blotato Visual Timeout nach 60 Sekunden");
+}
