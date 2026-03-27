@@ -1,0 +1,22 @@
+{
+  "query": "SELECT id, status, LEFT(content, 200) as text_preview, mediaUrl, videoUrl, blotatoPostIds FROM content_posts WHERE id IN (210002, 240001) ORDER BY id DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2MMwKENouVPXHxW.e9031793a226 --database UJZxdmp3sY63YUqiVd8uaj --execute SELECT id, status, LEFT(content, 200) as text_preview, mediaUrl, videoUrl, blotatoPostIds FROM content_posts WHERE id IN (210002, 240001) ORDER BY id DESC;",
+  "rows": [
+    {
+      "id": "210002",
+      "status": "scheduled",
+      "text_preview": "Test B content",
+      "mediaUrl": "NULL",
+      "videoUrl": "NULL",
+      "blotatoPostIds": "[\"instagram-1774643503225\"]"
+    }
+  ],
+  "messages": [
+    "240001\tscheduled\tOkay, hier ist dein viraler Instagram-Post für das LR Lifestyle Team! 🚀",
+    "---",
+    "**(Reel-Video-Konzept: Startet mit einem schnellen Schnitt von jemandem, der am Laptop an einem Traumstrand arbeitet, dann\tNULL\tNULL\t[]"
+  ],
+  "stdout": "id\tstatus\ttext_preview\tmediaUrl\tvideoUrl\tblotatoPostIds\n240001\tscheduled\tOkay, hier ist dein viraler Instagram-Post für das LR Lifestyle Team! 🚀\n\n---\n\n**(Reel-Video-Konzept: Startet mit einem schnellen Schnitt von jemandem, der am Laptop an einem Traumstrand arbeitet, dann\tNULL\tNULL\t[]\n210002\tscheduled\tTest B content\tNULL\tNULL\t[\"instagram-1774643503225\"]\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}

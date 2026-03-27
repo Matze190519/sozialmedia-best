@@ -1,0 +1,131 @@
+{
+  "query": "SELECT id, status, LEFT(content, 80) as text_preview, mediaUrl, videoUrl, mediaType, platforms, blotatoPostIds, scheduledAt, publishedAt, updatedAt FROM content_posts ORDER BY updatedAt DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2MMwKENouVPXHxW.e9031793a226 --database UJZxdmp3sY63YUqiVd8uaj --execute SELECT id, status, LEFT(content, 80) as text_preview, mediaUrl, videoUrl, mediaType, platforms, blotatoPostIds, scheduledAt, publishedAt, updatedAt FROM content_posts ORDER BY updatedAt DESC LIMIT 10;",
+  "rows": [
+    {
+      "id": "210002",
+      "status": "scheduled",
+      "text_preview": "Test B content",
+      "mediaUrl": "NULL",
+      "videoUrl": "NULL",
+      "mediaType": "none",
+      "platforms": "[\"instagram\"]",
+      "blotatoPostIds": "[\"instagram-1774643503225\"]",
+      "scheduledAt": "NULL",
+      "publishedAt": "NULL",
+      "updatedAt": "2026-03-27 20:31:43"
+    },
+    {
+      "id": "210001",
+      "status": "pending",
+      "text_preview": "Test A content",
+      "mediaUrl": "NULL",
+      "videoUrl": "NULL",
+      "mediaType": "none",
+      "platforms": "[\"instagram\"]",
+      "blotatoPostIds": "NULL",
+      "scheduledAt": "NULL",
+      "publishedAt": "NULL",
+      "updatedAt": "2026-03-27 16:40:33"
+    },
+    {
+      "id": "180004",
+      "status": "pending",
+      "text_preview": "Test B content",
+      "mediaUrl": "NULL",
+      "videoUrl": "NULL",
+      "mediaType": "none",
+      "platforms": "[\"instagram\"]",
+      "blotatoPostIds": "NULL",
+      "scheduledAt": "NULL",
+      "publishedAt": "NULL",
+      "updatedAt": "2026-03-27 16:17:41"
+    },
+    {
+      "id": "180003",
+      "status": "pending",
+      "text_preview": "Test A content",
+      "mediaUrl": "NULL",
+      "videoUrl": "NULL",
+      "mediaType": "none",
+      "platforms": "[\"instagram\"]",
+      "blotatoPostIds": "NULL",
+      "scheduledAt": "NULL",
+      "publishedAt": "NULL",
+      "updatedAt": "2026-03-27 16:17:41"
+    },
+    {
+      "id": "180001",
+      "status": "pending",
+      "text_preview": "Test A content",
+      "mediaUrl": "NULL",
+      "videoUrl": "NULL",
+      "mediaType": "none",
+      "platforms": "[\"instagram\"]",
+      "blotatoPostIds": "NULL",
+      "scheduledAt": "NULL",
+      "publishedAt": "NULL",
+      "updatedAt": "2026-03-27 16:00:55"
+    },
+    {
+      "id": "180002",
+      "status": "pending",
+      "text_preview": "Test B content",
+      "mediaUrl": "NULL",
+      "videoUrl": "NULL",
+      "mediaType": "none",
+      "platforms": "[\"instagram\"]",
+      "blotatoPostIds": "NULL",
+      "scheduledAt": "NULL",
+      "publishedAt": "NULL",
+      "updatedAt": "2026-03-27 16:00:55"
+    },
+    {
+      "id": "150006",
+      "status": "pending",
+      "text_preview": "Test B content",
+      "mediaUrl": "NULL",
+      "videoUrl": "NULL",
+      "mediaType": "none",
+      "platforms": "[\"instagram\"]",
+      "blotatoPostIds": "NULL",
+      "scheduledAt": "NULL",
+      "publishedAt": "NULL",
+      "updatedAt": "2026-03-27 15:24:58"
+    },
+    {
+      "id": "150005",
+      "status": "pending",
+      "text_preview": "Test A content",
+      "mediaUrl": "NULL",
+      "videoUrl": "NULL",
+      "mediaType": "none",
+      "platforms": "[\"instagram\"]",
+      "blotatoPostIds": "NULL",
+      "scheduledAt": "NULL",
+      "publishedAt": "NULL",
+      "updatedAt": "2026-03-27 15:24:58"
+    },
+    {
+      "id": "150003",
+      "status": "pending",
+      "text_preview": "Test A content",
+      "mediaUrl": "NULL",
+      "videoUrl": "NULL",
+      "mediaType": "none",
+      "platforms": "[\"instagram\"]",
+      "blotatoPostIds": "NULL",
+      "scheduledAt": "NULL",
+      "publishedAt": "NULL",
+      "updatedAt": "2026-03-27 15:24:03"
+    }
+  ],
+  "messages": [
+    "240001\tscheduled\tOkay, hier ist dein viraler Instagram-Post für das LR Lifestyle Team! 🚀",
+    "---",
+    "**\tNULL\tNULL\tnone\t[\"instagram\"]\t[]\tNULL\tNULL\t2026-03-27 20:31:37"
+  ],
+  "stdout": "id\tstatus\ttext_preview\tmediaUrl\tvideoUrl\tmediaType\tplatforms\tblotatoPostIds\tscheduledAt\tpublishedAt\tupdatedAt\n210002\tscheduled\tTest B content\tNULL\tNULL\tnone\t[\"instagram\"]\t[\"instagram-1774643503225\"]\tNULL\tNULL\t2026-03-27 20:31:43\n240001\tscheduled\tOkay, hier ist dein viraler Instagram-Post für das LR Lifestyle Team! 🚀\n\n---\n\n**\tNULL\tNULL\tnone\t[\"instagram\"]\t[]\tNULL\tNULL\t2026-03-27 20:31:37\n210001\tpending\tTest A content\tNULL\tNULL\tnone\t[\"instagram\"]\tNULL\tNULL\tNULL\t2026-03-27 16:40:33\n180004\tpending\tTest B content\tNULL\tNULL\tnone\t[\"instagram\"]\tNULL\tNULL\tNULL\t2026-03-27 16:17:41\n180003\tpending\tTest A content\tNULL\tNULL\tnone\t[\"instagram\"]\tNULL\tNULL\tNULL\t2026-03-27 16:17:41\n180001\tpending\tTest A content\tNULL\tNULL\tnone\t[\"instagram\"]\tNULL\tNULL\tNULL\t2026-03-27 16:00:55\n180002\tpending\tTest B content\tNULL\tNULL\tnone\t[\"instagram\"]\tNULL\tNULL\tNULL\t2026-03-27 16:00:55\n150006\tpending\tTest B content\tNULL\tNULL\tnone\t[\"instagram\"]\tNULL\tNULL\tNULL\t2026-03-27 15:24:58\n150005\tpending\tTest A content\tNULL\tNULL\tnone\t[\"instagram\"]\tNULL\tNULL\tNULL\t2026-03-27 15:24:58\n150003\tpending\tTest A content\tNULL\tNULL\tnone\t[\"instagram\"]\tNULL\tNULL\tNULL\t2026-03-27 15:24:03\n",
+  "stderr": "",
+  "execution_time_ms": 64
+}

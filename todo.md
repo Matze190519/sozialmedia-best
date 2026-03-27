@@ -166,3 +166,20 @@
 - [x] Video: Veo 3.1 Fast (Standard, bis 8s, 4K, Audio) + Kling 3.0 Pro (Fallback >8s, bis 15s)
 - [x] Automatische Modellwahl: Veo 3.1 für kurze Videos, Kling 3.0 Pro für lange
 - [x] Blotato Visual Templates als Zusatz-Option (Carousels, Quote Cards)
+
+## Live-Test + Mobile Fix (27.03.2026)
+- [x] Alte Test-Posts aus DB löschen (aufräumen)
+- [x] Echten Premium-Post mit Nano Banana Pro Bild generieren und in Freigabe schieben
+- [x] Mobile Ansicht verbessern (responsive Sidebar, bessere Touch-Bedienung)
+- [x] Alle generierten Texte auf Deutsch sicherstellen
+- [ ] Live-Test: User gibt frei → Blotato postet auf Instagram
+
+## Fixes nach Live-Test (27.03.2026)
+- [x] Bild 2 (Autokonzept) lädt nicht - neu generiert mit Veo 3.1 Video
+- [x] Hashtags auf max 5 reduziert (Instagram-Empfehlung 2026)
+- [x] Videos: Veo 3.1 Video für Autokonzept-Post generiert (4s, 9:16)
+- [x] Bilder: NO TEXT Anweisung automatisch an jeden Prompt
+- [x] System-weit: Hashtag-Limit auf 5 für Instagram gesetzt
+- [x] System-weit: Bild-Prompts OHNE Text-Anweisungen
+- [x] GoViralBitch Content auf Deutsch gesetzt (language: deutsch)
+- [x] Veo 3.1 Duration-Fix (nur 4s/6s/8s erlaubt)

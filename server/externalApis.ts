@@ -368,8 +368,11 @@ export function runQualityGate(content: string, platform: string): QualityCheckR
   if (["instagram", "tiktok", "linkedin"].includes(platform.toLowerCase()) && hashtagCount === 0) {
     checks.push({ name: "Hashtags", passed: false, message: "Keine Hashtags gefunden - für diese Plattform empfohlen", severity: "warning" });
     score -= 5;
-  } else if (hashtagCount > 30) {
-    checks.push({ name: "Hashtags", passed: false, message: "Zu viele Hashtags (max. 30)", severity: "warning" });
+  } else if (platform.toLowerCase() === "instagram" && hashtagCount > 5) {
+    checks.push({ name: "Hashtags", passed: false, message: `Zu viele Hashtags für Instagram (${hashtagCount}, max. 5 empfohlen seit 2026)`, severity: "warning" });
+    score -= 5;
+  } else if (hashtagCount > 15) {
+    checks.push({ name: "Hashtags", passed: false, message: `Zu viele Hashtags (${hashtagCount})`, severity: "warning" });
     score -= 5;
   } else {
     checks.push({ name: "Hashtags", passed: true, message: `${hashtagCount} Hashtags - OK`, severity: "info" });
@@ -417,8 +420,11 @@ export async function generatePremiumImage(req: PremiumImageRequest): Promise<Pr
 
   fal.config({ credentials: currentKey });
 
+  // Sicherstellen dass kein Text im Bild generiert wird
+  const cleanPrompt = req.prompt.includes("no text") ? req.prompt : `${req.prompt}. Absolutely no text, no words, no letters, no watermarks in the image.`;
+
   const input: any = {
-    prompt: req.prompt,
+    prompt: cleanPrompt,
     num_images: 1,
     aspect_ratio: req.aspectRatio || "1:1",
     resolution: req.resolution || "2K",
@@ -492,7 +498,9 @@ export async function generateVideoWithFal(req: VideoGenerationRequest): Promise
   switch (effectiveModel) {
     case "veo-3": {
       // Veo 3.1 Fast - Bestes Modell, max 8s, 4K, nativer Audio+Lip-Sync
-      const veoDuration = Math.min(parseInt(duration, 10) || 5, 8);
+      // Veo 3.1 erlaubt nur 4s, 6s oder 8s
+      const rawDur = Math.min(parseInt(duration, 10) || 5, 8);
+      const veoDuration = rawDur <= 4 ? 4 : rawDur <= 6 ? 6 : 8;
       const veoAspect = aspectRatio === "1:1" ? "16:9" : aspectRatio; // Veo unterstützt nur 16:9 und 9:16
 
       if (req.imageUrl) {
@@ -502,7 +510,7 @@ export async function generateVideoWithFal(req: VideoGenerationRequest): Promise
           image_url: req.imageUrl,
           duration: `${veoDuration}s`,
           aspect_ratio: veoAspect,
-          resolution: req.resolution || "1080p",
+          resolution: req.resolution || "720p",
           generate_audio: generateAudio,
         };
       } else {
@@ -649,35 +657,35 @@ export async function goViralBitchHealthCheck(): Promise<boolean> {
 }
 
 export async function generatePost(req: GoViralBitchPostRequest) {
-  return callGoViralBitch("post", req as Record<string, unknown>);
+  return callGoViralBitch("post", { ...req, language: "deutsch", max_hashtags: 5 } as Record<string, unknown>);
 }
 
 export async function generateReel(req: GoViralBitchReelRequest) {
-  return callGoViralBitch("reel", req as Record<string, unknown>);
+  return callGoViralBitch("reel", { ...req, language: "deutsch", max_hashtags: 5 } as Record<string, unknown>);
 }
 
 export async function generateStory(req: GoViralBitchPostRequest) {
-  return callGoViralBitch("story", req as Record<string, unknown>);
+  return callGoViralBitch("story", { ...req, language: "deutsch", max_hashtags: 5 } as Record<string, unknown>);
 }
 
 export async function generateHooks(req: GoViralBitchHookRequest) {
-  return callGoViralBitch("hooks", req as Record<string, unknown>);
+  return callGoViralBitch("hooks", { ...req, language: "deutsch" } as Record<string, unknown>);
 }
 
 export async function generateAdCopy(req: GoViralBitchAdCopyRequest) {
-  return callGoViralBitch("ad-copy", req as Record<string, unknown>);
+  return callGoViralBitch("ad-copy", { ...req, language: "deutsch" } as Record<string, unknown>);
 }
 
 export async function generateFollowUp(req: GoViralBitchFollowUpRequest) {
-  return callGoViralBitch("follow-up", req as unknown as Record<string, unknown>);
+  return callGoViralBitch("follow-up", { ...req, language: "deutsch" } as unknown as Record<string, unknown>);
 }
 
 export async function generateObjection(req: GoViralBitchObjectionRequest) {
-  return callGoViralBitch("objection", req as unknown as Record<string, unknown>);
+  return callGoViralBitch("objection", { ...req, language: "deutsch" } as unknown as Record<string, unknown>);
 }
 
 export async function generateBatch(req: GoViralBitchBatchRequest) {
-  return callGoViralBitch("batch", req as Record<string, unknown>);
+  return callGoViralBitch("batch", { ...req, language: "deutsch", max_hashtags: 5 } as Record<string, unknown>);
 }
 
 // ═══════════════════════════════════════════════════════════════

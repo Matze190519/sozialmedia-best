@@ -12,12 +12,12 @@ import { callDataApi } from "./_core/dataApi";
 
 const PLATFORM_RULES: Record<string, { maxHashtags: number; style: string; placement: string }> = {
   instagram: {
-    maxHashtags: 30,
-    style: "Mix aus großen (1M+), mittleren (100K-1M) und Nischen-Hashtags (<100K). Erste 5 Hashtags sind die wichtigsten.",
+    maxHashtags: 5,
+    style: "Nur 3-5 hochrelevante Hashtags. Mix aus 1 Brand, 2 Nische, 2 Trending. Instagram 2026: Weniger ist mehr.",
     placement: "Unter dem Post oder im ersten Kommentar",
   },
   tiktok: {
-    maxHashtags: 8,
+    maxHashtags: 5,
     style: "Nur die relevantesten Trend-Hashtags. Kurz und knackig. FYP-Hashtags einbauen.",
     placement: "In der Caption",
   },
@@ -27,7 +27,7 @@ const PLATFORM_RULES: Record<string, { maxHashtags: number; style: string; place
     placement: "Am Ende des Posts",
   },
   facebook: {
-    maxHashtags: 5,
+    maxHashtags: 3,
     style: "Wenige, aber relevante Hashtags. Nicht übertreiben.",
     placement: "Am Ende des Posts",
   },
@@ -42,7 +42,7 @@ const PLATFORM_RULES: Record<string, { maxHashtags: number; style: string; place
     placement: "In der Videobeschreibung und als Tags",
   },
   threads: {
-    maxHashtags: 5,
+    maxHashtags: 3,
     style: "Ähnlich wie Twitter - wenige, relevante Tags.",
     placement: "Am Ende des Posts",
   },
@@ -383,8 +383,8 @@ Generiere für jeden Tag 1-2 Posts mit:
 - Thema/Topic
 - Hook (erster Satz)
 - Plattform
-- 5 Hashtags
-- Bild-Prompt (englisch, für KI-Bildgenerierung)
+- 3-5 Hashtags (Instagram max 5!)
+- Bild-Prompt (englisch, für KI-Bildgenerierung, KEIN Text im Bild)
 
 Antworte als JSON mit einem Array "posts" und einem "summary" String.`
       }

@@ -221,7 +221,7 @@ REGELN:
 ${req.topic ? `Thema: ${req.topic}` : "Wähle ein passendes Thema."}
 Stimmung: ${mood}
 
-Antworte als JSON mit: text (fertiger Post), hook (erster Satz), hashtags (Array mit 5-10 passenden Hashtags).`
+Antworte als JSON mit: text (fertiger Post auf DEUTSCH), hook (erster Satz), hashtags (Array mit GENAU 5 passenden Hashtags - nicht mehr!).`
       }
     ],
     response_format: {
@@ -237,7 +237,7 @@ Antworte als JSON mit: text (fertiger Post), hook (erster Satz), hashtags (Array
             hashtags: {
               type: "array",
               items: { type: "string" },
-              description: "5-10 passende Hashtags",
+              description: "Genau 5 passende Hashtags",
             },
           },
           required: ["text", "hook", "hashtags"],

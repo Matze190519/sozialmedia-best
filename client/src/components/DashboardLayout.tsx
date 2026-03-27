@@ -228,9 +228,9 @@ function DashboardLayoutContent({
                       <SidebarMenuItem key={item.path}>
                         <SidebarMenuButton
                           isActive={isActive}
-                          onClick={() => setLocation(item.path)}
+                          onClick={() => { setLocation(item.path); if (isMobile) toggleSidebar(); }}
                           tooltip={item.label}
-                          className="h-9 transition-all font-normal"
+                          className="h-10 md:h-9 transition-all font-normal"
                         >
                           <item.icon className={`h-4 w-4 ${isActive ? "text-primary" : ""}`} />
                           <span className="flex items-center gap-2">
@@ -295,7 +295,7 @@ function DashboardLayoutContent({
             </div>
           </div>
         )}
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+        <main className="flex-1 p-3 md:p-6 pb-20 md:pb-6">{children}</main>
       </SidebarInset>
     </>
   );

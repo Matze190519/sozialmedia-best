@@ -1,0 +1,13 @@
+{
+  "query": "SELECT id, status, LEFT(content, 300) as text_preview, mediaUrl, videoUrl, blotatoPostIds, scheduledAt FROM content_posts WHERE id = 240001;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2MMwKENouVPXHxW.e9031793a226 --database UJZxdmp3sY63YUqiVd8uaj --execute SELECT id, status, LEFT(content, 300) as text_preview, mediaUrl, videoUrl, blotatoPostIds, scheduledAt FROM content_posts WHERE id = 240001;",
+  "rows": [],
+  "messages": [
+    "240001\tscheduled\tOkay, hier ist dein viraler Instagram-Post für das LR Lifestyle Team! 🚀",
+    "---",
+    "**(Reel-Video-Konzept: Startet mit einem schnellen Schnitt von jemandem, der am Laptop an einem Traumstrand arbeitet, dann ein Blick auf eine Uhr, die 10:00 Uhr anzeigt, dann ein Schnitt zu einem vollen Büro, gestresste Ge\tNULL\tNULL\t[]\tNULL"
+  ],
+  "stdout": "id\tstatus\ttext_preview\tmediaUrl\tvideoUrl\tblotatoPostIds\tscheduledAt\n240001\tscheduled\tOkay, hier ist dein viraler Instagram-Post für das LR Lifestyle Team! 🚀\n\n---\n\n**(Reel-Video-Konzept: Startet mit einem schnellen Schnitt von jemandem, der am Laptop an einem Traumstrand arbeitet, dann ein Blick auf eine Uhr, die 10:00 Uhr anzeigt, dann ein Schnitt zu einem vollen Büro, gestresste Ge\tNULL\tNULL\t[]\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}
