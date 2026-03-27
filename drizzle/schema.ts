@@ -261,3 +261,48 @@ export const lrProducts = mysqlTable("lr_products", {
 
 export type LRProduct = typeof lrProducts.$inferSelect;
 export type InsertLRProduct = typeof lrProducts.$inferInsert;
+
+/**
+ * Trend Scans - live viral trend data from TikTok, YouTube, Reddit.
+ * The Trend-Scanner automatically discovers what's going viral.
+ */
+export const trendScans = mysqlTable("trend_scans", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Platform: tiktok, youtube, reddit, twitter */
+  platform: varchar("platform", { length: 32 }).notNull(),
+  /** Search keyword used */
+  keyword: varchar("keyword", { length: 255 }).notNull(),
+  /** Content pillar this trend belongs to */
+  pillar: varchar("pillar", { length: 128 }),
+  /** Title/description of the trending content */
+  title: text("title").notNull(),
+  /** URL to the original content */
+  sourceUrl: text("sourceUrl"),
+  /** Thumbnail/preview image */
+  thumbnailUrl: text("thumbnailUrl"),
+  /** Author/creator name */
+  authorName: varchar("authorName", { length: 255 }),
+  /** View count */
+  views: int("views").default(0),
+  /** Like count */
+  likes: int("likes").default(0),
+  /** Comment count */
+  comments: int("comments").default(0),
+  /** Share count */
+  shares: int("shares").default(0),
+  /** Calculated viral score (0-100) */
+  viralScore: int("viralScore").default(0),
+  /** AI-generated content idea based on this trend */
+  contentIdea: text("contentIdea"),
+  /** AI-generated hook based on this trend */
+  suggestedHook: text("suggestedHook"),
+  /** Whether a content post was created from this trend */
+  usedForContent: boolean("usedForContent").default(false),
+  /** Related content post ID */
+  contentPostId: int("contentPostId"),
+  scannedAt: timestamp("scannedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type TrendScan = typeof trendScans.$inferSelect;
+export type InsertTrendScan = typeof trendScans.$inferInsert;

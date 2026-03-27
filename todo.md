@@ -94,3 +94,17 @@
 - [x] Sidebar-Navigation optimiert: 4 Gruppen (Workflow, Intelligence, Ressourcen, System)
 - [x] Dashboard: 3-Step-Pipeline + "Warten auf Freigabe" + Content-Mix Autopilot
 - [ ] Blotato-Test: Verifizieren dass Auto-Post funktioniert
+
+## Botpress/Lina Integration
+- [x] Botpress Lina Flow analysiert - Menüstruktur und Tabellen dokumentiert
+- [x] Anleitung erstellt: Menüpunkt "Leads kaufen" → "Tools" mit 4 Unterkategorien
+- [x] Content Hub Dashboard als Unterkategorie definiert (in Anleitung)
+- [ ] Content Hub API-Endpoint in Lina verbinden (manuell in Botpress Studio)
+- [ ] Testen ob der neue Menüpunkt funktioniert (nach manueller Umsetzung)
+
+## Fortschrittlichstes Content-Tool - Viral-Engine & Vollautomatisierung
+- [x] Trend-Scanner: Automatisch virale Trends erkennen (TikTok, YouTube, Reddit) mit Viral Score
+- [x] Viral-Content-Engine: Autopilot generiert Content + Bild aus Trends in einem Klick
+- [x] Creator Spy: Wettbewerber-Analyse mit Agent Brain Content-Pillars integriert
+- [x] Vollautomatische Pipeline: Trend → Content + Bild → Freigabe → Auto-Post via Blotato
+- [x] Anleitung für Botpress-Änderungen erstellt (detaillierte Schritt-für-Schritt Anleitung)

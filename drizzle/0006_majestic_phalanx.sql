@@ -1,0 +1,22 @@
+CREATE TABLE `trend_scans` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`platform` varchar(32) NOT NULL,
+	`keyword` varchar(255) NOT NULL,
+	`pillar` varchar(128),
+	`title` text NOT NULL,
+	`sourceUrl` text,
+	`thumbnailUrl` text,
+	`authorName` varchar(255),
+	`views` int DEFAULT 0,
+	`likes` int DEFAULT 0,
+	`comments` int DEFAULT 0,
+	`shares` int DEFAULT 0,
+	`viralScore` int DEFAULT 0,
+	`contentIdea` text,
+	`suggestedHook` text,
+	`usedForContent` boolean DEFAULT false,
+	`contentPostId` int,
+	`scannedAt` timestamp NOT NULL DEFAULT (now()),
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	CONSTRAINT `trend_scans_id` PRIMARY KEY(`id`)
+);

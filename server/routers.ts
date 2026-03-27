@@ -6,6 +6,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as db from "./db";
 import * as api from "./externalApis";
+import * as trendScanner from "./trendScanner";
 
 // Admin-only procedure
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -1191,6 +1192,157 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       const imported = await db.importLRProducts(products);
       return { imported, total: allRows.length };
     }),
+  }),
+
+  // ─── Trend Scanner ─────────────────────────────────────────
+  trends: router({
+    scan: adminProcedure.mutation(async () => {
+      const trends = await trendScanner.runFullTrendScan();
+      if (trends.length > 0) {
+        await db.saveTrendScans(trends);
+      }
+      return { scanned: trends.length, topTrends: trends.slice(0, 10) };
+    }),
+    scanPillar: adminProcedure
+      .input(z.object({ pillar: z.string(), platform: z.enum(["tiktok", "youtube", "reddit"]).optional() }))
+      .mutation(async ({ input }) => {
+        const pillarData = trendScanner.CONTENT_PILLARS[input.pillar as trendScanner.PillarKey];
+        if (!pillarData) throw new TRPCError({ code: "BAD_REQUEST", message: "Unbekannter Pillar" });
+        const keywords = [...pillarData.keywords].slice(0, 3);
+        const allTrends: any[] = [];
+        for (const kw of keywords) {
+          if (!input.platform || input.platform === "tiktok") {
+            const tt = await trendScanner.scanTikTok(kw, input.pillar as trendScanner.PillarKey);
+            allTrends.push(...tt);
+          }
+          if (!input.platform || input.platform === "youtube") {
+            const yt = await trendScanner.scanYouTube(kw, input.pillar as trendScanner.PillarKey);
+            allTrends.push(...yt);
+          }
+          await new Promise(r => setTimeout(r, 300));
+        }
+        if (allTrends.length > 0) await db.saveTrendScans(allTrends);
+        return { scanned: allTrends.length, trends: allTrends.slice(0, 20) };
+      }),
+    latest: protectedProcedure
+      .input(z.object({ platform: z.string().optional(), pillar: z.string().optional(), limit: z.number().optional() }).optional())
+      .query(async ({ input }) => {
+        return db.getLatestTrends({ platform: input?.platform, pillar: input?.pillar, limit: input?.limit });
+      }),
+    top: protectedProcedure
+      .input(z.object({ hours: z.number().optional(), limit: z.number().optional() }).optional())
+      .query(async ({ input }) => {
+        return db.getTopTrends(input?.hours || 24, input?.limit || 20);
+      }),
+    generateIdeas: adminProcedure.mutation(async () => {
+      const topTrends = await db.getTopTrends(48, 20);
+      if (topTrends.length === 0) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Keine Trends gefunden. Bitte zuerst einen Scan durchführen." });
+      }
+      const ideas = await trendScanner.generateContentIdeasFromTrends(topTrends);
+      return ideas;
+    }),
+    markUsed: adminProcedure
+      .input(z.object({ trendId: z.number(), contentPostId: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.markTrendUsed(input.trendId, input.contentPostId);
+        return { success: true };
+      }),
+    pillars: publicProcedure.query(() => {
+      return Object.entries(trendScanner.CONTENT_PILLARS).map(([key, val]) => ({
+        key,
+        name: val.name,
+        emoji: val.emoji,
+        frequency: val.frequency,
+        keywordCount: val.keywords.length,
+      }));
+    }),
+
+    // Autopilot: Trend → Content + Bild → zur Freigabe - alles in einem Schritt
+    autopilot: adminProcedure
+      .input(z.object({
+        trendId: z.number(),
+        trendTitle: z.string(),
+        trendPlatform: z.string(),
+        trendPillar: z.string(),
+        trendViralScore: z.number().optional(),
+        trendSourceUrl: z.string().optional(),
+        contentType: z.string().optional(),
+        targetPlatform: z.string().optional(),
+        generateImage: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Step 1: Generate content from trend
+        const generated = await trendScanner.autopilotGenerateFromTrend(
+          {
+            title: input.trendTitle,
+            platform: input.trendPlatform,
+            pillar: input.trendPillar,
+            sourceUrl: input.trendSourceUrl,
+            viralScore: input.trendViralScore,
+          },
+          input.contentType || "post",
+          input.targetPlatform || "instagram"
+        );
+
+        // Step 2: Create content post (goes to approval queue)
+        const postId = await db.createContentPost({
+          createdById: ctx.user.id,
+          contentType: input.contentType || "post",
+          content: generated.content,
+          platforms: [input.targetPlatform || "instagram"],
+          status: "pending",
+          topic: `Trend: ${input.trendTitle.slice(0, 100)}`,
+          pillar: input.trendPillar,
+          apiMetadata: {
+            source: "autopilot",
+            trendId: input.trendId,
+            trendPlatform: input.trendPlatform,
+            viralScore: input.trendViralScore,
+            hook: generated.hook,
+            imagePrompt: generated.imagePrompt,
+          },
+        });
+
+        // Step 3: Generate image if requested
+        let imageUrl: string | null = null;
+        if (input.generateImage !== false) {
+          try {
+            const { generateImage } = await import("./_core/imageGeneration");
+            const result = await generateImage({ prompt: generated.imagePrompt });
+            if (result.url) {
+              imageUrl = result.url;
+              await db.updateContentPost(postId, {
+                mediaUrl: result.url,
+                mediaType: "image",
+              } as any);
+            }
+          } catch (err) {
+            console.error("[Autopilot] Image generation failed:", err);
+          }
+        }
+
+        // Step 4: Mark trend as used
+        await db.markTrendUsed(input.trendId, postId);
+
+        // Step 5: Log
+        await db.createApprovalLog({
+          contentPostId: postId,
+          userId: ctx.user.id,
+          action: "edited",
+          comment: `Autopilot: Content aus ${input.trendPlatform}-Trend generiert (Viral Score: ${input.trendViralScore}/100)`,
+          previousStatus: null,
+          newStatus: "pending",
+        });
+
+        return {
+          postId,
+          content: generated.content,
+          hook: generated.hook,
+          imagePrompt: generated.imagePrompt,
+          imageUrl,
+        };
+      }),
   }),
 
   // ─── API Health ────────────────────────────────────────────

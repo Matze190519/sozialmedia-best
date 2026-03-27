@@ -24,7 +24,7 @@ import { useIsMobile } from "@/hooks/useMobile";
 import {
   LayoutDashboard, LogOut, PanelLeft, Users,
   CheckCircle, Calendar, Zap,
-  Eye, BarChart3, Shield,
+  Eye, BarChart3, Shield, Flame,
   Settings, Package, Rocket, Library,
   FileText, FlaskConical, TrendingUp, BookTemplate,
   HelpCircle,
@@ -50,6 +50,7 @@ const menuSections = [
     title: "Intelligence",
     items: [
       { icon: Eye, label: "Creator Spy", path: "/creator-spy", desc: "Was geht viral?" },
+      { icon: Flame, label: "Trend-Scanner", path: "/trends", desc: "Live TikTok/YT/Reddit Trends" },
       { icon: FlaskConical, label: "A/B Tests", path: "/ab-test", desc: "Was performt besser?" },
       { icon: TrendingUp, label: "Feedback", path: "/feedback", desc: "Top-Performer analysieren" },
       { icon: BarChart3, label: "Analytics", path: "/analytics", desc: "Zahlen & Insights" },

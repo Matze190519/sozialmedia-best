@@ -20,6 +20,7 @@ import SettingsPage from "./pages/SettingsPage";
 import ABTestPage from "./pages/ABTestPage";
 import FeedbackPage from "./pages/FeedbackPage";
 import OnboardingPage from "./pages/OnboardingPage";
+import TrendScannerPage from "./pages/TrendScannerPage";
 
 function Router() {
   return (
@@ -39,6 +40,7 @@ function Router() {
         <Route path="/feedback" component={FeedbackPage} />
         <Route path="/team" component={TeamPage} />
         <Route path="/settings" component={SettingsPage} />
+        <Route path="/trends" component={TrendScannerPage} />
         <Route path="/onboarding" component={OnboardingPage} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />

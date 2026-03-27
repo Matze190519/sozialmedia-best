@@ -11,6 +11,7 @@ import {
   abTestGroups, InsertABTestGroup,
   optimalPostingTimes, InsertOptimalPostingTime,
   lrProducts, InsertLRProduct,
+  trendScans, InsertTrendScan,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { like } from "drizzle-orm";
@@ -573,4 +574,53 @@ export async function getLRProductById(id: number) {
   if (!db) return undefined;
   const result = await db.select().from(lrProducts).where(eq(lrProducts.id, id)).limit(1);
   return result.length > 0 ? result[0] : undefined;
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// TREND SCANS - Live viral trend data
+// ═══════════════════════════════════════════════════════════════
+
+export async function saveTrendScans(scans: InsertTrendScan[]) {
+  const db = await getDb();
+  if (!db || scans.length === 0) return [];
+  const inserted = await db.insert(trendScans).values(scans);
+  return inserted;
+}
+
+export async function getLatestTrends(opts: { platform?: string; pillar?: string; limit?: number } = {}) {
+  const db = await getDb();
+  if (!db) return [];
+  const limit = opts.limit || 50;
+  const conditions = [];
+  if (opts.platform) conditions.push(eq(trendScans.platform, opts.platform));
+  if (opts.pillar) conditions.push(eq(trendScans.pillar, opts.pillar));
+  
+  if (conditions.length > 0) {
+    return db.select().from(trendScans).where(and(...conditions)).orderBy(desc(trendScans.viralScore)).limit(limit);
+  }
+  return db.select().from(trendScans).orderBy(desc(trendScans.viralScore)).limit(limit);
+}
+
+export async function getTopTrends(hours: number = 24, limit: number = 20) {
+  const db = await getDb();
+  if (!db) return [];
+  const since = new Date(Date.now() - hours * 60 * 60 * 1000);
+  return db.select().from(trendScans)
+    .where(gte(trendScans.scannedAt, since))
+    .orderBy(desc(trendScans.viralScore))
+    .limit(limit);
+}
+
+export async function markTrendUsed(trendId: number, contentPostId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(trendScans).set({ usedForContent: true, contentPostId }).where(eq(trendScans.id, trendId));
+}
+
+export async function clearOldTrends(daysOld: number = 7) {
+  const db = await getDb();
+  if (!db) return;
+  const cutoff = new Date(Date.now() - daysOld * 24 * 60 * 60 * 1000);
+  await db.delete(trendScans).where(lte(trendScans.scannedAt, cutoff));
 }
