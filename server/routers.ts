@@ -8,6 +8,7 @@ import * as db from "./db";
 import * as api from "./externalApis";
 import * as trendScanner from "./trendScanner";
 import * as hashtagEngine from "./hashtagEngine";
+import * as lifestyleEngine from "./lifestyleEngine";
 
 // Admin-only procedure
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -1519,6 +1520,190 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       .mutation(async ({ input }) => {
         await db.removeEvergreenPost(input.id);
         return { success: true };
+      }),
+  }),
+
+  // ─── Lifestyle Content Engine ──────────────────────────────
+  lifestyle: router({
+    categories: publicProcedure.query(() => {
+      return Object.entries(lifestyleEngine.LIFESTYLE_CATEGORIES).map(([key, cat]) => ({
+        key,
+        name: cat.name,
+        emoji: cat.emoji,
+        description: cat.description,
+        moods: cat.moods,
+        keywords: cat.keywords,
+        imagePromptCount: cat.imagePrompts.length,
+        videoPromptCount: cat.videoPrompts.length,
+      }));
+    }),
+
+    generate: protectedProcedure
+      .input(z.object({
+        category: z.string(),
+        topic: z.string().optional(),
+        platform: z.string().optional(),
+        mood: z.string().optional(),
+        includeImage: z.boolean().optional(),
+        includeVideo: z.boolean().optional(),
+        autoCreatePost: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const result = await lifestyleEngine.generateLifestyleContent({
+          category: input.category,
+          topic: input.topic,
+          platform: input.platform,
+          mood: input.mood,
+          includeImage: input.includeImage !== false,
+          includeVideo: input.includeVideo,
+        });
+
+        let postId: number | null = null;
+        let imageUrl: string | null = null;
+
+        // Auto-create post if requested
+        if (input.autoCreatePost !== false) {
+          postId = await db.createContentPost({
+            createdById: ctx.user.id,
+            contentType: "post",
+            content: result.text,
+            platforms: [input.platform || "instagram"],
+            status: "pending",
+            topic: input.topic || `Lifestyle: ${lifestyleEngine.LIFESTYLE_CATEGORIES[input.category]?.name || input.category}`,
+            pillar: "Lifestyle & Erfolg",
+            apiMetadata: {
+              source: "lifestyle_engine",
+              category: input.category,
+              mood: result.mood,
+              hook: result.hook,
+              hashtags: result.hashtags,
+              imagePrompt: result.imagePrompt,
+              videoPrompt: result.videoPrompt,
+            },
+          });
+
+          // Generate image automatically
+          if (input.includeImage !== false) {
+            try {
+              const { generateImage } = await import("./_core/imageGeneration");
+              const imgResult = await generateImage({ prompt: result.imagePrompt });
+              if (imgResult.url) {
+                imageUrl = imgResult.url;
+                await db.updateContentPost(postId, {
+                  mediaUrl: imgResult.url,
+                  mediaType: "image",
+                  imagePrompt: result.imagePrompt,
+                } as any);
+              }
+            } catch (err) {
+              console.error("[LifestyleEngine] Image generation failed:", err);
+            }
+          }
+
+          // Generate video if requested
+          if (input.includeVideo && result.videoPrompt) {
+            try {
+              const videoResult = await api.generateVideoWithFal({
+                prompt: result.videoPrompt,
+                imageUrl: imageUrl || undefined,
+                model: "kling-3",
+                duration: "5",
+                aspectRatio: "9:16",
+              });
+              if (videoResult.videoUrl) {
+                await db.updateContentPost(postId, {
+                  videoUrl: videoResult.videoUrl,
+                  mediaType: imageUrl ? "image_and_video" : "video",
+                  videoPrompt: result.videoPrompt,
+                } as any);
+              }
+            } catch (err) {
+              console.error("[LifestyleEngine] Video generation failed:", err);
+            }
+          }
+
+          await db.createApprovalLog({
+            contentPostId: postId,
+            userId: ctx.user.id,
+            action: "edited",
+            comment: `Lifestyle-Engine: ${lifestyleEngine.LIFESTYLE_CATEGORIES[input.category]?.emoji || ""} ${lifestyleEngine.LIFESTYLE_CATEGORIES[input.category]?.name || input.category} Content generiert`,
+            previousStatus: null,
+            newStatus: "pending",
+          });
+        }
+
+        return {
+          ...result,
+          postId,
+          imageUrl,
+        };
+      }),
+
+    generateBatch: adminProcedure
+      .input(z.object({
+        count: z.number().min(1).max(20).default(5),
+        categories: z.array(z.string()).optional(),
+        platform: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const results = await lifestyleEngine.generateLifestyleBatch(
+          input.count,
+          input.categories,
+          input.platform
+        );
+
+        const postIds: number[] = [];
+        for (const result of results) {
+          const postId = await db.createContentPost({
+            createdById: ctx.user.id,
+            contentType: "post",
+            content: result.text,
+            platforms: [input.platform || "instagram"],
+            status: "pending",
+            topic: `Lifestyle: ${lifestyleEngine.LIFESTYLE_CATEGORIES[result.category]?.name || result.category}`,
+            pillar: "Lifestyle & Erfolg",
+            apiMetadata: {
+              source: "lifestyle_engine_batch",
+              category: result.category,
+              mood: result.mood,
+              hook: result.hook,
+              hashtags: result.hashtags,
+            },
+          });
+          postIds.push(postId);
+
+          // Generate image for each
+          try {
+            const { generateImage } = await import("./_core/imageGeneration");
+            const imgResult = await generateImage({ prompt: result.imagePrompt });
+            if (imgResult.url) {
+              await db.updateContentPost(postId, {
+                mediaUrl: imgResult.url,
+                mediaType: "image",
+                imagePrompt: result.imagePrompt,
+              } as any);
+            }
+          } catch (err) {
+            console.error("[LifestyleEngine Batch] Image failed:", err);
+          }
+        }
+
+        return { count: results.length, postIds, results };
+      }),
+
+    customImagePrompt: protectedProcedure
+      .input(z.object({
+        text: z.string(),
+        category: z.string(),
+        mood: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const prompt = await lifestyleEngine.generateCustomImagePrompt(
+          input.text,
+          input.category,
+          input.mood
+        );
+        return { prompt };
       }),
   }),
 

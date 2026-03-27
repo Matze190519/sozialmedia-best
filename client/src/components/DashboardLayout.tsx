@@ -27,7 +27,7 @@ import {
   Eye, BarChart3, Shield, Flame,
   Settings, Package, Rocket, Library,
   FileText, FlaskConical, TrendingUp, BookTemplate,
-  HelpCircle, Hash, CalendarDays, Recycle,
+  HelpCircle, Hash, CalendarDays, Recycle, Sparkles,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -42,6 +42,7 @@ const menuSections = [
     items: [
       { icon: LayoutDashboard, label: "Dashboard", path: "/", desc: "Übersicht & Nächste Posts" },
       { icon: Zap, label: "Content erstellen", path: "/generator", desc: "Text, Bild & Video" },
+      { icon: Sparkles, label: "Lifestyle-Engine", path: "/lifestyle", desc: "Freiheit, Autos, Erfolg" },
       { icon: CheckCircle, label: "Freigabe", path: "/approval", desc: "Posts prüfen & posten", badge: "pending" as const },
       { icon: Calendar, label: "Kalender", path: "/calendar", desc: "Posting-Zeitplan" },
     ],

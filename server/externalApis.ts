@@ -653,9 +653,53 @@ export async function scheduleOnBlotato(
 
   if (scheduledDate) {
     postData.scheduledTime = scheduledDate;
+    postData.useNextFreeSlot = false;
   }
 
-  return callBlotato("/posts", "POST", postData);
+  try {
+    return await callBlotato("/posts", "POST", postData);
+  } catch (err: any) {
+    // Fallback: Wenn kein freier Slot verfügbar, konkreten Zeitpunkt nutzen
+    if (err?.message?.includes("No available slot") && !scheduledDate) {
+      const fallbackTime = getNextOptimalPostingTime(platform);
+      postData.useNextFreeSlot = false;
+      postData.scheduledTime = fallbackTime;
+      console.log(`[Blotato] Kein freier Slot, nutze Fallback-Zeit: ${fallbackTime}`);
+      return callBlotato("/posts", "POST", postData);
+    }
+    throw err;
+  }
+}
+
+/** Berechnet den nächsten optimalen Posting-Zeitpunkt basierend auf Plattform */
+function getNextOptimalPostingTime(platform: string): string {
+  const now = new Date();
+  // Optimale Posting-Zeiten pro Plattform (in UTC+1)
+  const optimalHours: Record<string, number[]> = {
+    instagram: [8, 12, 18, 21],
+    tiktok: [7, 12, 17, 21],
+    facebook: [9, 13, 16],
+    linkedin: [8, 10, 12],
+    youtube: [14, 17, 20],
+    twitter: [8, 12, 17],
+    threads: [9, 18, 21],
+    pinterest: [20, 21, 22],
+  };
+  const hours = optimalHours[platform.toLowerCase()] || [9, 12, 18];
+  
+  // Finde den nächsten optimalen Zeitpunkt
+  for (const hour of hours) {
+    const target = new Date(now);
+    target.setHours(hour, 0, 0, 0);
+    if (target > now) {
+      return target.toISOString();
+    }
+  }
+  // Wenn alle Zeiten heute vorbei sind, nimm morgen den ersten Slot
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(hours[0], 0, 0, 0);
+  return tomorrow.toISOString();
 }
 
 export async function publishToAllPlatforms(

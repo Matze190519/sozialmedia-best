@@ -89,7 +89,7 @@
 - [x] Content-Mix 86/14 automatisiert (Agent Brain: Autokonzept 3x, Business 4x, Lifestyle 3x, Gesundheit 2x, Lina 2x)
 - [x] Ein-Klick-Workflow: Generator → Freigabe → Auto-Post mit Toggle
 - [x] Smart Scheduling: Zeitpunkt beim Genehmigen wählbar oder sofort posten
-- [ ] Lifestyle-Content-Engine: Freiheit, Autos, Erfolg, Business Bilder/Videos
+- [x] Lifestyle-Content-Engine: Freiheit, Autos, Erfolg, Business Bilder/Videos
 - [x] Quick-Start Onboarding-Seite mit 5-Schritt Setup und Fortschrittsanzeige
 - [x] Sidebar-Navigation optimiert: 4 Gruppen (Workflow, Intelligence, Ressourcen, System)
 - [x] Dashboard: 3-Step-Pipeline + "Warten auf Freigabe" + Content-Mix Autopilot
@@ -121,4 +121,9 @@
 - [x] Hashtag-Pools: Vordefinierte LR-spezifische Hashtag-Sets pro Pillar (6 Kategorien)
 - [x] Monatsplan-Generator: 30 Posts auf Knopfdruck für den ganzen Monat (Agent Brain Wochenplan)
 - [x] Evergreen Recycling: Top-Posts automatisch nach X Wochen wiederverwenden (mit KI-Variation)
-- [x] Tests: 112/112 bestanden (10 Test-Dateien)
+- [x] Tests: 127/127 bestanden (11 Test-Dateien)
+
+## Finale Runde (27.03.2026)
+- [ ] Blotato End-to-End Test: Echten Post erstellen → freigeben → automatisch posten
+- [ ] Datenbasierte Posting-Zeiten: Dynamische Berechnung wann Zielgruppe am aktivsten ist
+- [x] Lifestyle-Content-Engine: Automatisch Bilder/Videos zu Freiheit, Autos, Erfolg, Business finden und generieren
