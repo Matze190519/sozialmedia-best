@@ -432,9 +432,28 @@ export async function generatePremiumImage(req: PremiumImageRequest): Promise<Pr
   };
   const result = await fal.subscribe("fal-ai/nano-banana-pro", { input }) as { data: { images: Array<{ url: string; content_type: string }>; description: string } };
 
-  const imageUrl = result.data?.images?.[0]?.url || "";
-  if (!imageUrl) {
+  const tempImageUrl = result.data?.images?.[0]?.url || "";
+  if (!tempImageUrl) {
     throw new Error("Nano Banana Pro hat kein Bild generiert");
+  }
+
+  // Bild auf S3 speichern damit die URL nicht abläuft (fal.ai URLs sind temporär!)
+  let imageUrl = tempImageUrl;
+  try {
+    const { storagePut } = await import("./storage");
+    const imgRes = await fetch(tempImageUrl);
+    const imgBuffer = Buffer.from(await imgRes.arrayBuffer());
+    const suffix = Math.random().toString(36).substring(2, 8);
+    const ext = req.outputFormat || "png";
+    const { url: permanentUrl } = await storagePut(
+      `generated-images/${Date.now()}-${suffix}.${ext}`,
+      imgBuffer,
+      `image/${ext}`
+    );
+    imageUrl = permanentUrl;
+    console.log(`[Premium Image] Saved to S3: ${permanentUrl}`);
+  } catch (s3Err) {
+    console.warn(`[Premium Image] S3 upload failed, using temp URL:`, s3Err);
   }
 
   return {
@@ -568,8 +587,31 @@ export async function generateVideoWithFal(req: VideoGenerationRequest): Promise
   console.log(`[Premium Video] Generiere mit ${falModel}, Duration: ${duration}, Audio: ${generateAudio}`);
   const result = await fal.subscribe(falModel, { input }) as { data: { video: { url: string } } };
 
+  const tempVideoUrl = result.data?.video?.url || "";
+  if (!tempVideoUrl) {
+    throw new Error(`${effectiveModel} hat kein Video generiert`);
+  }
+
+  // Video auf S3 speichern damit die URL nicht abläuft (fal.ai URLs sind temporär!)
+  let videoUrl = tempVideoUrl;
+  try {
+    const { storagePut } = await import("./storage");
+    const vidRes = await fetch(tempVideoUrl);
+    const vidBuffer = Buffer.from(await vidRes.arrayBuffer());
+    const suffix = Math.random().toString(36).substring(2, 8);
+    const { url: permanentUrl } = await storagePut(
+      `generated-videos/${Date.now()}-${suffix}.mp4`,
+      vidBuffer,
+      "video/mp4"
+    );
+    videoUrl = permanentUrl;
+    console.log(`[Premium Video] Saved to S3: ${permanentUrl}`);
+  } catch (s3Err) {
+    console.warn(`[Premium Video] S3 upload failed, using temp URL:`, s3Err);
+  }
+
   return {
-    videoUrl: result.data?.video?.url || "",
+    videoUrl,
     model: effectiveModel,
     duration,
   };
@@ -704,8 +746,11 @@ export interface BlotatoAccount {
 async function callBlotato(endpoint: string, method: string = "GET", body?: unknown, apiKey?: string) {
   const headers: Record<string, string> = {
     "blotato-api-key": apiKey || BLOTATO_API_KEY,
-    "Content-Type": "application/json",
   };
+  // Content-Type NUR bei Requests mit Body setzen (Blotato gibt 400 bei DELETE mit Content-Type)
+  if (body) {
+    headers["Content-Type"] = "application/json";
+  }
   const res = await fetch(`${BLOTATO_BASE}${endpoint}`, {
     method,
     headers,
@@ -741,10 +786,13 @@ export async function scheduleOnBlotato(
   platform: string,
   mediaUrls?: string[],
   scheduledDate?: string,
-): Promise<unknown> {
-  const postData: Record<string, unknown> = {
+): Promise<{ postSubmissionId: string; scheduleId?: string }> {
+  // IMMER konkreten Zeitpunkt verwenden - useNextFreeSlot funktioniert nicht wenn Slots voll sind
+  const scheduledTime = scheduledDate || getNextOptimalPostingTime(platform);
+  
+  const postData = {
     post: {
-      accountId,
+      accountId: String(accountId),
       content: {
         text,
         mediaUrls: mediaUrls || [],
@@ -754,34 +802,48 @@ export async function scheduleOnBlotato(
         targetType: platform,
       },
     },
-    useNextFreeSlot: !scheduledDate,
+    useNextFreeSlot: false,
+    scheduledTime,
   };
 
-  if (scheduledDate) {
-    postData.scheduledTime = scheduledDate;
-    postData.useNextFreeSlot = false;
-  }
-
+  console.log(`[Blotato] Scheduling post for ${platform} at ${scheduledTime}`);
+  const result = await callBlotato("/posts", "POST", postData);
+  const postSubmissionId = (result as any)?.postSubmissionId || "";
+  console.log(`[Blotato] Post submitted! postSubmissionId: ${postSubmissionId}`);
+  
+  // Echte Schedule-ID aus /schedules holen (Blotato gibt nur postSubmissionId zurück)
+  let scheduleId: string | undefined;
   try {
-    return await callBlotato("/posts", "POST", postData);
-  } catch (err: any) {
-    // Fallback: Wenn kein freier Slot verfügbar, konkreten Zeitpunkt nutzen
-    if (err?.message?.includes("No available slot") && !scheduledDate) {
-      const fallbackTime = getNextOptimalPostingTime(platform);
-      postData.useNextFreeSlot = false;
-      postData.scheduledTime = fallbackTime;
-      console.log(`[Blotato] Kein freier Slot, nutze Fallback-Zeit: ${fallbackTime}`);
-      return callBlotato("/posts", "POST", postData);
+    // Kurz warten damit Blotato den Post verarbeiten kann
+    await new Promise(r => setTimeout(r, 2000));
+    const schedules = await callBlotato("/schedules?limit=5", "GET");
+    const items = (schedules as any)?.items || [];
+    // Den neuesten Post für diese Plattform finden
+    const match = items.find((item: any) => 
+      item.draft?.content?.platform === platform &&
+      item.draft?.content?.text?.substring(0, 50) === text.substring(0, 50)
+    );
+    if (match) {
+      scheduleId = String(match.id);
+      console.log(`[Blotato] Found schedule ID: ${scheduleId}`);
     }
-    throw err;
+  } catch (e) {
+    console.warn(`[Blotato] Could not fetch schedule ID:`, e);
   }
+  
+  return { postSubmissionId, scheduleId };
 }
 
 /** Berechnet den nächsten optimalen Posting-Zeitpunkt basierend auf Plattform (Smart Engine) */
 function getNextOptimalPostingTime(platform: string): string {
-  const { getNextSmartPostingTime } = require("./smartPostingTimes");
-  const result = getNextSmartPostingTime(platform);
-  return result.scheduledTime;
+  try {
+    const { getNextSmartPostingTime } = require("./smartPostingTimes");
+    const result = getNextSmartPostingTime(platform);
+    return result.scheduledTime;
+  } catch {
+    // Fallback: 1 Stunde in der Zukunft
+    return new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  }
 }
 
 export async function publishToAllPlatforms(
@@ -809,7 +871,8 @@ export async function publishToAllPlatforms(
         mediaUrls,
         scheduledDate,
       );
-      const postId = (result as any)?.id || (result as any)?.post?.id || `${platform}-${Date.now()}`;
+      // Echte Blotato Schedule-ID verwenden, nicht selbst-generierte
+      const postId = result.scheduleId || result.postSubmissionId || `pending-${platform}-${Date.now()}`;
       postIds.push(String(postId));
     } catch (err) {
       console.error(`[Blotato] Failed to post to ${platform}:`, err);

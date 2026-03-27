@@ -1,0 +1,65 @@
+{
+  "query": "SELECT id, status, contentType, pillar, blotatoPostIds, scheduledAt, publishedAt, LEFT(content, 60) as preview, mediaUrl IS NOT NULL as hasBild, videoUrl IS NOT NULL as hasVideo, createdAt FROM content_posts ORDER BY id DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2MMwKENouVPXHxW.e9031793a226 --database UJZxdmp3sY63YUqiVd8uaj --execute SELECT id, status, contentType, pillar, blotatoPostIds, scheduledAt, publishedAt, LEFT(content, 60) as preview, mediaUrl IS NOT NULL as hasBild, videoUrl IS NOT NULL as hasVideo, createdAt FROM content_posts ORDER BY id DESC LIMIT 10;",
+  "rows": [
+    {
+      "id": "270005",
+      "status": "scheduled",
+      "contentType": "post",
+      "pillar": "NULL",
+      "blotatoPostIds": "[\"instagram-1774646647868\"]",
+      "scheduledAt": "NULL",
+      "publishedAt": "NULL",
+      "preview": "Test B content",
+      "hasBild": "0",
+      "hasVideo": "0",
+      "createdAt": "2026-03-27 21:19:02"
+    },
+    {
+      "id": "270004",
+      "status": "scheduled",
+      "contentType": "post",
+      "pillar": "NULL",
+      "blotatoPostIds": "[\"instagram-1774646650531\"]",
+      "scheduledAt": "NULL",
+      "publishedAt": "NULL",
+      "preview": "Test A content",
+      "hasBild": "0",
+      "hasVideo": "0",
+      "createdAt": "2026-03-27 21:19:02"
+    },
+    {
+      "id": "270002",
+      "status": "scheduled",
+      "contentType": "reel",
+      "pillar": "Autokonzept",
+      "blotatoPostIds": "[\"instagram-1774646629534\"]",
+      "scheduledAt": "NULL",
+      "publishedAt": "NULL",
+      "preview": "Die meisten Menschen arbeiten 40 Jahre für den Traum von jem",
+      "hasBild": "1",
+      "hasVideo": "1",
+      "createdAt": "2026-03-27 21:17:42"
+    },
+    {
+      "id": "270001",
+      "status": "scheduled",
+      "contentType": "post",
+      "pillar": "Business Opportunity",
+      "blotatoPostIds": "[\"instagram-1774646635070\"]",
+      "scheduledAt": "NULL",
+      "publishedAt": "NULL",
+      "preview": "Stell dir vor, du wachst morgens auf und entscheidest selbst",
+      "hasBild": "1",
+      "hasVideo": "0",
+      "createdAt": "2026-03-27 21:16:05"
+    }
+  ],
+  "messages": [
+    "270003\tscheduled\tpost\tEinwandbehandlung\t[\"instagram-1774646618579\"]\tNULL\tNULL\t\"Das ist doch Abzocke!\" - Höre ich oft.",
+    "Lass mich dir mal d\t1\t0\t2026-03-27 21:18:29"
+  ],
+  "stdout": "id\tstatus\tcontentType\tpillar\tblotatoPostIds\tscheduledAt\tpublishedAt\tpreview\thasBild\thasVideo\tcreatedAt\n270005\tscheduled\tpost\tNULL\t[\"instagram-1774646647868\"]\tNULL\tNULL\tTest B content\t0\t0\t2026-03-27 21:19:02\n270004\tscheduled\tpost\tNULL\t[\"instagram-1774646650531\"]\tNULL\tNULL\tTest A content\t0\t0\t2026-03-27 21:19:02\n270003\tscheduled\tpost\tEinwandbehandlung\t[\"instagram-1774646618579\"]\tNULL\tNULL\t\"Das ist doch Abzocke!\" - Höre ich oft.\n\nLass mich dir mal d\t1\t0\t2026-03-27 21:18:29\n270002\tscheduled\treel\tAutokonzept\t[\"instagram-1774646629534\"]\tNULL\tNULL\tDie meisten Menschen arbeiten 40 Jahre für den Traum von jem\t1\t1\t2026-03-27 21:17:42\n270001\tscheduled\tpost\tBusiness Opportunity\t[\"instagram-1774646635070\"]\tNULL\tNULL\tStell dir vor, du wachst morgens auf und entscheidest selbst\t1\t0\t2026-03-27 21:16:05\n",
+  "stderr": "",
+  "execution_time_ms": 117
+}
