@@ -1,0 +1,28 @@
+# LR Content Approval Dashboard - TODO
+
+- [x] Datenbank-Schema: contentPosts, contentTemplates, creatorSpyReports, approvalLogs
+- [x] Backend: GoViralBitch API Integration (Posts, Reels, Hooks, Ad Copy, Follow-Ups, Batch)
+- [x] Backend: Blotato API Integration (Multi-Platform Publishing nach Approval)
+- [x] Backend: Approval-Workflow Logik (Pending → Approved/Rejected → Scheduled)
+- [x] Backend: Team-Rollen & Permissions (Admin vs. Team-Mitglied)
+- [x] Backend: Content-Templates CRUD
+- [x] Backend: Creator Spy Reports speichern und abrufen
+- [x] Backend: Batch-Content-Generator über GoViralBitch /api/content/batch
+- [x] Frontend: Dashboard Layout mit Sidebar-Navigation
+- [x] Frontend: Content Queue mit Status-Filter (Pending/Approved/Rejected/Scheduled)
+- [x] Frontend: Post-Detail-Ansicht mit Bearbeiten, Genehmigen, Ablehnen
+- [x] Frontend: Content-Kalender (Wochenansicht mit Plattform-Filter)
+- [x] Frontend: Batch-Content-Generator UI
+- [x] Frontend: Creator Spy Dashboard mit Hook-Analyse und Performance-Tier
+- [x] Frontend: Content-Vorlagen-Bibliothek
+- [x] Frontend: Analytics-Übersicht
+- [x] Frontend: Team-Management Seite
+- [x] Design: Professionelles Dark-Theme mit LR-Branding-Farben
+- [x] Media-Support: Bilder und Videos bei Posts hochladen und mit Blotato publishen
+- [x] KI-Bild-Generierung: Bilder direkt im Dashboard per KI erstellen (eingebaute Image Generation API)
+- [x] KI-Video-Generierung: Videos direkt im Dashboard per KI erstellen
+- [x] Vorlagen aus GitHub-Repos (marketingskills, social-content-skill) als Templates einbauen
+- [x] Generator: Media-Upload + KI-Bild/Video-Generierung beim Content-Erstellen
+- [x] Lead-Generierung: CTAs und Hook-Formulas die Kontakte anziehen
+- [x] Virale Content-Strategie: Trends erkennen, duplizieren, optimieren
+- [x] Tests: Vitest für Backend-Logik (15/15 bestanden)
