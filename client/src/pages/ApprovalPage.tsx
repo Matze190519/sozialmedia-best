@@ -91,6 +91,12 @@ function PostCard({
     <Card className={`overflow-hidden ${variant === "pending" ? "border-yellow-500/20" : "border-emerald-500/20"}`}>
       <CardContent className="p-0">
         {/* Media Preview - Full width, prominent */}
+        {!hasMedia && (
+          <div className="p-4 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+            <p className="text-xs text-amber-300">Kein Bild/Video vorhanden. Generiere Medien im Content-Generator.</p>
+          </div>
+        )}
         {hasMedia && (
           <div className="relative">
             {item.post.mediaUrl && (
@@ -242,7 +248,7 @@ export default function ApprovalPage() {
   const [rejectComment, setRejectComment] = useState("");
   const [editDialog, setEditDialog] = useState<{ id: number; content: string; open: boolean }>({ id: 0, content: "", open: false });
   const [approveDialog, setApproveDialog] = useState<{ id: number; open: boolean; platforms: string[] }>({ id: 0, open: false, platforms: [] });
-  const [approveAutoPublish, setApproveAutoPublish] = useState(true);
+  const [approveAutoPublish, setApproveAutoPublish] = useState(false);
   const [approveScheduledAt, setApproveScheduledAt] = useState("");
   const [publishDialog, setPublishDialog] = useState<{ id: number; open: boolean; platforms: string[] }>({ id: 0, open: false, platforms: [] });
   const [publishScheduledDate, setPublishScheduledDate] = useState("");
@@ -324,7 +330,7 @@ export default function ApprovalPage() {
                 variant="pending"
                 onApprove={(id, platforms) => {
                   setApproveDialog({ id, open: true, platforms });
-                  setApproveAutoPublish(true);
+                  setApproveAutoPublish(false);
                   setApproveScheduledAt("");
                 }}
                 onReject={(id) => { setRejectDialog({ id, open: true }); setRejectComment(""); }}
@@ -376,10 +382,18 @@ export default function ApprovalPage() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Info: Auto-save to library */}
+            <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <p className="text-xs text-blue-300 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                Post wird automatisch in der Bibliothek gespeichert. Dein Team kann ihn dort kopieren und selbst posten.
+              </p>
+            </div>
+
             <div className="flex items-center justify-between p-3 rounded-lg bg-accent/30">
               <div>
-                <p className="text-sm font-medium">Sofort posten?</p>
-                <p className="text-xs text-muted-foreground">Via Blotato auf alle Plattformen</p>
+                <p className="text-sm font-medium">Auch via Blotato posten?</p>
+                <p className="text-xs text-muted-foreground">Optional: Automatisch auf Plattformen veröffentlichen</p>
               </div>
               <Switch checked={approveAutoPublish} onCheckedChange={setApproveAutoPublish} />
             </div>
@@ -422,7 +436,7 @@ export default function ApprovalPage() {
               disabled={approveMut.isPending}
             >
               {approveMut.isPending ? <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" /> : <Rocket className="h-4 w-4" />}
-              {approveAutoPublish ? (approveScheduledAt ? "Freigeben & Planen" : "Freigeben & Posten") : "Nur Freigeben"}
+              {approveAutoPublish ? (approveScheduledAt ? "Freigeben & Planen" : "Freigeben & Posten") : "Freigeben & In Bibliothek speichern"}
             </Button>
             <Button variant="outline" size="lg" className="w-full h-12" onClick={() => setApproveDialog({ id: 0, open: false, platforms: [] })}>
               Abbrechen

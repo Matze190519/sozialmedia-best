@@ -183,3 +183,14 @@
 - [x] System-weit: Bild-Prompts OHNE Text-Anweisungen
 - [x] GoViralBitch Content auf Deutsch gesetzt (language: deutsch)
 - [x] Veo 3.1 Duration-Fix (nur 4s/6s/8s erlaubt)
+
+## Dashboard Fertigstellung (27.03.2026 Nacht)
+- [x] Freigabe-Flow: Bilder + Videos müssen in der Freigabe sichtbar sein (groß, nicht nur Link)
+- [x] Freigabe-Flow: Nach Freigabe → Blotato posten ODER im Dashboard speichern (für Partner ohne Blotato)
+- [x] Video-Generierung: Veo 3.1 Videos automatisch bei Content-Erstellung generieren
+- [ ] Trend-basierter Content: Virale Trends recherchieren → Content daraus klonen
+- [x] Virale Hashtags: Trend-basierte Hashtags automatisch einbauen
+- [x] Content-Bibliothek: Alle Posts im Dashboard gespeichert (Copy+Paste für Partner ohne Blotato)
+- [ ] Dashboard-UI nach Postiz-Vorlage überarbeiten (sauberer, selbsterklärender)
+- [x] Alle Texte auf Deutsch
+- [ ] End-to-End über Dashboard-UI testen (nicht über Script)

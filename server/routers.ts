@@ -86,6 +86,8 @@ export const appRouter = router({
         objective: z.string().optional(),
         format: z.string().optional(),
         duration: z.number().optional(),
+        autoGenerateImage: z.boolean().optional(),
+        autoGenerateVideo: z.boolean().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         let apiResponse: api.GoViralBitchResponse;
@@ -138,7 +140,54 @@ export const appRouter = router({
           newStatus: "pending",
         });
 
-        return { id: postId, content: apiResponse.content };
+        // Auto-generate image if requested
+        let imageUrl: string | null = null;
+        if (input.autoGenerateImage) {
+          try {
+            const imgPrompt = `${input.topic || input.pillar || "LR Lifestyle"}, premium social media content, cinematic lighting, professional photography, no text, no words, no letters, no watermarks`;
+            if (process.env.FAL_API_KEY) {
+              const premiumResult = await api.generatePremiumImage({ prompt: imgPrompt, aspectRatio: "1:1" });
+              imageUrl = premiumResult.imageUrl;
+            } else {
+              const { generateImage } = await import("./_core/imageGeneration");
+              const fallbackResult = await generateImage({ prompt: imgPrompt });
+              imageUrl = fallbackResult.url || null;
+            }
+            if (imageUrl) {
+              await db.updateContentPost(postId, { mediaUrl: imageUrl, mediaType: "image", imagePrompt: imgPrompt } as any);
+            }
+          } catch (err) {
+            console.error("[AutoImage] Generation failed:", err);
+          }
+        }
+
+        // Auto-generate video if requested
+        let videoUrl: string | null = null;
+        if (input.autoGenerateVideo) {
+          try {
+            const vidPrompt = `${input.topic || input.pillar || "LR Lifestyle"}, cinematic slow motion, premium social media content, professional`;
+            const videoResult = await api.generateVideoWithFal({
+              prompt: vidPrompt,
+              imageUrl: imageUrl || undefined,
+              model: "auto",
+              duration: "5",
+              aspectRatio: "9:16",
+              generateAudio: true,
+            });
+            if (videoResult.videoUrl) {
+              videoUrl = videoResult.videoUrl;
+              await db.updateContentPost(postId, {
+                videoUrl: videoResult.videoUrl,
+                mediaType: imageUrl ? "image_and_video" : "video",
+                videoPrompt: vidPrompt,
+              } as any);
+            }
+          } catch (err) {
+            console.error("[AutoVideo] Generation failed:", err);
+          }
+        }
+
+        return { id: postId, content: apiResponse.content, imageUrl, videoUrl };
       }),
 
     // Generate batch (week plan) via GoViralBitch
@@ -384,6 +433,25 @@ export const appRouter = router({
           newStatus: "approved",
         });
 
+        // Auto-save to content library on every approval
+        try {
+          await db.addToContentLibrary({
+            title: post.post.topic || `${post.post.contentType} - ${new Date().toLocaleDateString("de-DE")}`,
+            category: post.post.mediaUrl ? (post.post.videoUrl ? "video" : "image") : "text",
+            pillar: post.post.pillar || undefined,
+            textContent: post.post.editedContent || post.post.content,
+            imageUrl: post.post.mediaUrl || undefined,
+            videoUrl: post.post.videoUrl || undefined,
+            platforms: post.post.platforms as string[],
+            tags: [post.post.contentType, post.post.pillar || "allgemein"].filter(Boolean) as string[],
+            createdById: ctx.user.id,
+            sourcePostId: input.id,
+            personalizationHints: "Passe den Text an deine persönliche Story an.",
+          });
+        } catch (libErr) {
+          console.error("[Approval] Auto-save to library failed:", libErr);
+        }
+
         // Auto-publish if requested and user has Blotato key or system key exists
         if (input.autoPublish) {
           try {
@@ -532,6 +600,8 @@ export const appRouter = router({
         hookStyle: z.enum(["curiosity", "story", "value", "contrarian", "socialProof"]).optional(),
         scriptTemplate: z.string().optional(),
         includeBlocker: z.boolean().optional(),
+        autoGenerateImage: z.boolean().optional(),
+        autoGenerateVideo: z.boolean().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const { invokeLLM } = await import("./_core/llm");
@@ -623,7 +693,54 @@ REGELN:
           newStatus: "pending",
         });
 
-        return { id: postId, content: generatedContent, qualityGate: qualityResult };
+        // Auto-generate image if requested
+        let imageUrl: string | null = null;
+        if (input.autoGenerateImage) {
+          try {
+            const imgPrompt = `${input.topic}, ${input.pillar}, premium social media content, cinematic lighting, professional photography, no text, no words, no letters, no watermarks`;
+            if (process.env.FAL_API_KEY) {
+              const premiumResult = await api.generatePremiumImage({ prompt: imgPrompt, aspectRatio: "1:1" });
+              imageUrl = premiumResult.imageUrl;
+            } else {
+              const { generateImage } = await import("./_core/imageGeneration");
+              const fallbackResult = await generateImage({ prompt: imgPrompt });
+              imageUrl = fallbackResult.url || null;
+            }
+            if (imageUrl) {
+              await db.updateContentPost(postId, { mediaUrl: imageUrl, mediaType: "image", imagePrompt: imgPrompt } as any);
+            }
+          } catch (err) {
+            console.error("[AutoImage] Brand Voice generation failed:", err);
+          }
+        }
+
+        // Auto-generate video if requested
+        let videoUrl: string | null = null;
+        if (input.autoGenerateVideo) {
+          try {
+            const vidPrompt = `${input.topic}, ${input.pillar}, cinematic slow motion, premium social media content, professional`;
+            const videoResult = await api.generateVideoWithFal({
+              prompt: vidPrompt,
+              imageUrl: imageUrl || undefined,
+              model: "auto",
+              duration: "5",
+              aspectRatio: "9:16",
+              generateAudio: true,
+            });
+            if (videoResult.videoUrl) {
+              videoUrl = videoResult.videoUrl;
+              await db.updateContentPost(postId, {
+                videoUrl: videoResult.videoUrl,
+                mediaType: imageUrl ? "image_and_video" : "video",
+                videoPrompt: vidPrompt,
+              } as any);
+            }
+          } catch (err) {
+            console.error("[AutoVideo] Brand Voice generation failed:", err);
+          }
+        }
+
+        return { id: postId, content: generatedContent, qualityGate: qualityResult, imageUrl, videoUrl };
       }),
   }),
 
