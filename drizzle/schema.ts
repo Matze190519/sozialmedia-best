@@ -10,6 +10,19 @@ export const users = mysqlTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  /** Personal Blotato API key (encrypted) - each team member can have their own */
+  blotatoApiKey: text("blotatoApiKey"),
+  /** Whether auto-post after approval is enabled for this user */
+  autoPostEnabled: boolean("autoPostEnabled").default(false),
+  /** User's preferred posting times as JSON: { "instagram": "09:00", "tiktok": "18:00", ... } */
+  preferredPostingTimes: json("preferredPostingTimes").$type<Record<string, string>>(),
+  /** Personal brand additions (own hashtags, signature, etc.) */
+  personalBranding: json("personalBranding").$type<{
+    signature?: string;
+    hashtags?: string[];
+    ownIntro?: string;
+    customCTA?: string;
+  }>(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -24,44 +37,39 @@ export type InsertUser = typeof users.$inferInsert;
  */
 export const contentPosts = mysqlTable("content_posts", {
   id: int("id").autoincrement().primaryKey(),
-  /** Who created/requested this content */
   createdById: int("createdById").notNull(),
-  /** Content type: post, reel, story, hooks, ad_copy, follow_up, objection, batch */
   contentType: varchar("contentType", { length: 32 }).notNull(),
-  /** The generated text content */
   content: text("content").notNull(),
-  /** Platform targets as JSON array: ["instagram","facebook","tiktok",...] */
   platforms: json("platforms").$type<string[]>().notNull(),
-  /** Approval status */
   status: mysqlEnum("status", ["pending", "approved", "rejected", "scheduled", "published"]).default("pending").notNull(),
-  /** Optional: who approved/rejected */
   reviewedById: int("reviewedById"),
-  /** Review comment (reason for rejection etc.) */
   reviewComment: text("reviewComment"),
-  /** Scheduled publish date (after approval) */
   scheduledAt: timestamp("scheduledAt"),
-  /** When it was actually published */
   publishedAt: timestamp("publishedAt"),
-  /** GoViralBitch API response metadata as JSON */
   apiMetadata: json("apiMetadata").$type<Record<string, unknown>>(),
-  /** Blotato post IDs after scheduling, as JSON */
   blotatoPostIds: json("blotatoPostIds").$type<string[]>(),
-  /** Media URL if any (image) */
   mediaUrl: text("mediaUrl"),
-  /** Video URL if any */
   videoUrl: text("videoUrl"),
-  /** Media type: none, image, video, image_and_video */
   mediaType: varchar("mediaType", { length: 32 }).default("none"),
-  /** Image generation prompt used */
   imagePrompt: text("imagePrompt"),
-  /** Video generation prompt used */
   videoPrompt: text("videoPrompt"),
-  /** Topic/pillar used for generation */
   topic: varchar("topic", { length: 255 }),
-  /** Content pillar */
   pillar: varchar("pillar", { length: 128 }),
-  /** Platform-specific text (edited version) */
   editedContent: text("editedContent"),
+  /** A/B test variant: null = normal post, "A" or "B" = test variant */
+  abTestVariant: varchar("abTestVariant", { length: 2 }),
+  /** A/B test group ID - links A and B variants together */
+  abTestGroupId: int("abTestGroupId"),
+  /** Whether this post is shared to the content library for all team members */
+  sharedToLibrary: boolean("sharedToLibrary").default(false),
+  /** Personalization notes from the creator */
+  personalizationNotes: text("personalizationNotes"),
+  /** Quality Gate score (0-100) */
+  qualityScore: int("qualityScore"),
+  /** Feedback score from actual performance (0-100) */
+  feedbackScore: int("feedbackScore"),
+  /** What made this post successful (auto-analyzed) */
+  successFactors: json("successFactors").$type<string[]>(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -92,13 +100,13 @@ export type InsertApprovalLog = typeof approvalLogs.$inferInsert;
 export const contentTemplates = mysqlTable("content_templates", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
-  /** Template category: autokonzept, business_opportunity, produkt_highlight, lina_demo, lifestyle */
   category: varchar("category", { length: 64 }).notNull(),
   content: text("content").notNull(),
-  /** Platform targets */
   platforms: json("platforms").$type<string[]>(),
-  /** Usage count */
   usageCount: int("usageCount").default(0).notNull(),
+  /** Media attached to template */
+  mediaUrl: text("mediaUrl"),
+  videoUrl: text("videoUrl"),
   createdById: int("createdById").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -112,20 +120,13 @@ export type InsertContentTemplate = typeof contentTemplates.$inferInsert;
  */
 export const creatorSpyReports = mysqlTable("creator_spy_reports", {
   id: int("id").autoincrement().primaryKey(),
-  /** Calendar week number */
   weekNumber: int("weekNumber").notNull(),
   year: int("year").notNull(),
-  /** Full analysis report text */
   reportContent: text("reportContent").notNull(),
-  /** Extracted top hooks as JSON array */
   topHooks: json("topHooks").$type<string[]>(),
-  /** Extracted content ideas as JSON array */
   contentIdeas: json("contentIdeas").$type<string[]>(),
-  /** Trend warnings */
   trendWarnings: text("trendWarnings"),
-  /** Number of posts analyzed */
   postsAnalyzed: int("postsAnalyzed").default(0),
-  /** Source hashtags used */
   hashtags: json("hashtags").$type<string[]>(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
@@ -152,3 +153,85 @@ export const analyticsSnapshots = mysqlTable("analytics_snapshots", {
 
 export type AnalyticsSnapshot = typeof analyticsSnapshots.$inferSelect;
 export type InsertAnalyticsSnapshot = typeof analyticsSnapshots.$inferInsert;
+
+/**
+ * Content Library - shared media and content for all team members to copy/use.
+ * This is the "Datenbank für alle" where everyone can grab content.
+ */
+export const contentLibrary = mysqlTable("content_library", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Title for easy browsing */
+  title: varchar("title", { length: 255 }).notNull(),
+  /** Category: image, video, text, template, reel_script */
+  category: varchar("category", { length: 64 }).notNull(),
+  /** Content pillar */
+  pillar: varchar("pillar", { length: 128 }),
+  /** Text content (caption, script, etc.) */
+  textContent: text("textContent"),
+  /** Image URL (S3) */
+  imageUrl: text("imageUrl"),
+  /** Video URL (S3) */
+  videoUrl: text("videoUrl"),
+  /** Target platforms */
+  platforms: json("platforms").$type<string[]>(),
+  /** Tags for search */
+  tags: json("tags").$type<string[]>(),
+  /** How many times this was copied/used by team members */
+  copyCount: int("copyCount").default(0).notNull(),
+  /** Who uploaded/created this */
+  createdById: int("createdById").notNull(),
+  /** Original content post ID (if derived from an approved post) */
+  sourcePostId: int("sourcePostId"),
+  /** Personalization hints: what to change when using this */
+  personalizationHints: text("personalizationHints"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ContentLibraryItem = typeof contentLibrary.$inferSelect;
+export type InsertContentLibraryItem = typeof contentLibrary.$inferInsert;
+
+/**
+ * A/B Test groups - links two content variants for comparison.
+ */
+export const abTestGroups = mysqlTable("ab_test_groups", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Name/description of the test */
+  name: varchar("name", { length: 255 }).notNull(),
+  /** Post ID for variant A */
+  variantAId: int("variantAId").notNull(),
+  /** Post ID for variant B */
+  variantBId: int("variantBId").notNull(),
+  /** Winner: null = ongoing, "A" or "B" = decided */
+  winner: varchar("winner", { length: 2 }),
+  /** Why this variant won (auto-analyzed) */
+  winnerReason: text("winnerReason"),
+  /** Test status */
+  status: mysqlEnum("status", ["running", "completed", "cancelled"]).default("running").notNull(),
+  createdById: int("createdById").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"),
+});
+
+export type ABTestGroup = typeof abTestGroups.$inferSelect;
+export type InsertABTestGroup = typeof abTestGroups.$inferInsert;
+
+/**
+ * Optimal posting times - learned from engagement data per platform.
+ */
+export const optimalPostingTimes = mysqlTable("optimal_posting_times", {
+  id: int("id").autoincrement().primaryKey(),
+  platform: varchar("platform", { length: 32 }).notNull(),
+  /** Day of week: 0=Sunday, 1=Monday, ... 6=Saturday */
+  dayOfWeek: int("dayOfWeek").notNull(),
+  /** Best hour to post (0-23) */
+  bestHour: int("bestHour").notNull(),
+  /** Average engagement rate at this time */
+  avgEngagement: varchar("avgEngagement", { length: 16 }),
+  /** Based on how many data points */
+  sampleSize: int("sampleSize").default(0),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type OptimalPostingTime = typeof optimalPostingTimes.$inferSelect;
+export type InsertOptimalPostingTime = typeof optimalPostingTimes.$inferInsert;

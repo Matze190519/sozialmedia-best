@@ -25,6 +25,7 @@ import {
   LayoutDashboard, LogOut, PanelLeft, Users,
   FileText, CheckCircle, Calendar, Zap,
   Eye, BookTemplate, BarChart3, Shield,
+  Library, Settings, FlaskConical, TrendingUp,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -32,17 +33,38 @@ import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 
-const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: FileText, label: "Content Queue", path: "/queue" },
-  { icon: CheckCircle, label: "Approval", path: "/approval" },
-  { icon: Calendar, label: "Kalender", path: "/calendar" },
-  { icon: Zap, label: "Generator", path: "/generator" },
-  { icon: Eye, label: "Creator Spy", path: "/creator-spy" },
-  { icon: BookTemplate, label: "Vorlagen", path: "/templates" },
-  { icon: BarChart3, label: "Analytics", path: "/analytics" },
-  { icon: Users, label: "Team", path: "/team" },
+const menuSections = [
+  {
+    title: "Content",
+    items: [
+      { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+      { icon: Zap, label: "Generator", path: "/generator" },
+      { icon: FileText, label: "Content Queue", path: "/queue" },
+      { icon: CheckCircle, label: "Freigabe", path: "/approval" },
+      { icon: Calendar, label: "Kalender", path: "/calendar" },
+    ],
+  },
+  {
+    title: "Strategie",
+    items: [
+      { icon: Eye, label: "Creator Spy", path: "/creator-spy" },
+      { icon: FlaskConical, label: "A/B Tests", path: "/ab-test" },
+      { icon: TrendingUp, label: "Feedback", path: "/feedback" },
+      { icon: BarChart3, label: "Analytics", path: "/analytics" },
+    ],
+  },
+  {
+    title: "Team",
+    items: [
+      { icon: Library, label: "Bibliothek", path: "/library" },
+      { icon: BookTemplate, label: "Vorlagen", path: "/templates" },
+      { icon: Users, label: "Team", path: "/team" },
+      { icon: Settings, label: "Einstellungen", path: "/settings" },
+    ],
+  },
 ];
+
+const menuItems = menuSections.flatMap(s => s.items);
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
 const DEFAULT_WIDTH = 260;
@@ -171,24 +193,33 @@ function DashboardLayoutContent({
           </SidebarHeader>
 
           <SidebarContent className="gap-0">
-            <SidebarMenu className="px-2 py-1">
-              {menuItems.map(item => {
-                const isActive = location === item.path;
-                return (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton
-                      isActive={isActive}
-                      onClick={() => setLocation(item.path)}
-                      tooltip={item.label}
-                      className="h-10 transition-all font-normal"
-                    >
-                      <item.icon className={`h-4 w-4 ${isActive ? "text-primary" : ""}`} />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
+            {menuSections.map((section) => (
+              <div key={section.title} className="mb-1">
+                {!isCollapsed && (
+                  <div className="px-4 pt-4 pb-1">
+                    <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">{section.title}</span>
+                  </div>
+                )}
+                <SidebarMenu className="px-2">
+                  {section.items.map(item => {
+                    const isActive = location === item.path;
+                    return (
+                      <SidebarMenuItem key={item.path}>
+                        <SidebarMenuButton
+                          isActive={isActive}
+                          onClick={() => setLocation(item.path)}
+                          tooltip={item.label}
+                          className="h-9 transition-all font-normal"
+                        >
+                          <item.icon className={`h-4 w-4 ${isActive ? "text-primary" : ""}`} />
+                          <span>{item.label}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </div>
+            ))}
           </SidebarContent>
 
           <SidebarFooter className="p-3">

@@ -7,6 +7,9 @@ import {
   contentTemplates, InsertContentTemplate,
   creatorSpyReports, InsertCreatorSpyReport,
   analyticsSnapshots, InsertAnalyticsSnapshot,
+  contentLibrary, InsertContentLibraryItem,
+  abTestGroups, InsertABTestGroup,
+  optimalPostingTimes, InsertOptimalPostingTime,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -71,6 +74,44 @@ export async function updateUserRole(userId: number, role: "user" | "admin") {
   await db.update(users).set({ role }).where(eq(users.id, userId));
 }
 
+// ─── User Personal Settings ─────────────────────────────────
+
+export async function updateUserBlotatoKey(userId: number, blotatoApiKey: string | null) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(users).set({ blotatoApiKey }).where(eq(users.id, userId));
+}
+
+export async function updateUserAutoPost(userId: number, autoPostEnabled: boolean) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(users).set({ autoPostEnabled }).where(eq(users.id, userId));
+}
+
+export async function updateUserPostingTimes(userId: number, times: Record<string, string>) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(users).set({ preferredPostingTimes: times }).where(eq(users.id, userId));
+}
+
+export async function updateUserPersonalBranding(userId: number, branding: {
+  signature?: string;
+  hashtags?: string[];
+  ownIntro?: string;
+  customCTA?: string;
+}) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(users).set({ personalBranding: branding }).where(eq(users.id, userId));
+}
+
+export async function getUserById(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
 // ─── Content Post Queries ───────────────────────────────────
 
 export async function createContentPost(post: InsertContentPost) {
@@ -85,12 +126,14 @@ export async function getContentPosts(filters?: {
   createdById?: number;
   limit?: number;
   offset?: number;
+  sharedOnly?: boolean;
 }) {
   const db = await getDb();
   if (!db) return [];
   const conditions = [];
   if (filters?.status) conditions.push(eq(contentPosts.status, filters.status as any));
   if (filters?.createdById) conditions.push(eq(contentPosts.createdById, filters.createdById));
+  if (filters?.sharedOnly) conditions.push(eq(contentPosts.sharedToLibrary, true));
 
   const query = db.select({
     post: contentPosts,
@@ -174,6 +217,18 @@ export async function getContentStats() {
     stats.total += Number(row.count);
   }
   return stats;
+}
+
+export async function sharePostToLibrary(postId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(contentPosts).set({ sharedToLibrary: true }).where(eq(contentPosts.id, postId));
+}
+
+export async function updatePostFeedback(postId: number, feedbackScore: number, successFactors: string[]) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(contentPosts).set({ feedbackScore, successFactors }).where(eq(contentPosts.id, postId));
 }
 
 // ─── Approval Log Queries ───────────────────────────────────
@@ -276,4 +331,132 @@ export async function getAnalyticsSummary() {
     totalImpressions: sql<number>`sum(${analyticsSnapshots.impressions})`,
     avgEngagement: sql<string>`avg(${analyticsSnapshots.engagementRate})`,
   }).from(analyticsSnapshots).groupBy(analyticsSnapshots.platform);
+}
+
+// ─── Content Library Queries ────────────────────────────────
+
+export async function addToContentLibrary(item: InsertContentLibraryItem) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(contentLibrary).values(item);
+  return result[0].insertId;
+}
+
+export async function getContentLibrary(filters?: {
+  category?: string;
+  pillar?: string;
+  limit?: number;
+  offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions = [];
+  if (filters?.category) conditions.push(eq(contentLibrary.category, filters.category));
+  if (filters?.pillar) conditions.push(eq(contentLibrary.pillar, filters.pillar));
+
+  return db.select({
+    item: contentLibrary,
+    createdBy: { id: users.id, name: users.name },
+  })
+    .from(contentLibrary)
+    .leftJoin(users, eq(contentLibrary.createdById, users.id))
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(contentLibrary.createdAt))
+    .limit(filters?.limit ?? 50)
+    .offset(filters?.offset ?? 0);
+}
+
+export async function incrementLibraryCopyCount(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(contentLibrary).set({ copyCount: sql`${contentLibrary.copyCount} + 1` }).where(eq(contentLibrary.id, id));
+}
+
+export async function deleteFromContentLibrary(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(contentLibrary).where(eq(contentLibrary.id, id));
+}
+
+// ─── A/B Test Queries ───────────────────────────────────────
+
+export async function createABTestGroup(group: InsertABTestGroup) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(abTestGroups).values(group);
+  return result[0].insertId;
+}
+
+export async function getABTestGroups(status?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  if (status) {
+    return db.select().from(abTestGroups).where(eq(abTestGroups.status, status as any)).orderBy(desc(abTestGroups.createdAt));
+  }
+  return db.select().from(abTestGroups).orderBy(desc(abTestGroups.createdAt));
+}
+
+export async function completeABTest(id: number, winner: string, reason: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(abTestGroups).set({
+    winner,
+    winnerReason: reason,
+    status: "completed",
+    completedAt: new Date(),
+  }).where(eq(abTestGroups.id, id));
+}
+
+// ─── Optimal Posting Times Queries ──────────────────────────
+
+export async function getOptimalPostingTimes(platform?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  if (platform) {
+    return db.select().from(optimalPostingTimes)
+      .where(eq(optimalPostingTimes.platform, platform))
+      .orderBy(optimalPostingTimes.dayOfWeek, optimalPostingTimes.bestHour);
+  }
+  return db.select().from(optimalPostingTimes)
+    .orderBy(optimalPostingTimes.platform, optimalPostingTimes.dayOfWeek);
+}
+
+export async function upsertOptimalPostingTime(data: InsertOptimalPostingTime) {
+  const db = await getDb();
+  if (!db) return;
+  // Check if exists
+  const existing = await db.select().from(optimalPostingTimes)
+    .where(and(
+      eq(optimalPostingTimes.platform, data.platform),
+      eq(optimalPostingTimes.dayOfWeek, data.dayOfWeek),
+    )).limit(1);
+
+  if (existing.length > 0) {
+    await db.update(optimalPostingTimes).set({
+      bestHour: data.bestHour,
+      avgEngagement: data.avgEngagement,
+      sampleSize: sql`${optimalPostingTimes.sampleSize} + 1`,
+    }).where(eq(optimalPostingTimes.id, existing[0].id));
+  } else {
+    await db.insert(optimalPostingTimes).values({ ...data, sampleSize: 1 });
+  }
+}
+
+// ─── Feedback Loop: Get top performing posts for learning ───
+
+export async function getTopPerformingPosts(limit = 10) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({
+    post: contentPosts,
+    createdBy: { id: users.id, name: users.name },
+  })
+    .from(contentPosts)
+    .leftJoin(users, eq(contentPosts.createdById, users.id))
+    .where(and(
+      eq(contentPosts.status, "published"),
+      gte(contentPosts.feedbackScore, 70),
+    ))
+    .orderBy(desc(contentPosts.feedbackScore))
+    .limit(limit);
 }

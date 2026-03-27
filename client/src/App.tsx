@@ -14,6 +14,10 @@ import CreatorSpyPage from "./pages/CreatorSpyPage";
 import TemplatesPage from "./pages/TemplatesPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import TeamPage from "./pages/TeamPage";
+import LibraryPage from "./pages/LibraryPage";
+import SettingsPage from "./pages/SettingsPage";
+import ABTestPage from "./pages/ABTestPage";
+import FeedbackPage from "./pages/FeedbackPage";
 
 function Router() {
   return (
@@ -26,8 +30,12 @@ function Router() {
         <Route path="/generator" component={GeneratorPage} />
         <Route path="/creator-spy" component={CreatorSpyPage} />
         <Route path="/templates" component={TemplatesPage} />
+        <Route path="/library" component={LibraryPage} />
         <Route path="/analytics" component={AnalyticsPage} />
+        <Route path="/ab-test" component={ABTestPage} />
+        <Route path="/feedback" component={FeedbackPage} />
         <Route path="/team" component={TeamPage} />
+        <Route path="/settings" component={SettingsPage} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>

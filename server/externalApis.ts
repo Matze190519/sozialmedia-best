@@ -595,9 +595,9 @@ export interface BlotatoAccount {
   displayName?: string;
 }
 
-async function callBlotato(endpoint: string, method: string = "GET", body?: unknown) {
+async function callBlotato(endpoint: string, method: string = "GET", body?: unknown, apiKey?: string) {
   const headers: Record<string, string> = {
-    "blotato-api-key": BLOTATO_API_KEY,
+    "blotato-api-key": apiKey || BLOTATO_API_KEY,
     "Content-Type": "application/json",
   };
   const res = await fetch(`${BLOTATO_BASE}${endpoint}`, {
@@ -612,9 +612,9 @@ async function callBlotato(endpoint: string, method: string = "GET", body?: unkn
   return res.json();
 }
 
-export async function getBlotatoAccounts(): Promise<BlotatoAccount[]> {
+export async function getBlotatoAccounts(apiKey?: string): Promise<BlotatoAccount[]> {
   try {
-    const data = await callBlotato("/users/me/accounts");
+    const data = await callBlotato("/users/me/accounts", "GET", undefined, apiKey);
     return Array.isArray(data) ? data : (data?.accounts || []);
   } catch (err) {
     console.error("[Blotato] Failed to get accounts:", err);
@@ -657,6 +657,7 @@ export async function publishToAllPlatforms(
   accounts: BlotatoAccount[],
   mediaUrls?: string[],
   scheduledDate?: string,
+  apiKey?: string,
 ): Promise<string[]> {
   const postIds: string[] = [];
 
