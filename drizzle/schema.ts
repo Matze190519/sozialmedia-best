@@ -10,6 +10,12 @@ export const users = mysqlTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  /** LR Partnernummer - identifiziert den Partner eindeutig */
+  partnerNumber: varchar("partnerNumber", { length: 32 }),
+  /** Telefonnummer (WhatsApp) - für Lina-Integration */
+  phoneNumber: varchar("phoneNumber", { length: 32 }),
+  /** Ob der Partner freigeschaltet ist (Admin muss manuell freischalten) */
+  isApproved: boolean("isApproved").default(false),
   /** Personal Blotato API key (encrypted) - each team member can have their own */
   blotatoApiKey: text("blotatoApiKey"),
   /** Whether auto-post after approval is enabled for this user */

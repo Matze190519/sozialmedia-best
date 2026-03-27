@@ -615,7 +615,14 @@ async function callBlotato(endpoint: string, method: string = "GET", body?: unkn
 export async function getBlotatoAccounts(apiKey?: string): Promise<BlotatoAccount[]> {
   try {
     const data = await callBlotato("/users/me/accounts", "GET", undefined, apiKey);
-    return Array.isArray(data) ? data : (data?.accounts || []);
+    // Blotato returns { items: [...] }
+    const items = data?.items || (Array.isArray(data) ? data : (data?.accounts || []));
+    return items.map((a: any) => ({
+      id: Number(a.id),
+      platform: a.platform,
+      username: a.username || a.fullname || "",
+      displayName: a.fullname || a.username || "",
+    }));
   } catch (err) {
     console.error("[Blotato] Failed to get accounts:", err);
     return [];
@@ -645,7 +652,7 @@ export async function scheduleOnBlotato(
   };
 
   if (scheduledDate) {
-    (postData.post as Record<string, unknown>).scheduledSendAt = scheduledDate;
+    postData.scheduledTime = scheduledDate;
   }
 
   return callBlotato("/posts", "POST", postData);

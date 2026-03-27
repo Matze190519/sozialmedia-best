@@ -53,3 +53,12 @@
 - [x] Navigation in 3 Sektionen: Content, Strategie, Team
 - [x] Kosten-Info: fal.ai übernimmt Mathias, Blotato zahlt jeder selbst (25€)
 - [x] 60/60 Tests bestanden (6 Test-Dateien)
+
+## Zugang & Sicherheit
+- [x] Blotato API Key getestet - 8 Accounts verbunden (Facebook, YouTube, Instagram, LinkedIn, Threads, 2x TikTok, Twitter)
+- [x] Blotato Base URL korrigiert (backend.blotato.com/v2)
+- [x] Team-Zugang absichern: Partner-Freischaltung mit Partnernummer + Telefon
+- [x] Partner-Freischaltung: Admin gibt Partner manuell frei (Name + Partnernummer + WhatsApp)
+- [x] Partner sperren: Admin kann Zugang entziehen
+- [x] Lina API-Endpoint für Content-Abruf (öffentlicher Endpoint)
+- [x] 66/66 Tests bestanden (7 Test-Dateien)

@@ -998,6 +998,33 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         await db.updateUserRole(input.userId, input.role);
         return { success: true };
       }),
+    // Partner freischalten (Admin only)
+    approvePartner: adminProcedure
+      .input(z.object({
+        userId: z.number(),
+        partnerNumber: z.string().min(1),
+        phoneNumber: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await db.approvePartner(input.userId, input.partnerNumber, input.phoneNumber);
+        return { success: true };
+      }),
+    // Partner sperren (Admin only)
+    revokePartner: adminProcedure
+      .input(z.object({ userId: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.revokePartner(input.userId);
+        return { success: true };
+      }),
+    // Partner-Profil aktualisieren (eigene Daten)
+    updateProfile: protectedProcedure
+      .input(z.object({
+        phoneNumber: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await db.updateUserProfile(ctx.user.id, input);
+        return { success: true };
+      }),
   }),
 
   // ─── Lina Integration API ─────────────────────────────────

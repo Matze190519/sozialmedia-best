@@ -460,3 +460,50 @@ export async function getTopPerformingPosts(limit = 10) {
     .orderBy(desc(contentPosts.feedbackScore))
     .limit(limit);
 }
+
+// ─── Partner Management ───────────────────────────────────
+
+export async function approvePartner(userId: number, partnerNumber: string, phoneNumber?: string) {
+  const db = await getDb();
+  if (!db) return;
+  const updateData: Record<string, unknown> = {
+    isApproved: true,
+    partnerNumber,
+  };
+  if (phoneNumber) updateData.phoneNumber = phoneNumber;
+  await db.update(users).set(updateData).where(eq(users.id, userId));
+}
+
+export async function revokePartner(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(users).set({ isApproved: false }).where(eq(users.id, userId));
+}
+
+export async function updateUserProfile(userId: number, data: { phoneNumber?: string }) {
+  const db = await getDb();
+  if (!db) return;
+  const updateData: Record<string, unknown> = {};
+  if (data.phoneNumber !== undefined) updateData.phoneNumber = data.phoneNumber;
+  if (Object.keys(updateData).length > 0) {
+    await db.update(users).set(updateData).where(eq(users.id, userId));
+  }
+}
+
+export async function getPartnerByPhone(phoneNumber: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users)
+    .where(and(eq(users.phoneNumber, phoneNumber), eq(users.isApproved, true)))
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getPartnerByNumber(partnerNumber: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users)
+    .where(and(eq(users.partnerNumber, partnerNumber), eq(users.isApproved, true)))
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
