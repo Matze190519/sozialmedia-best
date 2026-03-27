@@ -27,7 +27,7 @@ import {
   Eye, BarChart3, Shield, Flame,
   Settings, Package, Rocket, Library,
   FileText, FlaskConical, TrendingUp, BookTemplate,
-  HelpCircle,
+  HelpCircle, Hash, CalendarDays, Recycle,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -51,6 +51,7 @@ const menuSections = [
     items: [
       { icon: Eye, label: "Creator Spy", path: "/creator-spy", desc: "Was geht viral?" },
       { icon: Flame, label: "Trend-Scanner", path: "/trends", desc: "Live TikTok/YT/Reddit Trends" },
+      { icon: Hash, label: "Hashtag-Engine", path: "/hashtags", desc: "Smart Hashtags pro Plattform" },
       { icon: FlaskConical, label: "A/B Tests", path: "/ab-test", desc: "Was performt besser?" },
       { icon: TrendingUp, label: "Feedback", path: "/feedback", desc: "Top-Performer analysieren" },
       { icon: BarChart3, label: "Analytics", path: "/analytics", desc: "Zahlen & Insights" },
@@ -63,6 +64,8 @@ const menuSections = [
       { icon: Library, label: "Bibliothek", path: "/library", desc: "Geteilter Content" },
       { icon: BookTemplate, label: "Vorlagen", path: "/templates", desc: "Templates & Hooks" },
       { icon: FileText, label: "Content Queue", path: "/queue", desc: "Alle Posts" },
+      { icon: CalendarDays, label: "Monatsplan", path: "/monthly-plan", desc: "30 Posts auf Knopfdruck" },
+      { icon: Recycle, label: "Evergreen", path: "/evergreen", desc: "Top-Posts recyclen" },
     ],
   },
   {

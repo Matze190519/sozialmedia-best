@@ -12,6 +12,8 @@ import {
   optimalPostingTimes, InsertOptimalPostingTime,
   lrProducts, InsertLRProduct,
   trendScans, InsertTrendScan,
+  evergreenPosts, InsertEvergreenPost,
+  monthlyPlans, InsertMonthlyPlan,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { like } from "drizzle-orm";
@@ -623,4 +625,90 @@ export async function clearOldTrends(daysOld: number = 7) {
   if (!db) return;
   const cutoff = new Date(Date.now() - daysOld * 24 * 60 * 60 * 1000);
   await db.delete(trendScans).where(lte(trendScans.scannedAt, cutoff));
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// EVERGREEN RECYCLING
+// ═══════════════════════════════════════════════════════════════
+
+export async function addEvergreenPost(data: Omit<InsertEvergreenPost, "id" | "createdAt">) {
+  const db = await getDb();
+  if (!db) return 0;
+  const [result] = await db.insert(evergreenPosts).values(data).$returningId();
+  return result.id;
+}
+
+export async function getEvergreenPosts(activeOnly: boolean = true) {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions = activeOnly ? [eq(evergreenPosts.isActive, true)] : [];
+  return db.select().from(evergreenPosts).where(and(...conditions)).orderBy(desc(evergreenPosts.createdAt));
+}
+
+export async function getEvergreenPostsDueForRecycle() {
+  const db = await getDb();
+  if (!db) return [];
+  const now = new Date();
+  return db.select().from(evergreenPosts)
+    .where(and(
+      eq(evergreenPosts.isActive, true),
+      lte(evergreenPosts.nextRecycleAt, now),
+    ))
+    .orderBy(evergreenPosts.nextRecycleAt);
+}
+
+export async function updateEvergreenPost(id: number, data: Partial<InsertEvergreenPost>) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(evergreenPosts).set(data).where(eq(evergreenPosts.id, id));
+}
+
+export async function removeEvergreenPost(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(evergreenPosts).where(eq(evergreenPosts.id, id));
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MONTHLY PLANS
+// ═══════════════════════════════════════════════════════════════
+
+export async function saveMonthlyPlan(data: Omit<InsertMonthlyPlan, "id" | "createdAt">) {
+  const db = await getDb();
+  if (!db) return 0;
+  const [result] = await db.insert(monthlyPlans).values(data).$returningId();
+  return result.id;
+}
+
+export async function getMonthlyPlans(limit: number = 12) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(monthlyPlans).orderBy(desc(monthlyPlans.createdAt)).limit(limit);
+}
+
+export async function getMonthlyPlan(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const [plan] = await db.select().from(monthlyPlans).where(eq(monthlyPlans.id, id));
+  return plan || null;
+}
+
+export async function updateMonthlyPlan(id: number, data: Partial<InsertMonthlyPlan>) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(monthlyPlans).set(data).where(eq(monthlyPlans.id, id));
+}
+
+// Get top-performing posts for evergreen candidates
+export async function getEvergreenCandidates(minScore: number = 70, limit: number = 20) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(contentPosts)
+    .where(and(
+      eq(contentPosts.status, "published"),
+      gte(contentPosts.feedbackScore, minScore),
+    ))
+    .orderBy(desc(contentPosts.feedbackScore))
+    .limit(limit);
 }

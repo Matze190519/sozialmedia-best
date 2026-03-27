@@ -21,6 +21,9 @@ import ABTestPage from "./pages/ABTestPage";
 import FeedbackPage from "./pages/FeedbackPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import TrendScannerPage from "./pages/TrendScannerPage";
+import HashtagPage from "./pages/HashtagPage";
+import MonthlyPlanPage from "./pages/MonthlyPlanPage";
+import EvergreenPage from "./pages/EvergreenPage";
 
 function Router() {
   return (
@@ -41,6 +44,9 @@ function Router() {
         <Route path="/team" component={TeamPage} />
         <Route path="/settings" component={SettingsPage} />
         <Route path="/trends" component={TrendScannerPage} />
+        <Route path="/hashtags" component={HashtagPage} />
+        <Route path="/monthly-plan" component={MonthlyPlanPage} />
+        <Route path="/evergreen" component={EvergreenPage} />
         <Route path="/onboarding" component={OnboardingPage} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />

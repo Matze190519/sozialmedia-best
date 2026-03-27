@@ -306,3 +306,60 @@ export const trendScans = mysqlTable("trend_scans", {
 
 export type TrendScan = typeof trendScans.$inferSelect;
 export type InsertTrendScan = typeof trendScans.$inferInsert;
+
+
+// ═══════════════════════════════════════════════════════════════
+// EVERGREEN RECYCLING
+// ═══════════════════════════════════════════════════════════════
+
+export const evergreenPosts = mysqlTable("evergreen_posts", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Original content post ID */
+  originalPostId: int("originalPostId").notNull(),
+  /** Minimum days before recycling */
+  recycleAfterDays: int("recycleAfterDays").default(30).notNull(),
+  /** How many times this post has been recycled */
+  recycleCount: int("recycleCount").default(0).notNull(),
+  /** Maximum number of recycles allowed */
+  maxRecycles: int("maxRecycles").default(3).notNull(),
+  /** Whether recycling is active */
+  isActive: boolean("isActive").default(true).notNull(),
+  /** Last time this post was recycled */
+  lastRecycledAt: timestamp("lastRecycledAt"),
+  /** Next scheduled recycle date */
+  nextRecycleAt: timestamp("nextRecycleAt"),
+  /** Performance score that qualified this for evergreen */
+  qualifyingScore: int("qualifyingScore").default(0),
+  /** Notes about why this is evergreen */
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type EvergreenPost = typeof evergreenPosts.$inferSelect;
+export type InsertEvergreenPost = typeof evergreenPosts.$inferInsert;
+
+// ═══════════════════════════════════════════════════════════════
+// MONTHLY CONTENT PLANS
+// ═══════════════════════════════════════════════════════════════
+
+export const monthlyPlans = mysqlTable("monthly_plans", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Month (1-12) */
+  month: int("month").notNull(),
+  /** Year */
+  year: int("year").notNull(),
+  /** Generated plan data as JSON */
+  planData: json("planData").$type<any>(),
+  /** Summary text */
+  summary: text("summary"),
+  /** How many posts from this plan were created */
+  postsCreated: int("postsCreated").default(0),
+  /** Total posts in plan */
+  totalPosts: int("totalPosts").default(0),
+  /** Created by user */
+  createdById: int("createdById").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type MonthlyPlan = typeof monthlyPlans.$inferSelect;
+export type InsertMonthlyPlan = typeof monthlyPlans.$inferInsert;

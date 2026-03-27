@@ -108,3 +108,17 @@
 - [x] Creator Spy: Wettbewerber-Analyse mit Agent Brain Content-Pillars integriert
 - [x] Vollautomatische Pipeline: Trend → Content + Bild → Freigabe → Auto-Post via Blotato
 - [x] Anleitung für Botpress-Änderungen erstellt (detaillierte Schritt-für-Schritt Anleitung)
+
+## Game-Changer Features - Besser als Predis.ai, Ocoya, Buffer (27.03.2026)
+- [x] Content Repurposing: Blotato postet auf alle Plattformen, Brand Voice passt Ton pro Plattform an
+- [x] Smart Hashtag-Engine: KI-generierte trendbasierte Hashtags pro Plattform
+- [x] Monatsplan-Generator: 30 Posts auf Knopfdruck für den ganzen Monat
+- [ ] Datenbasierte optimale Posting-Zeiten pro Plattform (nicht statisch)
+- [x] Evergreen Recycling: Top-Posts automatisch nach X Wochen wiederverwenden
+
+## Finale Game-Changer Features (27.03.2026)
+- [x] Smart Hashtag-Engine: KI-generierte trendbasierte Hashtags pro Plattform + Instagram Recherche
+- [x] Hashtag-Pools: Vordefinierte LR-spezifische Hashtag-Sets pro Pillar (6 Kategorien)
+- [x] Monatsplan-Generator: 30 Posts auf Knopfdruck für den ganzen Monat (Agent Brain Wochenplan)
+- [x] Evergreen Recycling: Top-Posts automatisch nach X Wochen wiederverwenden (mit KI-Variation)
+- [x] Tests: 112/112 bestanden (10 Test-Dateien)

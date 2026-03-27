@@ -7,6 +7,7 @@ import { TRPCError } from "@trpc/server";
 import * as db from "./db";
 import * as api from "./externalApis";
 import * as trendScanner from "./trendScanner";
+import * as hashtagEngine from "./hashtagEngine";
 
 // Admin-only procedure
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -1342,6 +1343,182 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
           imagePrompt: generated.imagePrompt,
           imageUrl,
         };
+      }),
+  }),
+
+  // ─── Smart Hashtag Engine ──────────────────────────────────
+  hashtags: router({
+    generate: protectedProcedure
+      .input(z.object({
+        content: z.string(),
+        platform: z.string().default("instagram"),
+        pillar: z.string().optional(),
+        topic: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return hashtagEngine.generateSmartHashtags(input.content, input.platform, input.pillar, input.topic);
+      }),
+    research: protectedProcedure
+      .input(z.object({ topic: z.string(), pillar: z.string().optional() }))
+      .mutation(async ({ input }) => {
+        return hashtagEngine.researchInstagramHashtags(input.topic, input.pillar);
+      }),
+    platforms: publicProcedure.query(() => {
+      return Object.entries(hashtagEngine.PLATFORM_RULES).map(([key, val]) => ({
+        platform: key,
+        maxHashtags: val.maxHashtags,
+        style: val.style,
+        placement: val.placement,
+      }));
+    }),
+    pools: publicProcedure.query(() => {
+      return Object.entries(hashtagEngine.LR_HASHTAG_POOLS).map(([key, tags]) => ({
+        category: key,
+        hashtags: tags,
+        count: tags.length,
+      }));
+    }),
+  }),
+
+  // ─── Monatsplan Generator ─────────────────────────────────
+  monthlyPlan: router({
+    generate: adminProcedure
+      .input(z.object({ month: z.number().min(1).max(12), year: z.number().min(2024).max(2030) }))
+      .mutation(async ({ ctx, input }) => {
+        const plan = await hashtagEngine.generateMonthlyPlan(input.month, input.year);
+        const planId = await db.saveMonthlyPlan({
+          month: input.month,
+          year: input.year,
+          planData: plan.posts,
+          summary: plan.summary,
+          totalPosts: plan.posts.length,
+          postsCreated: 0,
+          createdById: ctx.user.id,
+        });
+        return { id: planId, ...plan };
+      }),
+    list: protectedProcedure.query(async () => {
+      return db.getMonthlyPlans();
+    }),
+    get: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return db.getMonthlyPlan(input.id);
+      }),
+    createPostFromPlan: adminProcedure
+      .input(z.object({
+        planId: z.number(),
+        dayIndex: z.number(),
+        topic: z.string(),
+        hook: z.string(),
+        platform: z.string(),
+        pillar: z.string(),
+        contentType: z.string(),
+        hashtags: z.array(z.string()),
+        imagePrompt: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Generate full content from the plan item
+        const generated = await trendScanner.autopilotGenerateFromTrend(
+          { title: input.topic, platform: input.platform, pillar: input.pillar },
+          input.contentType,
+          input.platform
+        );
+        const postId = await db.createContentPost({
+          createdById: ctx.user.id,
+          contentType: input.contentType,
+          content: generated.content,
+          platforms: [input.platform],
+          status: "pending",
+          topic: input.topic,
+          pillar: input.pillar,
+          apiMetadata: { source: "monthly_plan", planId: input.planId, hook: input.hook, hashtags: input.hashtags },
+        });
+        // Update plan counter
+        const plan = await db.getMonthlyPlan(input.planId);
+        if (plan) {
+          await db.updateMonthlyPlan(input.planId, { postsCreated: (plan.postsCreated || 0) + 1 });
+        }
+        return { postId, content: generated.content };
+      }),
+  }),
+
+  // ─── Evergreen Recycling ───────────────────────────────────
+  evergreen: router({
+    add: adminProcedure
+      .input(z.object({
+        originalPostId: z.number(),
+        recycleAfterDays: z.number().default(30),
+        maxRecycles: z.number().default(3),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const nextRecycleAt = new Date(Date.now() + input.recycleAfterDays * 24 * 60 * 60 * 1000);
+        const id = await db.addEvergreenPost({
+          originalPostId: input.originalPostId,
+          recycleAfterDays: input.recycleAfterDays,
+          maxRecycles: input.maxRecycles,
+          notes: input.notes,
+          nextRecycleAt,
+          qualifyingScore: 0,
+        });
+        return { id };
+      }),
+    list: protectedProcedure
+      .input(z.object({ activeOnly: z.boolean().optional() }).optional())
+      .query(async ({ input }) => {
+        return db.getEvergreenPosts(input?.activeOnly !== false);
+      }),
+    due: protectedProcedure.query(async () => {
+      return db.getEvergreenPostsDueForRecycle();
+    }),
+    candidates: protectedProcedure.query(async () => {
+      return db.getEvergreenCandidates();
+    }),
+    recycle: adminProcedure
+      .input(z.object({ evergreenId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const egPosts = await db.getEvergreenPosts(true);
+        const eg = egPosts.find(p => p.id === input.evergreenId);
+        if (!eg) throw new TRPCError({ code: "NOT_FOUND" });
+        if (eg.recycleCount >= eg.maxRecycles) {
+          await db.updateEvergreenPost(eg.id, { isActive: false });
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Max Recycles erreicht" });
+        }
+        // Get original post
+        const posts = await db.getContentPosts({ limit: 1 });
+        // Create recycled copy
+        const original = await db.getContentPosts({ limit: 999 });
+        const origPost = original.find((p: any) => (p.post?.id || p.id) === eg.originalPostId);
+        if (!origPost) throw new TRPCError({ code: "NOT_FOUND", message: "Original-Post nicht gefunden" });
+        const postData = (origPost as any).post || origPost;
+        const newPostId = await db.createContentPost({
+          createdById: ctx.user.id,
+          contentType: postData.contentType || "post",
+          content: postData.content,
+          platforms: postData.platforms || ["instagram"],
+          status: "pending",
+          topic: `♻️ Recycled: ${postData.topic || "Evergreen Post"}`,
+          pillar: postData.pillar,
+          mediaUrl: postData.mediaUrl,
+          mediaType: postData.mediaType,
+          apiMetadata: { source: "evergreen_recycle", originalPostId: eg.originalPostId, recycleNumber: eg.recycleCount + 1 },
+        });
+        // Update evergreen record
+        const nextRecycle = new Date(Date.now() + eg.recycleAfterDays * 24 * 60 * 60 * 1000);
+        await db.updateEvergreenPost(eg.id, {
+          recycleCount: eg.recycleCount + 1,
+          lastRecycledAt: new Date(),
+          nextRecycleAt: nextRecycle,
+          isActive: eg.recycleCount + 1 < eg.maxRecycles,
+        });
+        return { newPostId, recycleCount: eg.recycleCount + 1 };
+      }),
+    remove: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.removeEvergreenPost(input.id);
+        return { success: true };
       }),
   }),
 

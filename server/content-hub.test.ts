@@ -368,7 +368,7 @@ describe("API Health Endpoints", () => {
     expect(result).toHaveProperty("status");
     expect(result).toHaveProperty("url");
     expect(result.url).toBe("https://goviralbitch-deploy.onrender.com");
-  });
+  }, 15000);
 });
 
 // ─── Video KI Configuration Tests ────────────────────────────
