@@ -39,4 +39,4 @@
 - [x] Brand Voice Generator: LLM-basiert mit komplettem Brand Voice Context
 - [x] Generator Page: 5 Tabs (Brand Voice, GoViral, KI-Bild, KI-Video, Vorlagen)
 - [ ] Feedback-Loop (Performance → Content-Optimierung) - braucht echte Analytics-Daten
-- [ ] fal.ai API Key eintragen (Settings → Secrets)
+- [x] fal.ai API Key eingetragen und validiert (49/49 Tests bestanden)

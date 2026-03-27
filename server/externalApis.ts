@@ -411,7 +411,8 @@ export interface VideoGenerationResult {
 }
 
 export async function generateVideoWithFal(req: VideoGenerationRequest): Promise<VideoGenerationResult> {
-  if (!FAL_API_KEY) {
+  const currentKey = process.env.FAL_API_KEY || "";
+  if (!currentKey) {
     throw new Error("FAL_API_KEY ist nicht konfiguriert. Bitte in den Settings hinterlegen.");
   }
 
@@ -457,6 +458,8 @@ export async function generateVideoWithFal(req: VideoGenerationRequest): Promise
       };
   }
 
+  // Configure fal with current key at runtime
+  fal.config({ credentials: currentKey });
   const result = await fal.subscribe(falModel, { input }) as { data: { video: { url: string } } };
 
   return {
