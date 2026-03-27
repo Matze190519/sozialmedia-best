@@ -671,35 +671,11 @@ export async function scheduleOnBlotato(
   }
 }
 
-/** Berechnet den nächsten optimalen Posting-Zeitpunkt basierend auf Plattform */
+/** Berechnet den nächsten optimalen Posting-Zeitpunkt basierend auf Plattform (Smart Engine) */
 function getNextOptimalPostingTime(platform: string): string {
-  const now = new Date();
-  // Optimale Posting-Zeiten pro Plattform (in UTC+1)
-  const optimalHours: Record<string, number[]> = {
-    instagram: [8, 12, 18, 21],
-    tiktok: [7, 12, 17, 21],
-    facebook: [9, 13, 16],
-    linkedin: [8, 10, 12],
-    youtube: [14, 17, 20],
-    twitter: [8, 12, 17],
-    threads: [9, 18, 21],
-    pinterest: [20, 21, 22],
-  };
-  const hours = optimalHours[platform.toLowerCase()] || [9, 12, 18];
-  
-  // Finde den nächsten optimalen Zeitpunkt
-  for (const hour of hours) {
-    const target = new Date(now);
-    target.setHours(hour, 0, 0, 0);
-    if (target > now) {
-      return target.toISOString();
-    }
-  }
-  // Wenn alle Zeiten heute vorbei sind, nimm morgen den ersten Slot
-  const tomorrow = new Date(now);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(hours[0], 0, 0, 0);
-  return tomorrow.toISOString();
+  const { getNextSmartPostingTime } = require("./smartPostingTimes");
+  const result = getNextSmartPostingTime(platform);
+  return result.scheduledTime;
 }
 
 export async function publishToAllPlatforms(
@@ -735,6 +711,110 @@ export async function publishToAllPlatforms(
   }
 
   return postIds;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BLOTATO CALENDAR API - Geplante Posts verwalten
+// ═══════════════════════════════════════════════════════════════
+
+export interface BlotatoScheduledPost {
+  id: string;
+  scheduledAt: string;
+  draft: {
+    accountId: string;
+    content: {
+      text: string;
+      mediaUrls: string[];
+      platform: string;
+    };
+    target: {
+      targetType: string;
+    };
+  };
+  account: {
+    id: string;
+    name: string;
+    username: string;
+    profileImageUrl: string | null;
+    subaccountId: string | null;
+    subaccountName: string | null;
+  };
+}
+
+/** Alle geplanten Posts abrufen (nur zukünftige, sortiert nach scheduledAt) */
+export async function getScheduledPosts(limit: number = 100, cursor?: string, apiKey?: string): Promise<{
+  items: BlotatoScheduledPost[];
+  count: string;
+  cursor: string | null;
+}> {
+  try {
+    let endpoint = `/schedules?limit=${limit}`;
+    if (cursor) endpoint += `&cursor=${cursor}`;
+    const data = await callBlotato(endpoint, "GET", undefined, apiKey);
+    return {
+      items: data?.items || [],
+      count: data?.count || "0",
+      cursor: data?.cursor || null,
+    };
+  } catch (err) {
+    console.error("[Blotato Calendar] Failed to get scheduled posts:", err);
+    return { items: [], count: "0", cursor: null };
+  }
+}
+
+/** Einzelnen geplanten Post abrufen */
+export async function getScheduledPost(scheduleId: string, apiKey?: string): Promise<BlotatoScheduledPost | null> {
+  try {
+    const data = await callBlotato(`/schedules/${scheduleId}`, "GET", undefined, apiKey);
+    return data?.schedule || null;
+  } catch (err) {
+    console.error(`[Blotato Calendar] Failed to get schedule ${scheduleId}:`, err);
+    return null;
+  }
+}
+
+/** Geplanten Post aktualisieren (Text, Medien, Zeitpunkt) */
+export async function updateScheduledPost(
+  scheduleId: string,
+  patch: {
+    scheduledTime?: string;
+    draft?: {
+      accountId: string;
+      content: {
+        text: string;
+        mediaUrls: string[];
+        platform: string;
+      };
+      target: {
+        targetType: string;
+      };
+    };
+  },
+  apiKey?: string,
+): Promise<boolean> {
+  try {
+    await callBlotato(`/schedules/${scheduleId}`, "PATCH", { patch }, apiKey);
+    return true;
+  } catch (err) {
+    console.error(`[Blotato Calendar] Failed to update schedule ${scheduleId}:`, err);
+    return false;
+  }
+}
+
+/** Geplanten Post löschen (unwiderruflich) */
+export async function deleteScheduledPost(scheduleId: string, apiKey?: string): Promise<boolean> {
+  try {
+    await callBlotato(`/schedules/${scheduleId}`, "DELETE", undefined, apiKey);
+    return true;
+  } catch (err) {
+    console.error(`[Blotato Calendar] Failed to delete schedule ${scheduleId}:`, err);
+    return false;
+  }
+}
+
+/** Geplanten Post auf neuen Zeitpunkt verschieben */
+export async function reschedulePost(scheduleId: string, newTime: string, apiKey?: string): Promise<boolean> {
+  return updateScheduledPost(scheduleId, { scheduledTime: newTime }, apiKey);
 }
 
 // Blotato Account Mapping - LR Lifestyle Team

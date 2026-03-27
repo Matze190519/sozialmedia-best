@@ -9,11 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import {
   CheckCircle, XCircle, Send, Edit3, Clock, AlertTriangle,
-  Image, Video, Rocket, CalendarClock, Eye, ArrowRight,
+  Image, Video, Rocket, CalendarClock, Eye, ArrowRight, Zap, TrendingUp,
 } from "lucide-react";
 
 const PLATFORM_COLORS: Record<string, string> = {
@@ -24,7 +24,60 @@ const PLATFORM_COLORS: Record<string, string> = {
   twitter: "bg-sky-500/20 text-sky-300",
   threads: "bg-gray-500/20 text-gray-300",
   youtube: "bg-red-600/20 text-red-300",
+  pinterest: "bg-red-400/20 text-red-200",
 };
+
+const PLATFORM_EMOJIS: Record<string, string> = {
+  instagram: "📸",
+  facebook: "📘",
+  tiktok: "🎵",
+  linkedin: "💼",
+  twitter: "🐦",
+  threads: "🧵",
+  youtube: "🎬",
+  pinterest: "📌",
+};
+
+function SmartTimeRecommendation({ platforms }: { platforms: string[] }) {
+  const stablePlatforms = useMemo(() => platforms, [platforms.join(",")]);
+  const { data: smartTimes } = trpc.postingTimes.smartNextMulti.useQuery(
+    { platforms: stablePlatforms },
+    { enabled: stablePlatforms.length > 0 }
+  );
+
+  if (!smartTimes || smartTimes.length === 0) return null;
+
+  return (
+    <div className="space-y-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+      <div className="flex items-center gap-2 text-sm font-medium text-emerald-300">
+        <Zap className="h-4 w-4" />
+        Optimale Posting-Zeiten (datenbasiert)
+      </div>
+      <div className="space-y-1.5">
+        {smartTimes.map((t: any) => (
+          <div key={t.platform} className="flex items-center justify-between text-xs">
+            <span className="flex items-center gap-1.5">
+              <span>{PLATFORM_EMOJIS[t.platform] || "📱"}</span>
+              <span className="capitalize">{t.platform}</span>
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="text-muted-foreground">{t.dayName}</span>
+              <span className="font-mono font-medium text-emerald-300">
+                {String(t.hour).padStart(2, "0")}:{String(t.minute).padStart(2, "0")} Uhr
+              </span>
+              <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">
+                Score {t.score}
+              </Badge>
+            </span>
+          </div>
+        ))}
+      </div>
+      <p className="text-[10px] text-muted-foreground mt-1">
+        Basierend auf Engagement-Daten der DACH-Region. Klicke "Optimal planen" um den besten Zeitpunkt zu nutzen.
+      </p>
+    </div>
+  );
+}
 
 export default function ApprovalPage() {
   const { user } = useAuth();
@@ -34,7 +87,7 @@ export default function ApprovalPage() {
   const { data: approvedPosts } = trpc.content.list.useQuery({ status: "approved", limit: 20 });
 
   const approveMut = trpc.approval.approve.useMutation({
-    onSuccess: () => { utils.content.list.invalidate(); utils.dashboard.stats.invalidate(); toast.success("Post genehmigt!"); setApproveDialog({ id: 0, open: false }); },
+    onSuccess: () => { utils.content.list.invalidate(); utils.dashboard.stats.invalidate(); toast.success("Post genehmigt!"); setApproveDialog({ id: 0, open: false, platforms: [] }); },
     onError: (err) => toast.error(err.message),
   });
   const rejectMut = trpc.approval.reject.useMutation({
@@ -42,23 +95,55 @@ export default function ApprovalPage() {
     onError: (err) => toast.error(err.message),
   });
   const publishMut = trpc.approval.publish.useMutation({
-    onSuccess: () => { utils.content.list.invalidate(); utils.dashboard.stats.invalidate(); toast.success("Post auf Blotato geplant!"); setPublishDialog({ id: 0, open: false }); },
+    onSuccess: () => { utils.content.list.invalidate(); utils.dashboard.stats.invalidate(); toast.success("Post auf Blotato geplant!"); setPublishDialog({ id: 0, open: false, platforms: [] }); },
     onError: (err) => toast.error(err.message),
   });
 
   const [rejectDialog, setRejectDialog] = useState<{ id: number; open: boolean }>({ id: 0, open: false });
   const [rejectComment, setRejectComment] = useState("");
   const [editDialog, setEditDialog] = useState<{ id: number; content: string; open: boolean }>({ id: 0, content: "", open: false });
-  const [approveDialog, setApproveDialog] = useState<{ id: number; open: boolean }>({ id: 0, open: false });
+  const [approveDialog, setApproveDialog] = useState<{ id: number; open: boolean; platforms: string[] }>({ id: 0, open: false, platforms: [] });
   const [approveAutoPublish, setApproveAutoPublish] = useState(true);
   const [approveScheduledAt, setApproveScheduledAt] = useState("");
-  const [publishDialog, setPublishDialog] = useState<{ id: number; open: boolean }>({ id: 0, open: false });
+  const [publishDialog, setPublishDialog] = useState<{ id: number; open: boolean; platforms: string[] }>({ id: 0, open: false, platforms: [] });
   const [publishScheduledDate, setPublishScheduledDate] = useState("");
 
   const editMut = trpc.content.edit.useMutation({
     onSuccess: () => { utils.content.list.invalidate(); toast.success("Content bearbeitet!"); setEditDialog({ id: 0, content: "", open: false }); },
     onError: (err) => toast.error(err.message),
   });
+
+  // Smart Time für den aktuellen Dialog
+  const dialogPlatforms = useMemo(
+    () => approveDialog.open ? approveDialog.platforms : publishDialog.platforms,
+    [approveDialog.open, approveDialog.platforms, publishDialog.open, publishDialog.platforms]
+  );
+
+  const { data: dialogSmartTimes } = trpc.postingTimes.smartNextMulti.useQuery(
+    { platforms: dialogPlatforms },
+    { enabled: dialogPlatforms.length > 0 && (approveDialog.open || publishDialog.open) }
+  );
+
+  const handleUseSmartTime = () => {
+    if (dialogSmartTimes && dialogSmartTimes.length > 0) {
+      // Nimm den Zeitpunkt mit dem höchsten Score
+      const best = dialogSmartTimes.reduce((a: any, b: any) => a.score > b.score ? a : b);
+      const date = new Date(best.scheduledTime);
+      // Format für datetime-local input
+      const formatted = date.getFullYear() + "-" +
+        String(date.getMonth() + 1).padStart(2, "0") + "-" +
+        String(date.getDate()).padStart(2, "0") + "T" +
+        String(date.getHours()).padStart(2, "0") + ":" +
+        String(date.getMinutes()).padStart(2, "0");
+
+      if (approveDialog.open) {
+        setApproveScheduledAt(formatted);
+      } else {
+        setPublishScheduledDate(formatted);
+      }
+      toast.success(`Optimale Zeit gesetzt: ${best.dayName} ${String(best.hour).padStart(2, "0")}:${String(best.minute).padStart(2, "0")} Uhr (Score: ${best.score})`);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -164,13 +249,17 @@ export default function ApprovalPage() {
                       </span>
                     ))}
                   </div>
+
+                  {/* Smart Time Empfehlung inline */}
+                  <SmartTimeRecommendation platforms={(item.post.platforms as string[]) || []} />
+
                   {isAdmin && (
                     <div className="flex items-center gap-2 pt-2 border-t border-border/50">
                       <Button
                         size="sm"
                         className="gap-1.5"
                         onClick={() => {
-                          setApproveDialog({ id: item.post.id, open: true });
+                          setApproveDialog({ id: item.post.id, open: true, platforms: (item.post.platforms as string[]) || [] });
                           setApproveAutoPublish(true);
                           setApproveScheduledAt("");
                         }}
@@ -239,11 +328,12 @@ export default function ApprovalPage() {
                         </span>
                       ))}
                     </div>
+                    <SmartTimeRecommendation platforms={(item.post.platforms as string[]) || []} />
                     <Button
                       size="sm"
                       className="gap-1.5 w-full"
                       onClick={() => {
-                        setPublishDialog({ id: item.post.id, open: true });
+                        setPublishDialog({ id: item.post.id, open: true, platforms: (item.post.platforms as string[]) || [] });
                         setPublishScheduledDate("");
                       }}
                       disabled={publishMut.isPending}
@@ -265,7 +355,7 @@ export default function ApprovalPage() {
         </div>
       )}
 
-      {/* Approve Dialog with Auto-Publish Option */}
+      {/* Approve Dialog with Smart Scheduling */}
       <Dialog open={approveDialog.open} onOpenChange={(open) => setApproveDialog(prev => ({ ...prev, open }))}>
         <DialogContent>
           <DialogHeader>
@@ -286,24 +376,62 @@ export default function ApprovalPage() {
             </div>
 
             {approveAutoPublish && (
-              <div className="space-y-2">
-                <Label className="text-sm flex items-center gap-2">
-                  <CalendarClock className="h-4 w-4" />
-                  Zeitpunkt festlegen (optional)
-                </Label>
-                <Input
-                  type="datetime-local"
-                  value={approveScheduledAt}
-                  onChange={(e) => setApproveScheduledAt(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Leer lassen = sofort posten. Oder wähle Datum und Uhrzeit für geplantes Posting.
-                </p>
+              <div className="space-y-3">
+                {/* Smart Time Empfehlung */}
+                {dialogSmartTimes && dialogSmartTimes.length > 0 && (
+                  <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-sm font-medium text-emerald-300">
+                        <TrendingUp className="h-4 w-4" />
+                        Empfohlene Zeiten
+                      </div>
+                      <Button size="sm" variant="outline" className="h-7 text-xs gap-1 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10" onClick={handleUseSmartTime}>
+                        <Zap className="h-3 w-3" />
+                        Optimal planen
+                      </Button>
+                    </div>
+                    <div className="space-y-1">
+                      {dialogSmartTimes.map((t: any) => (
+                        <div key={t.platform} className="flex items-center justify-between text-xs">
+                          <span className="flex items-center gap-1.5">
+                            <span>{PLATFORM_EMOJIS[t.platform] || "📱"}</span>
+                            <span className="capitalize">{t.platform}</span>
+                          </span>
+                          <span className="flex items-center gap-2">
+                            <span className="text-muted-foreground">{t.dayName}</span>
+                            <span className="font-mono font-medium text-emerald-300">
+                              {String(t.hour).padStart(2, "0")}:{String(t.minute).padStart(2, "0")}
+                            </span>
+                            <span className="text-muted-foreground text-[10px]">Score {t.score}</span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      {dialogSmartTimes[0]?.reason}
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label className="text-sm flex items-center gap-2">
+                    <CalendarClock className="h-4 w-4" />
+                    Zeitpunkt festlegen (optional)
+                  </Label>
+                  <Input
+                    type="datetime-local"
+                    value={approveScheduledAt}
+                    onChange={(e) => setApproveScheduledAt(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Leer lassen = sofort posten. Oder klicke "Optimal planen" für den besten Zeitpunkt.
+                  </p>
+                </div>
               </div>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setApproveDialog({ id: 0, open: false })}>Abbrechen</Button>
+            <Button variant="outline" onClick={() => setApproveDialog({ id: 0, open: false, platforms: [] })}>Abbrechen</Button>
             <Button
               onClick={() => {
                 approveMut.mutate({
@@ -320,13 +448,13 @@ export default function ApprovalPage() {
               ) : (
                 <Rocket className="h-3.5 w-3.5" />
               )}
-              {approveAutoPublish ? "Genehmigen & Posten" : "Nur Genehmigen"}
+              {approveAutoPublish ? (approveScheduledAt ? "Genehmigen & Planen" : "Genehmigen & Posten") : "Nur Genehmigen"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Publish Dialog with Schedule Option */}
+      {/* Publish Dialog with Smart Scheduling */}
       <Dialog open={publishDialog.open} onOpenChange={(open) => setPublishDialog(prev => ({ ...prev, open }))}>
         <DialogContent>
           <DialogHeader>
@@ -336,6 +464,39 @@ export default function ApprovalPage() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Smart Time Empfehlung */}
+            {dialogSmartTimes && dialogSmartTimes.length > 0 && (
+              <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm font-medium text-emerald-300">
+                    <TrendingUp className="h-4 w-4" />
+                    Empfohlene Zeiten
+                  </div>
+                  <Button size="sm" variant="outline" className="h-7 text-xs gap-1 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10" onClick={handleUseSmartTime}>
+                    <Zap className="h-3 w-3" />
+                    Optimal planen
+                  </Button>
+                </div>
+                <div className="space-y-1">
+                  {dialogSmartTimes.map((t: any) => (
+                    <div key={t.platform} className="flex items-center justify-between text-xs">
+                      <span className="flex items-center gap-1.5">
+                        <span>{PLATFORM_EMOJIS[t.platform] || "📱"}</span>
+                        <span className="capitalize">{t.platform}</span>
+                      </span>
+                      <span className="flex items-center gap-2">
+                        <span className="text-muted-foreground">{t.dayName}</span>
+                        <span className="font-mono font-medium text-emerald-300">
+                          {String(t.hour).padStart(2, "0")}:{String(t.minute).padStart(2, "0")}
+                        </span>
+                        <span className="text-muted-foreground text-[10px]">Score {t.score}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label className="text-sm flex items-center gap-2">
                 <CalendarClock className="h-4 w-4" />
@@ -347,12 +508,12 @@ export default function ApprovalPage() {
                 onChange={(e) => setPublishScheduledDate(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">
-                Leer lassen = sofort posten. Oder wähle Datum und Uhrzeit.
+                Leer lassen = sofort posten. Oder klicke "Optimal planen" für den besten Zeitpunkt.
               </p>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setPublishDialog({ id: 0, open: false })}>Abbrechen</Button>
+            <Button variant="outline" onClick={() => setPublishDialog({ id: 0, open: false, platforms: [] })}>Abbrechen</Button>
             <Button
               onClick={() => {
                 publishMut.mutate({

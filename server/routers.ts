@@ -879,6 +879,45 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       .input(z.object({ platform: z.string().optional() }).optional())
       .query(async ({ input }) => db.getOptimalPostingTimes(input?.platform)),
 
+    // Smart Scheduling: Nächsten optimalen Zeitpunkt für eine Plattform
+    smartNext: protectedProcedure
+      .input(z.object({ platform: z.string() }))
+      .query(({ input }) => {
+        const { getNextSmartPostingTime } = require("./smartPostingTimes");
+        return getNextSmartPostingTime(input.platform);
+      }),
+
+    // Smart Scheduling: Nächste optimale Zeiten für mehrere Plattformen
+    smartNextMulti: protectedProcedure
+      .input(z.object({ platforms: z.array(z.string()) }))
+      .query(({ input }) => {
+        const { getNextSmartPostingTimes } = require("./smartPostingTimes");
+        return getNextSmartPostingTimes(input.platforms);
+      }),
+
+    // Kompletter Wochenplan für eine Plattform
+    weeklySchedule: protectedProcedure
+      .input(z.object({ platform: z.string() }))
+      .query(({ input }) => {
+        const { getWeeklySchedule } = require("./smartPostingTimes");
+        return getWeeklySchedule(input.platform);
+      }),
+
+    // Alle Plattform-Schedules auf einen Blick
+    allSchedules: protectedProcedure
+      .query(() => {
+        const { getAllSchedules } = require("./smartPostingTimes");
+        return getAllSchedules();
+      }),
+
+    // Bester Zeitpunkt für einen bestimmten Tag
+    bestForDay: protectedProcedure
+      .input(z.object({ platform: z.string(), dayOfWeek: z.number().min(0).max(6) }))
+      .query(({ input }) => {
+        const { getBestTimeForDay } = require("./smartPostingTimes");
+        return getBestTimeForDay(input.platform, input.dayOfWeek);
+      }),
+
     calculate: adminProcedure.mutation(async () => {
       // Calculate optimal times from analytics data
       const db2 = await db.getDb();
@@ -1704,6 +1743,97 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
           input.mood
         );
         return { prompt };
+      }),
+  }),
+
+  // ─── Blotato Calendar (Scheduled Posts) ────────────────────
+  calendar: router({
+    // Alle geplanten Posts von Blotato abrufen
+    list: protectedProcedure
+      .input(z.object({ limit: z.number().optional(), cursor: z.string().optional() }).optional())
+      .query(async ({ input }) => {
+        return api.getScheduledPosts(input?.limit || 100, input?.cursor);
+      }),
+
+    // Einzelnen geplanten Post abrufen
+    get: protectedProcedure
+      .input(z.object({ id: z.string() }))
+      .query(async ({ input }) => {
+        const post = await api.getScheduledPost(input.id);
+        if (!post) throw new TRPCError({ code: "NOT_FOUND", message: "Geplanter Post nicht gefunden" });
+        return post;
+      }),
+
+    // Geplanten Post aktualisieren (Text, Medien, Zeitpunkt)
+    update: adminProcedure
+      .input(z.object({
+        id: z.string(),
+        scheduledTime: z.string().optional(),
+        text: z.string().optional(),
+        mediaUrls: z.array(z.string()).optional(),
+        platform: z.string().optional(),
+        accountId: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const patch: any = {};
+        if (input.scheduledTime) {
+          patch.scheduledTime = input.scheduledTime;
+        }
+        if (input.text || input.mediaUrls || input.platform || input.accountId) {
+          // Erst den aktuellen Post holen um fehlende Felder zu ergänzen
+          const current = await api.getScheduledPost(input.id);
+          if (!current) throw new TRPCError({ code: "NOT_FOUND" });
+          patch.draft = {
+            accountId: input.accountId || current.draft.accountId,
+            content: {
+              text: input.text || current.draft.content.text,
+              mediaUrls: input.mediaUrls || current.draft.content.mediaUrls,
+              platform: input.platform || current.draft.content.platform,
+            },
+            target: {
+              targetType: input.platform || current.draft.target.targetType,
+            },
+          };
+        }
+        const success = await api.updateScheduledPost(input.id, patch);
+        if (!success) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Update fehlgeschlagen" });
+        return { success: true };
+      }),
+
+    // Geplanten Post verschieben (nur Zeitpunkt ändern)
+    reschedule: adminProcedure
+      .input(z.object({ id: z.string(), newTime: z.string() }))
+      .mutation(async ({ input }) => {
+        const success = await api.reschedulePost(input.id, input.newTime);
+        if (!success) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Verschieben fehlgeschlagen" });
+        return { success: true };
+      }),
+
+    // Geplanten Post löschen
+    delete: adminProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input }) => {
+        const success = await api.deleteScheduledPost(input.id);
+        if (!success) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Löschen fehlgeschlagen" });
+        return { success: true };
+      }),
+
+    // Kalender-Übersicht: Posts nach Datum gruppiert
+    byDate: protectedProcedure
+      .input(z.object({ limit: z.number().optional() }).optional())
+      .query(async ({ input }) => {
+        const result = await api.getScheduledPosts(input?.limit || 100);
+        // Gruppiere nach Datum
+        const byDate: Record<string, typeof result.items> = {};
+        for (const item of result.items) {
+          const date = item.scheduledAt.split("T")[0];
+          if (!byDate[date]) byDate[date] = [];
+          byDate[date].push(item);
+        }
+        return {
+          dates: Object.entries(byDate).map(([date, posts]) => ({ date, posts, count: posts.length })),
+          totalCount: result.items.length,
+        };
       }),
   }),
 

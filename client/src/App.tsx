@@ -25,6 +25,7 @@ import HashtagPage from "./pages/HashtagPage";
 import MonthlyPlanPage from "./pages/MonthlyPlanPage";
 import EvergreenPage from "./pages/EvergreenPage";
 import LifestylePage from "./pages/LifestylePage";
+import PostingTimesPage from "./pages/PostingTimesPage";
 
 function Router() {
   return (
@@ -49,6 +50,7 @@ function Router() {
         <Route path="/monthly-plan" component={MonthlyPlanPage} />
         <Route path="/evergreen" component={EvergreenPage} />
         <Route path="/lifestyle" component={LifestylePage} />
+        <Route path="/posting-times" component={PostingTimesPage} />
         <Route path="/onboarding" component={OnboardingPage} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />

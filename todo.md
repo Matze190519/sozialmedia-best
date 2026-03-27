@@ -113,7 +113,7 @@
 - [x] Content Repurposing: Blotato postet auf alle Plattformen, Brand Voice passt Ton pro Plattform an
 - [x] Smart Hashtag-Engine: KI-generierte trendbasierte Hashtags pro Plattform
 - [x] Monatsplan-Generator: 30 Posts auf Knopfdruck für den ganzen Monat
-- [ ] Datenbasierte optimale Posting-Zeiten pro Plattform (nicht statisch)
+- [x] Datenbasierte optimale Posting-Zeiten pro Plattform (nicht statisch)
 - [x] Evergreen Recycling: Top-Posts automatisch nach X Wochen wiederverwenden
 
 ## Finale Game-Changer Features (27.03.2026)
@@ -121,9 +121,26 @@
 - [x] Hashtag-Pools: Vordefinierte LR-spezifische Hashtag-Sets pro Pillar (6 Kategorien)
 - [x] Monatsplan-Generator: 30 Posts auf Knopfdruck für den ganzen Monat (Agent Brain Wochenplan)
 - [x] Evergreen Recycling: Top-Posts automatisch nach X Wochen wiederverwenden (mit KI-Variation)
-- [x] Tests: 127/127 bestanden (11 Test-Dateien)
+- [x] Tests: 164/164 bestanden (13 Test-Dateien)
 
 ## Finale Runde (27.03.2026)
 - [ ] Blotato End-to-End Test: Echten Post erstellen → freigeben → automatisch posten
-- [ ] Datenbasierte Posting-Zeiten: Dynamische Berechnung wann Zielgruppe am aktivsten ist
+- [x] Datenbasierte Posting-Zeiten: Dynamische Berechnung wann Zielgruppe am aktivsten ist
 - [x] Lifestyle-Content-Engine: Automatisch Bilder/Videos zu Freiheit, Autos, Erfolg, Business finden und generieren
+
+## Datenbasierte Posting-Zeiten (27.03.2026)
+- [x] Backend: Smart Posting Times Engine mit Engagement-Daten pro Plattform
+- [x] Backend: Feedback-Daten (Bewertungen) für Zeitslot-Optimierung nutzen
+- [x] Backend: Plattform-spezifische Algorithmen (Instagram vs TikTok vs LinkedIn etc.)
+- [x] Router: tRPC Endpoints für optimale Zeiten abrufen
+- [x] Integration: Optimale Zeit automatisch bei Freigabe vorschlagen
+- [x] Frontend: Optimale Zeiten im Approval-Flow und Einstellungen anzeigen
+- [x] Tests: Vitest für Posting-Zeiten Engine
+
+## Blotato Calendar API Integration (27.03.2026)
+- [x] Blotato Calendar API recherchieren - Endpoints und Dokumentation
+- [x] Backend: Calendar API Funktionen in externalApis.ts einbauen (GET/PATCH/DELETE /schedules)
+- [x] Backend: tRPC Router für Calendar-Operationen (list, get, update, reschedule, delete, byDate)
+- [x] Frontend: Kalender-View mit Blotato-Daten synchronisieren (Tabs: Blotato + Dashboard)
+- [x] Frontend: Edit-Dialog (Post-Text bearbeiten), Reschedule-Dialog, Delete-Funktion
+- [x] Tests: Calendar API Integration getestet (14 Tests bestanden)

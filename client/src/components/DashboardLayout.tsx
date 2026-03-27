@@ -45,6 +45,7 @@ const menuSections = [
       { icon: Sparkles, label: "Lifestyle-Engine", path: "/lifestyle", desc: "Freiheit, Autos, Erfolg" },
       { icon: CheckCircle, label: "Freigabe", path: "/approval", desc: "Posts prüfen & posten", badge: "pending" as const },
       { icon: Calendar, label: "Kalender", path: "/calendar", desc: "Posting-Zeitplan" },
+      { icon: TrendingUp, label: "Posting-Zeiten", path: "/posting-times", desc: "Optimale Zeiten pro Plattform" },
     ],
   },
   {
