@@ -149,11 +149,9 @@
 - [x] End-to-End: 5 Posts mit Nano Banana Pro Bildern erfolgreich über Blotato auf Instagram gepostet
 - [x] Blotato Slot-Fallback: useNextFreeSlot durch konkreten Zeitpunkt ersetzt (Smart Posting Times)
 
-## Blotato AI Agent Features (27.03.2026)
-- [ ] Blotato AI Agent API recherchieren (Nano Banana 2, Veo 3, neue Bild/Video-Generierung)
-- [ ] Blotato Bildgenerierung via API einbauen (statt/zusätzlich zu fal.ai)
-- [ ] Blotato Videogenerierung via API einbauen (Veo 3 etc.)
-- [ ] Frontend: Blotato AI als Option im Content-Generator
+## Blotato AI Agent Features (27.03.2026) - GESTRICHEN
+- [x] NICHT NÖTIG: fal.ai deckt alles ab (Nano Banana Pro + Veo 3.1 + Kling 3.0 Pro)
+- [x] Kosten: Mathias zahlt fal.ai, Partner zahlen nur 25€ Blotato zum Posten
 
 ## Lina-Integration mit Botpress (27.03.2026)
 - [ ] Content Hub API-Endpoint für Botpress Lina erstellen (öffentlich)
@@ -194,6 +192,13 @@
 - [x] Dashboard-UI nach Postiz-Vorlage überarbeiten (sauberer, selbsterklärender)
 - [x] Alle Texte auf Deutsch
 - [x] End-to-End über Dashboard-UI testen (nicht über Script)
+
+## Live-Ready für 10 Partner Testphase (28.03.2026)
+- [x] Echter Content-Test: Trend scannen → Autopilot → Text + Bild + Video + Hashtags prüfen
+- [x] Lina-Integration abschließen: Öffentlicher API-Endpoint für Botpress
+- [x] Full QA: Jede Seite testen, alle Fehler fixen
+- [x] Partner-Freischaltung testen (Registrierung → Admin-Freigabe → Zugang)
+- [x] Alte Test-Posts aufräumen
 
 ## Kritische Verbesserungen (28.03.2026)
 - [x] Trend-Content klonen: Virale Posts aus Trend-Scanner direkt als Vorlage in Generator übernehmen

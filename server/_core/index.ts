@@ -35,6 +35,9 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+  // Lina REST API for Botpress integration
+  const { registerLinaRoutes } = await import("../linaRoutes");
+  registerLinaRoutes(app);
   // tRPC API
   app.use(
     "/api/trpc",
