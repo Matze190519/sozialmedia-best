@@ -223,3 +223,12 @@
 - [x] Backend: isApproved-Prüfung auf alle approvedProcedures (nicht-freigeschaltete User blockieren)
 - [x] Frontend: Nicht-freigeschaltete User auf "Zugang ausstehend" Warte-Seite umleiten
 - [x] Testen: 5 Access-Gate-Tests + 200/200 Tests bestehen (16 Test-Dateien)
+
+## Blotato Setup-Anleitung für Partner (28.03.2026)
+- [x] Onboarding-Seite: Komplette Blotato-Anleitung Schritt-für-Schritt (4 Schritte mit Links)
+- [x] Blotato: Account erstellen + Kanäle verbinden Anleitung (8 Plattformen erklärt)
+- [x] Blotato: API Key finden und kopieren Anleitung (mit Blotato Help Center Links)
+- [x] Dashboard: Wo API Key einfügen (Einstellungen-Seite) klar erklärt
+- [x] Hinweis für Partner ohne Blotato (manuell kopieren aus Bibliothek)
+- [x] Zugang über Lina erklärt auf OnboardingPage
+- [ ] Auch über Lina den Link zur Anleitung bereitstellen
