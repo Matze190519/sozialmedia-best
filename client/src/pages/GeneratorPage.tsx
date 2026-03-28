@@ -11,7 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearch } from "wouter";
 import { toast } from "sonner";
 import {
   Zap, Loader2, Sparkles, Package, Image, Video, Wand2, Copy,
@@ -72,12 +73,29 @@ const ALL_PLATFORMS = [
 
 export default function GeneratorPage() {
   const utils = trpc.useUtils();
+  const searchString = useSearch();
 
   // Brand Voice Generator State
   const [contentType, setContentType] = useState("post");
   const [topic, setTopic] = useState("");
   const [pillar, setPillar] = useState("");
   const [platform, setPlatform] = useState("instagram");
+  const [fromTrend, setFromTrend] = useState(false);
+
+  // Parse URL params from Trend-Scanner clone
+  useEffect(() => {
+    if (!searchString) return;
+    const params = new URLSearchParams(searchString);
+    const t = params.get("topic");
+    const p = params.get("pillar");
+    const src = params.get("source");
+    if (t) setTopic(t);
+    if (p) setPillar(p);
+    if (src === "trend") {
+      setFromTrend(true);
+      toast.info("Trend-Vorlage geladen! Passe den Content an und generiere.", { duration: 5000 });
+    }
+  }, [searchString]);
   const [platforms, setPlatforms] = useState<string[]>(["instagram", "facebook", "tiktok"]);
   const [hookStyle, setHookStyle] = useState("curiosity");
   const [scriptTemplate, setScriptTemplate] = useState("");
@@ -254,6 +272,18 @@ export default function GeneratorPage() {
           Brand Voice + KI-Bilder + KI-Videos + Quality Gate. Viraler Content der Kontakte bringt.
         </p>
       </div>
+
+      {fromTrend && (
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <CardContent className="p-3 flex items-center gap-3">
+            <TrendingUp className="h-5 w-5 text-amber-400 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-amber-400">Trend-Vorlage geladen</p>
+              <p className="text-xs text-muted-foreground">Thema und Pillar wurden aus dem Trend-Scanner übernommen. Passe an und generiere!</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs defaultValue="brandvoice" className="space-y-6">
         <TabsList className="grid grid-cols-5 w-full max-w-2xl">

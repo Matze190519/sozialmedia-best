@@ -38,43 +38,48 @@ import { trpc } from "@/lib/trpc";
 
 const menuSections = [
   {
-    title: "Workflow",
+    title: "Erstellen",
     items: [
-      { icon: LayoutDashboard, label: "Dashboard", path: "/", desc: "Übersicht & Nächste Posts" },
-      { icon: Zap, label: "Content erstellen", path: "/generator", desc: "Text, Bild & Video" },
+      { icon: LayoutDashboard, label: "Dashboard", path: "/", desc: "Übersicht" },
+      { icon: Zap, label: "Content erstellen", path: "/generator", desc: "Text + Bild + Video" },
       { icon: Sparkles, label: "Lifestyle-Engine", path: "/lifestyle", desc: "Freiheit, Autos, Erfolg" },
       { icon: CheckCircle, label: "Freigabe", path: "/approval", desc: "Posts prüfen & posten", badge: "pending" as const },
-      { icon: Calendar, label: "Kalender", path: "/calendar", desc: "Posting-Zeitplan" },
-      { icon: TrendingUp, label: "Posting-Zeiten", path: "/posting-times", desc: "Optimale Zeiten pro Plattform" },
+      { icon: Library, label: "Bibliothek", path: "/library", desc: "Fertige Posts kopieren" },
     ],
   },
   {
-    title: "Intelligence",
+    title: "Recherche",
     items: [
+      { icon: Flame, label: "Trend-Scanner", path: "/trends", desc: "Virale Trends finden" },
       { icon: Eye, label: "Creator Spy", path: "/creator-spy", desc: "Was geht viral?" },
-      { icon: Flame, label: "Trend-Scanner", path: "/trends", desc: "Live TikTok/YT/Reddit Trends" },
-      { icon: Hash, label: "Hashtag-Engine", path: "/hashtags", desc: "Smart Hashtags pro Plattform" },
-      { icon: FlaskConical, label: "A/B Tests", path: "/ab-test", desc: "Was performt besser?" },
-      { icon: TrendingUp, label: "Feedback", path: "/feedback", desc: "Top-Performer analysieren" },
-      { icon: BarChart3, label: "Analytics", path: "/analytics", desc: "Zahlen & Insights" },
+      { icon: Hash, label: "Hashtag-Engine", path: "/hashtags", desc: "Smart Hashtags" },
     ],
   },
   {
-    title: "Ressourcen",
+    title: "Planen",
     items: [
-      { icon: Package, label: "Produktbilder", path: "/products", desc: "226 LR Produkte" },
-      { icon: Library, label: "Bibliothek", path: "/library", desc: "Geteilter Content" },
+      { icon: Calendar, label: "Kalender", path: "/calendar", desc: "Posting-Zeitplan" },
+      { icon: CalendarDays, label: "Monatsplan", path: "/monthly-plan", desc: "30 Posts auf Knopfdruck" },
+      { icon: TrendingUp, label: "Posting-Zeiten", path: "/posting-times", desc: "Optimale Zeiten" },
+    ],
+  },
+  {
+    title: "Mehr",
+    items: [
+      { icon: Package, label: "Produktbilder", path: "/products", desc: "LR Produkte" },
       { icon: BookTemplate, label: "Vorlagen", path: "/templates", desc: "Templates & Hooks" },
       { icon: FileText, label: "Content Queue", path: "/queue", desc: "Alle Posts" },
-      { icon: CalendarDays, label: "Monatsplan", path: "/monthly-plan", desc: "30 Posts auf Knopfdruck" },
+      { icon: FlaskConical, label: "A/B Tests", path: "/ab-test", desc: "Was performt besser?" },
+      { icon: BarChart3, label: "Analytics", path: "/analytics", desc: "Zahlen & Insights" },
       { icon: Recycle, label: "Evergreen", path: "/evergreen", desc: "Top-Posts recyclen" },
+      { icon: TrendingUp, label: "Feedback", path: "/feedback", desc: "Top-Performer" },
     ],
   },
   {
     title: "System",
     items: [
       { icon: Users, label: "Team", path: "/team", desc: "Partner verwalten" },
-      { icon: Settings, label: "Einstellungen", path: "/settings", desc: "Blotato, Zeiten, Branding" },
+      { icon: Settings, label: "Einstellungen", path: "/settings", desc: "Blotato & Branding" },
       { icon: HelpCircle, label: "Quick-Start", path: "/onboarding", desc: "Setup-Anleitung" },
     ],
   },

@@ -188,9 +188,18 @@
 - [x] Freigabe-Flow: Bilder + Videos müssen in der Freigabe sichtbar sein (groß, nicht nur Link)
 - [x] Freigabe-Flow: Nach Freigabe → Blotato posten ODER im Dashboard speichern (für Partner ohne Blotato)
 - [x] Video-Generierung: Veo 3.1 Videos automatisch bei Content-Erstellung generieren
-- [ ] Trend-basierter Content: Virale Trends recherchieren → Content daraus klonen
+- [x] Trend-basierter Content: Virale Trends recherchieren → Content daraus klonen
 - [x] Virale Hashtags: Trend-basierte Hashtags automatisch einbauen
 - [x] Content-Bibliothek: Alle Posts im Dashboard gespeichert (Copy+Paste für Partner ohne Blotato)
-- [ ] Dashboard-UI nach Postiz-Vorlage überarbeiten (sauberer, selbsterklärender)
+- [x] Dashboard-UI nach Postiz-Vorlage überarbeiten (sauberer, selbsterklärender)
 - [x] Alle Texte auf Deutsch
-- [ ] End-to-End über Dashboard-UI testen (nicht über Script)
+- [x] End-to-End über Dashboard-UI testen (nicht über Script)
+
+## Kritische Verbesserungen (28.03.2026)
+- [x] Trend-Content klonen: Virale Posts aus Trend-Scanner direkt als Vorlage in Generator übernehmen
+- [x] Trend-Content klonen: "Als Vorlage verwenden" Button bei jedem Trend-Ergebnis
+- [x] Trend-Content klonen: Virale Hashtags und Hooks automatisch übernehmen
+- [x] Dashboard-UI aufräumen: Sauberere, selbsterklärende Oberfläche
+- [x] Dashboard-UI aufräumen: Bessere Card-Layouts und Spacing
+- [x] Dashboard-UI aufräumen: Mobile-optimierte Ansicht verbessern
+- [x] End-to-End UI Test: Post erstellen, Bild+Video in Freigabe prüfen, freigeben, Bibliothek kontrollieren

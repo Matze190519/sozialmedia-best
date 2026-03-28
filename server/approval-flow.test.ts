@@ -176,3 +176,57 @@ describe("Quality Gate", () => {
     expect(typeof caller.qualityGate.check).toBe("function");
   });
 });
+
+describe("Trend Scanner & Autopilot", () => {
+  it("trends.scan mutation exists and is callable", () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    expect(caller.trends.scan).toBeDefined();
+    expect(typeof caller.trends.scan).toBe("function");
+  });
+
+  it("trends.autopilot mutation exists and is callable", () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    expect(caller.trends.autopilot).toBeDefined();
+    expect(typeof caller.trends.autopilot).toBe("function");
+  });
+
+  it("trends.generateIdeas mutation exists and is callable", () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    expect(caller.trends.generateIdeas).toBeDefined();
+    expect(typeof caller.trends.generateIdeas).toBe("function");
+  });
+
+  it("trends.top query exists and is callable", () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    expect(caller.trends.top).toBeDefined();
+    expect(typeof caller.trends.top).toBe("function");
+  });
+
+  it("trends.pillars query exists and is callable", () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    expect(caller.trends.pillars).toBeDefined();
+    expect(typeof caller.trends.pillars).toBe("function");
+  });
+});
+
+describe("Dashboard Stats", () => {
+  it("dashboard.stats query exists and is callable", () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    expect(caller.dashboard.stats).toBeDefined();
+    expect(typeof caller.dashboard.stats).toBe("function");
+  });
+});
+
+describe("User Settings", () => {
+  it("userSettings.get query exists and is callable", () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    expect(caller.userSettings.get).toBeDefined();
+    expect(typeof caller.userSettings.get).toBe("function");
+  });
+
+  it("userSettings.update mutation exists and is callable", () => {
+    const caller = appRouter.createCaller(createAdminContext());
+    expect(caller.userSettings.update).toBeDefined();
+    expect(typeof caller.userSettings.update).toBe("function");
+  });
+});

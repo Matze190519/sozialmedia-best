@@ -44,6 +44,7 @@ function formatNumber(n: number): string {
 }
 
 export default function TrendScannerPage() {
+  const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("trends");
   const [platformFilter, setPlatformFilter] = useState<string | undefined>();
   const [pillarFilter, setPillarFilter] = useState<string | undefined>();
@@ -162,7 +163,20 @@ export default function TrendScannerPage() {
                         {idea.contentIdea}
                       </p>
                     </div>
-                    <Button size="sm" variant="outline" className="shrink-0 text-xs gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="shrink-0 text-xs gap-1"
+                      onClick={() => {
+                        // Navigate to generator with pre-filled data from trend idea
+                        const params = new URLSearchParams({
+                          topic: idea.hook || idea.contentIdea,
+                          pillar: idea.pillar || "Lifestyle & Erfolg",
+                          source: "trend",
+                        });
+                        navigate(`/generator?${params.toString()}`);
+                      }}
+                    >
                       <Play className="h-3 w-3" /> Content erstellen
                     </Button>
                   </div>
@@ -238,9 +252,15 @@ export default function TrendScannerPage() {
 
 function TrendGrid({ trends, isLoading }: { trends: any[]; isLoading: boolean }) {
   const [, navigate] = useLocation();
+  const utils = trpc.useUtils();
   const autopilotMut = trpc.trends.autopilot.useMutation({
     onSuccess: (data) => {
-      toast.success(`Autopilot: Content erstellt! Post #${data.postId} wartet auf Freigabe.`);
+      const parts = [];
+      if (data.imageUrl) parts.push("Bild");
+      if (data.videoUrl) parts.push("Video");
+      if (data.hashtags?.length) parts.push(`${data.hashtags.length} Hashtags`);
+      const mediaInfo = parts.length > 0 ? ` + ${parts.join(" + ")}` : "";
+      toast.success(`Autopilot: Content${mediaInfo} erstellt! Post #${data.postId} wartet auf Freigabe.`, { duration: 6000 });
       navigate("/approval");
     },
     onError: (err) => toast.error(`Autopilot fehlgeschlagen: ${err.message}`),

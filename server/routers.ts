@@ -1510,15 +1510,54 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
           }
         }
 
-        // Step 4: Mark trend as used
+        // Step 4: Generate video from image
+        let videoUrl: string | null = null;
+        if (imageUrl) {
+          try {
+            const videoResult = await api.generateVideoWithFal({
+              prompt: generated.imagePrompt,
+              imageUrl,
+              model: "auto",
+              duration: "5",
+              aspectRatio: "9:16",
+              generateAudio: true,
+            });
+            videoUrl = videoResult.videoUrl || null;
+            if (videoUrl) {
+              await db.updateContentPost(postId, { videoUrl } as any);
+            }
+          } catch (err) {
+            console.error("[Autopilot] Video generation failed:", err);
+          }
+        }
+
+        // Step 5: Generate smart hashtags
+        let hashtags: string[] = [];
+        try {
+          const hashResult = await hashtagEngine.generateSmartHashtags(
+            generated.content,
+            input.targetPlatform || "instagram",
+            input.trendPillar,
+            input.trendTitle
+          );
+          hashtags = hashResult.hashtags || [];
+          if (hashtags.length > 0) {
+            const contentWithHashtags = generated.content + "\n\n" + hashtags.join(" ");
+            await db.updateContentPost(postId, { editedContent: contentWithHashtags } as any);
+          }
+        } catch (err) {
+          console.error("[Autopilot] Hashtag generation failed:", err);
+        }
+
+        // Step 6: Mark trend as used
         await db.markTrendUsed(input.trendId, postId);
 
-        // Step 5: Log
+        // Step 7: Log
         await db.createApprovalLog({
           contentPostId: postId,
           userId: ctx.user.id,
           action: "edited",
-          comment: `Autopilot: Content aus ${input.trendPlatform}-Trend generiert (Viral Score: ${input.trendViralScore}/100)`,
+          comment: `Autopilot: Content + Bild + Video + Hashtags aus ${input.trendPlatform}-Trend generiert (Viral Score: ${input.trendViralScore}/100)`,
           previousStatus: null,
           newStatus: "pending",
         });
@@ -1529,6 +1568,8 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
           hook: generated.hook,
           imagePrompt: generated.imagePrompt,
           imageUrl,
+          videoUrl,
+          hashtags,
         };
       }),
   }),
