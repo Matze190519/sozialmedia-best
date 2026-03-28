@@ -101,16 +101,14 @@ export default function ProductsPage() {
             {totalCount ? `${totalCount} Produkte` : "Lade..."} aus Linas Botpress-Datenbank mit Originalbildern.
           </p>
         </div>
-        {user?.role === "admin" && (
-          <Button
-            variant="outline"
-            onClick={() => importMutation.mutate()}
-            disabled={importMutation.isPending}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${importMutation.isPending ? "animate-spin" : ""}`} />
-            {importMutation.isPending ? "Importiere..." : "Neu importieren"}
-          </Button>
-        )}
+        <Button
+          variant="outline"
+          onClick={() => importMutation.mutate()}
+          disabled={importMutation.isPending}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${importMutation.isPending ? "animate-spin" : ""}`} />
+          {importMutation.isPending ? "Importiere..." : "Neu importieren"}
+        </Button>
       </div>
 
       {/* Search + Category Filter */}

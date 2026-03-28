@@ -311,14 +311,12 @@ export default function LibraryPage() {
                       </a>
                     </Button>
                   )}
-                  {user?.role === "admin" && (
-                    <Button variant="destructive" size="icon" onClick={() => {
-                      deleteMutation.mutate({ id: previewItem.id });
-                      setPreviewItem(null);
-                    }}>
-                      &times;
-                    </Button>
-                  )}
+                  <Button variant="destructive" size="icon" onClick={() => {
+                    deleteMutation.mutate({ id: previewItem.id });
+                    setPreviewItem(null);
+                  }}>
+                    &times;
+                  </Button>
                 </div>
               </div>
             </>

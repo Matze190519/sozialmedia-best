@@ -209,13 +209,16 @@ export async function getContentPostsByDateRange(start: Date, end: Date) {
     .orderBy(contentPosts.scheduledAt);
 }
 
-export async function getContentStats() {
+export async function getContentStats(userId?: number) {
   const db = await getDb();
   if (!db) return { pending: 0, approved: 0, rejected: 0, scheduled: 0, published: 0, total: 0 };
+  const conditions = userId ? [eq(contentPosts.createdById, userId)] : [];
   const result = await db.select({
     status: contentPosts.status,
     count: sql<number>`count(*)`,
-  }).from(contentPosts).groupBy(contentPosts.status);
+  }).from(contentPosts)
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .groupBy(contentPosts.status);
   const stats: Record<string, number> = { pending: 0, approved: 0, rejected: 0, scheduled: 0, published: 0, total: 0 };
   for (const row of result) {
     stats[row.status] = Number(row.count);

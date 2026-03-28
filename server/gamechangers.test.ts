@@ -146,12 +146,14 @@ describe("hashtags", () => {
 // ─── Monthly Plan Tests ─────────────────────────────────────────
 describe("monthlyPlan", () => {
   describe("monthlyPlan.generate", () => {
-    it("rejects non-admin users", async () => {
+    it("allows non-admin users to generate plans", async () => {
       const caller = appRouter.createCaller(createUserContext());
-      await expect(
-        caller.monthlyPlan.generate({ month: 4, year: 2026 })
-      ).rejects.toThrow();
-    });
+      try {
+        await caller.monthlyPlan.generate({ month: 4, year: 2026 });
+      } catch (e: any) {
+        expect(e.message).not.toMatch(/Nur Admins|FORBIDDEN/);
+      }
+    }, 120000);
 
     it("rejects unauthenticated calls", async () => {
       const caller = appRouter.createCaller({
@@ -200,10 +202,10 @@ describe("monthlyPlan", () => {
   });
 
   describe("monthlyPlan.createPostFromPlan", () => {
-    it("rejects non-admin users", async () => {
+    it("allows non-admin users to create posts from plan", async () => {
       const caller = appRouter.createCaller(createUserContext());
-      await expect(
-        caller.monthlyPlan.createPostFromPlan({
+      try {
+        await caller.monthlyPlan.createPostFromPlan({
           planId: 1,
           dayIndex: 0,
           topic: "Test",
@@ -213,9 +215,11 @@ describe("monthlyPlan", () => {
           contentType: "post",
           hashtags: [],
           imagePrompt: "",
-        })
-      ).rejects.toThrow();
-    });
+        });
+      } catch (e: any) {
+        expect(e.message).not.toMatch(/Nur Admins|FORBIDDEN/);
+      }
+    }, 30000);
   });
 });
 
@@ -255,15 +259,17 @@ describe("evergreen", () => {
   });
 
   describe("evergreen.add", () => {
-    it("rejects non-admin users", async () => {
+    it("allows non-admin users to add evergreen posts", async () => {
       const caller = appRouter.createCaller(createUserContext());
-      await expect(
-        caller.evergreen.add({
+      try {
+        await caller.evergreen.add({
           originalPostId: 1,
           recycleAfterDays: 30,
           maxRecycles: 3,
-        })
-      ).rejects.toThrow();
+        });
+      } catch (e: any) {
+        expect(e.message).not.toMatch(/Nur Admins|FORBIDDEN/);
+      }
     });
 
     it("rejects unauthenticated calls", async () => {
@@ -283,20 +289,24 @@ describe("evergreen", () => {
   });
 
   describe("evergreen.recycle", () => {
-    it("rejects non-admin users", async () => {
+    it("allows non-admin users to recycle evergreen posts", async () => {
       const caller = appRouter.createCaller(createUserContext());
-      await expect(
-        caller.evergreen.recycle({ evergreenId: 1 })
-      ).rejects.toThrow();
+      try {
+        await caller.evergreen.recycle({ evergreenId: 1 });
+      } catch (e: any) {
+        expect(e.message).not.toMatch(/Nur Admins|FORBIDDEN/);
+      }
     });
   });
 
   describe("evergreen.remove", () => {
-    it("rejects non-admin users", async () => {
+    it("allows non-admin users to remove evergreen posts", async () => {
       const caller = appRouter.createCaller(createUserContext());
-      await expect(
-        caller.evergreen.remove({ id: 1 })
-      ).rejects.toThrow();
+      try {
+        await caller.evergreen.remove({ id: 1 });
+      } catch (e: any) {
+        expect(e.message).not.toMatch(/Nur Admins|FORBIDDEN/);
+      }
     });
   });
 });

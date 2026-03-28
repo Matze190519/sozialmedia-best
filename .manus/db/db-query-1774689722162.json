@@ -1,0 +1,15 @@
+{
+  "query": "SELECT id, LEFT(title, 60) as title, category FROM content_library ORDER BY id ASC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2MMwKENouVPXHxW.e9031793a226 --database UJZxdmp3sY63YUqiVd8uaj --execute SELECT id, LEFT(title, 60) as title, category FROM content_library ORDER BY id ASC;",
+  "rows": [
+    {
+      "id": "1",
+      "title": "Trend: Das TRAUMAUTO fahre ich als YOUTUBER 😳 | Yow Mohi",
+      "category": "video"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttitle\tcategory\n1\tTrend: Das TRAUMAUTO fahre ich als YOUTUBER 😳 | Yow Mohi\tvideo\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

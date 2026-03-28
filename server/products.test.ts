@@ -168,10 +168,12 @@ describe("products", () => {
     });
   });
 
-  describe("products.import (admin only)", () => {
-    it("rejects non-admin users", async () => {
+  describe("products.import (all users)", () => {
+    it("allows non-admin users to import products", async () => {
       const caller = appRouter.createCaller(createUserContext());
-      await expect(caller.products.import()).rejects.toThrow(/admin|forbidden/i);
+      const result = await caller.products.import();
+      expect(result).toHaveProperty("imported");
+      expect(result).toHaveProperty("total");
     });
   });
 });

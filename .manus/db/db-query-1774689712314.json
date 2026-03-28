@@ -1,0 +1,64 @@
+{
+  "query": "SELECT id, LEFT(content, 80) as preview, status, mediaUrl, videoUrl, createdAt FROM content_posts ORDER BY createdAt ASC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2MMwKENouVPXHxW.e9031793a226 --database UJZxdmp3sY63YUqiVd8uaj --execute SELECT id, LEFT(content, 80) as preview, status, mediaUrl, videoUrl, createdAt FROM content_posts ORDER BY createdAt ASC;",
+  "rows": [
+    {
+      "id": "270001",
+      "preview": "Stell dir vor, du wachst morgens auf und entscheidest selbst, wie dein Tag aussi",
+      "status": "scheduled",
+      "mediaUrl": "https://v3b.fal.media/files/b/0a93e524/3uJZYLbBZT9dsvSxucbVF_XqPd57jK.png",
+      "videoUrl": "NULL",
+      "createdAt": "2026-03-27 21:16:05"
+    },
+    {
+      "id": "360001",
+      "preview": "Ich dachte, ein Traumauto ist nur was für Millionäre oder YouTuber... 🤯 Bis ich ",
+      "status": "approved",
+      "mediaUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310419663029098351/UJZxdmp3sY63YUqiVd8uaj/generated-images/1774687799509-n7lojk.png",
+      "videoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310419663029098351/UJZxdmp3sY63YUqiVd8uaj/generated-videos/1774687856545-x4vohc.mp4",
+      "createdAt": "2026-03-28 08:49:17"
+    },
+    {
+      "id": "360002",
+      "preview": "Test A content",
+      "status": "pending",
+      "mediaUrl": "NULL",
+      "videoUrl": "NULL",
+      "createdAt": "2026-03-28 08:58:19"
+    },
+    {
+      "id": "360003",
+      "preview": "Test B content",
+      "status": "pending",
+      "mediaUrl": "NULL",
+      "videoUrl": "NULL",
+      "createdAt": "2026-03-28 08:58:19"
+    },
+    {
+      "id": "360004",
+      "preview": "Test A content",
+      "status": "pending",
+      "mediaUrl": "NULL",
+      "videoUrl": "NULL",
+      "createdAt": "2026-03-28 08:58:58"
+    },
+    {
+      "id": "360005",
+      "preview": "Test B content",
+      "status": "pending",
+      "mediaUrl": "NULL",
+      "videoUrl": "NULL",
+      "createdAt": "2026-03-28 08:58:58"
+    }
+  ],
+  "messages": [
+    "270002\tDie meisten Menschen arbeiten 40 Jahre für den Traum von jemand anderem.",
+    "Ich ha\tscheduled\thttps://v3b.fal.media/files/b/0a93e528/hmEHg0_88-3WxXvRYWmIh_7jzFObC8.png\thttps://v3b.fal.media/files/b/0a93e531/fWTPnySkuRM7PaLxEeKL0_629f6f6afd834e96b97262ac92e10e3c.mp4\t2026-03-27 21:17:42",
+    "270003\t\"Das ist doch Abzocke!\" - Höre ich oft.",
+    "Lass mich dir mal die Fakten zeigen:",
+    "L\tscheduled\thttps://v3b.fal.media/files/b/0a93e532/huf5vkNUZqutaJjBmEqQr_d8OweiQV.png\tNULL\t2026-03-27 21:18:29"
+  ],
+  "stdout": "id\tpreview\tstatus\tmediaUrl\tvideoUrl\tcreatedAt\n270001\tStell dir vor, du wachst morgens auf und entscheidest selbst, wie dein Tag aussi\tscheduled\thttps://v3b.fal.media/files/b/0a93e524/3uJZYLbBZT9dsvSxucbVF_XqPd57jK.png\tNULL\t2026-03-27 21:16:05\n270002\tDie meisten Menschen arbeiten 40 Jahre für den Traum von jemand anderem.\n\nIch ha\tscheduled\thttps://v3b.fal.media/files/b/0a93e528/hmEHg0_88-3WxXvRYWmIh_7jzFObC8.png\thttps://v3b.fal.media/files/b/0a93e531/fWTPnySkuRM7PaLxEeKL0_629f6f6afd834e96b97262ac92e10e3c.mp4\t2026-03-27 21:17:42\n270003\t\"Das ist doch Abzocke!\" - Höre ich oft.\n\nLass mich dir mal die Fakten zeigen:\n\nL\tscheduled\thttps://v3b.fal.media/files/b/0a93e532/huf5vkNUZqutaJjBmEqQr_d8OweiQV.png\tNULL\t2026-03-27 21:18:29\n360001\tIch dachte, ein Traumauto ist nur was für Millionäre oder YouTuber... 🤯 Bis ich \tapproved\thttps://d2xsxph8kpxj0f.cloudfront.net/310419663029098351/UJZxdmp3sY63YUqiVd8uaj/generated-images/1774687799509-n7lojk.png\thttps://d2xsxph8kpxj0f.cloudfront.net/310419663029098351/UJZxdmp3sY63YUqiVd8uaj/generated-videos/1774687856545-x4vohc.mp4\t2026-03-28 08:49:17\n360002\tTest A content\tpending\tNULL\tNULL\t2026-03-28 08:58:19\n360003\tTest B content\tpending\tNULL\tNULL\t2026-03-28 08:58:19\n360004\tTest A content\tpending\tNULL\tNULL\t2026-03-28 08:58:58\n360005\tTest B content\tpending\tNULL\tNULL\t2026-03-28 08:58:58\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}

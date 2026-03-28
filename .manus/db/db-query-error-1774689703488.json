@@ -1,0 +1,8 @@
+{
+  "query": "SELECT id, content, status, media_url, video_url, created_at FROM content_posts ORDER BY created_at ASC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2MMwKENouVPXHxW.e9031793a226 --database UJZxdmp3sY63YUqiVd8uaj --execute SELECT id, content, status, media_url, video_url, created_at FROM content_posts ORDER BY created_at ASC;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'media_url' in 'field list'"
+  ]
+}

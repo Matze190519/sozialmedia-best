@@ -36,16 +36,14 @@ export default function CreatorSpyPage() {
             Virale Posts aus deiner Nische analysieren, Hooks extrahieren, Trends erkennen
           </p>
         </div>
-        {isAdmin && (
-          <Button
-            onClick={() => analyzeMut.mutate({})}
-            disabled={analyzeMut.isPending}
-            className="gap-2"
-          >
-            {analyzeMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Neuen Report erstellen
-          </Button>
-        )}
+        <Button
+          onClick={() => analyzeMut.mutate({})}
+          disabled={analyzeMut.isPending}
+          className="gap-2"
+        >
+          {analyzeMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+          Neuen Report erstellen
+        </Button>
       </div>
 
       {/* Quick Stats from latest report */}
@@ -152,7 +150,7 @@ export default function CreatorSpyPage() {
           <CardContent className="py-16 text-center">
             <Eye className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
             <p className="text-muted-foreground">Noch kein Creator Spy Report vorhanden.</p>
-            {isAdmin && <p className="text-sm text-muted-foreground mt-2">Klicke auf "Neuen Report erstellen" um die Analyse zu starten.</p>}
+            <p className="text-sm text-muted-foreground mt-2">Klicke auf "Neuen Report erstellen" um die Analyse zu starten.</p>
           </CardContent>
         </Card>
       )}

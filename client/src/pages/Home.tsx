@@ -132,7 +132,7 @@ export default function Home() {
         {/* Left Column - Main Content */}
         <div className="lg:col-span-3 space-y-4">
           {/* Pending Posts for Admin */}
-          {isAdmin && pendingPosts && pendingPosts.length > 0 && (
+          {pendingPosts && pendingPosts.length > 0 && (
             <Card className="border-yellow-500/30 bg-yellow-500/5">
               <CardHeader className="pb-2 pt-4 px-4">
                 <div className="flex items-center justify-between">
@@ -178,7 +178,7 @@ export default function Home() {
           )}
 
           {/* Approved - Ready to Post */}
-          {isAdmin && approvedPosts && approvedPosts.length > 0 && (
+          {approvedPosts && approvedPosts.length > 0 && (
             <Card className="border-emerald-500/30 bg-emerald-500/5">
               <CardHeader className="pb-2 pt-4 px-4">
                 <div className="flex items-center justify-between">
@@ -282,7 +282,7 @@ export default function Home() {
           </Card>
 
           {/* How It Works - For Team Members */}
-          {!isAdmin && (
+          {(
             <Card className="border-primary/20">
               <CardHeader className="pb-2 pt-4 px-4">
                 <CardTitle className="text-sm flex items-center gap-2">
@@ -294,8 +294,8 @@ export default function Home() {
                 <div className="space-y-2">
                   {[
                     { step: "1", text: "Content erstellen (Text + Bild + Video)", color: "bg-primary/20 text-primary" },
-                    { step: "2", text: "Admin gibt frei oder lehnt ab", color: "bg-yellow-500/20 text-yellow-400" },
-                    { step: "3", text: "Freigegebene Posts in Bibliothek kopieren", color: "bg-emerald-500/20 text-emerald-400" },
+                    { step: "2", text: "Content selbst freigeben oder bearbeiten", color: "bg-yellow-500/20 text-yellow-400" },
+                    { step: "3", text: "Freigegebene Posts in Bibliothek speichern oder via Blotato posten", color: "bg-emerald-500/20 text-emerald-400" },
                   ].map((item) => (
                     <div key={item.step} className="flex items-center gap-3">
                       <div className={`h-6 w-6 rounded-full ${item.color} flex items-center justify-center text-xs font-bold shrink-0`}>

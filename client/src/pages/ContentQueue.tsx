@@ -155,7 +155,7 @@ export default function ContentQueue() {
                           <span className="text-xs text-muted-foreground">
                             {item.createdBy?.name || "Unbekannt"}
                           </span>
-                          {isAdmin && sc.nextAction && (
+                          {sc.nextAction && (
                             <Button
                               size="sm"
                               variant="ghost"

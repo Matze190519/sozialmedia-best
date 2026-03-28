@@ -129,38 +129,57 @@ describe("trends", () => {
     });
   });
 
-  describe("trends.scan (admin only)", () => {
-    it("rejects non-admin users", async () => {
+  describe("trends.scan (all users)", () => {
+    it("allows non-admin users to scan trends", async () => {
       const caller = appRouter.createCaller(createUserContext());
-      await expect(caller.trends.scan()).rejects.toThrow();
-    });
+      try {
+        await caller.trends.scan();
+      } catch (e: any) {
+        expect(e.message).not.toMatch(/Nur Admins|FORBIDDEN/);
+      }
+    }, 60000);
   });
 
-  describe("trends.scanPillar (admin only)", () => {
-    it("rejects non-admin users", async () => {
+  describe("trends.scanPillar (all users)", () => {
+    it("allows non-admin users to scan pillar trends", async () => {
       const caller = appRouter.createCaller(createUserContext());
-      await expect(caller.trends.scanPillar({ pillar: "business" })).rejects.toThrow();
-    });
+      try {
+        await caller.trends.scanPillar({ pillar: "business" });
+      } catch (e: any) {
+        expect(e.message).not.toMatch(/Nur Admins|FORBIDDEN/);
+      }
+    }, 30000);
   });
 
-  describe("trends.autopilot (admin only)", () => {
-    it("rejects non-admin users", async () => {
+  describe("trends.autopilot (all users)", () => {
+    it("allows non-admin users to use autopilot (no FORBIDDEN)", async () => {
       const caller = appRouter.createCaller(createUserContext());
-      await expect(
+      // We only verify the procedure doesn't reject with FORBIDDEN.
+      // It may timeout or fail for other reasons (LLM latency) which is fine.
+      const result = await Promise.race([
         caller.trends.autopilot({
           trendId: 1,
           trendTitle: "Test Trend",
           trendPlatform: "tiktok",
           trendPillar: "business",
-        })
-      ).rejects.toThrow();
-    });
+        }).then(() => "ok").catch((e: any) => {
+          if (/Nur Admins|FORBIDDEN/i.test(e.message)) throw e;
+          return "non-forbidden-error";
+        }),
+        new Promise<string>((resolve) => setTimeout(() => resolve("timeout"), 10000)),
+      ]);
+      expect(["ok", "non-forbidden-error", "timeout"]).toContain(result);
+    }, 15000);
   });
 
-  describe("trends.generateIdeas (admin only)", () => {
-    it("rejects non-admin users", async () => {
+  describe("trends.generateIdeas (all users)", () => {
+    it("allows non-admin users to generate ideas", async () => {
       const caller = appRouter.createCaller(createUserContext());
-      await expect(caller.trends.generateIdeas()).rejects.toThrow();
-    });
+      try {
+        await caller.trends.generateIdeas();
+      } catch (e: any) {
+        expect(e.message).not.toMatch(/Nur Admins|FORBIDDEN/);
+      }
+    }, 30000);
   });
 });

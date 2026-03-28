@@ -174,9 +174,7 @@ export default function OnboardingPage() {
               </div>
               <h3 className="font-semibold">2. Freigeben</h3>
               <p className="text-sm text-muted-foreground">
-                {isAdmin
-                  ? "Du prüfst den Content, bearbeitest ihn bei Bedarf und gibst ihn mit einem Klick frei."
-                  : "Dein Admin prüft den Content und gibt ihn frei. Du wirst benachrichtigt."}
+                Du prüfst deinen Content, bearbeitest ihn bei Bedarf und gibst ihn mit einem Klick frei.
               </p>
             </div>
             <div className="text-center space-y-3">
@@ -224,26 +222,17 @@ export default function OnboardingPage() {
         </CardContent>
       </Card>
 
-      {/* Admin-specific info */}
-      {isAdmin && (
-        <Card className="border-amber-500/20 bg-amber-500/5">
-          <CardContent className="p-6 space-y-3">
-            <h3 className="font-semibold flex items-center gap-2">
-              <Shield className="h-5 w-5 text-amber-400" />
-              Admin-Checkliste
-            </h3>
+      {/* Checkliste */}
+      <Card className="border-amber-500/20 bg-amber-500/5">
+        <CardContent className="p-6 space-y-3">
+          <h3 className="font-semibold flex items-center gap-2">
+            <Shield className="h-5 w-5 text-amber-400" />
+            Deine Checkliste
+          </h3>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-emerald-400" />
-                <span>Team-Mitglieder einladen und freischalten (Team-Seite)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                {settings?.hasBlotatoKey ? (
-                  <CheckCircle className="h-4 w-4 text-emerald-400" />
-                ) : (
-                  <Circle className="h-4 w-4 text-muted-foreground" />
-                )}
-                <span>Blotato API Key hinterlegen (Einstellungen)</span>
+                <span>Blotato API Key hinterlegen (Einstellungen) - optional für Auto-Posting</span>
               </div>
               <div className="flex items-center gap-2">
                 <Circle className="h-4 w-4 text-muted-foreground" />
@@ -255,8 +244,8 @@ export default function OnboardingPage() {
               </div>
             </div>
             <div className="flex gap-2 pt-2">
-              <Button size="sm" onClick={() => setLocation("/team")} className="gap-1.5">
-                <Users className="h-3.5 w-3.5" /> Team verwalten
+              <Button size="sm" onClick={() => setLocation("/generator")} className="gap-1.5">
+                <Zap className="h-3.5 w-3.5" /> Content erstellen
               </Button>
               <Button size="sm" variant="outline" onClick={() => setLocation("/settings")} className="gap-1.5">
                 <Settings className="h-3.5 w-3.5" /> Einstellungen
@@ -264,7 +253,6 @@ export default function OnboardingPage() {
             </div>
           </CardContent>
         </Card>
-      )}
 
       {/* Quick Actions */}
       <div className="flex justify-center gap-3">

@@ -197,8 +197,8 @@ export default function ABTestPage() {
                     </div>
                   )}
 
-                  {/* Complete test (admin only) */}
-                  {isActive && user?.role === "admin" && (
+                  {/* Complete test */}
+                  {isActive && (
                     <div className="flex gap-2 mt-4 pt-3 border-t border-border/50">
                       <Button size="sm" variant="outline" className="text-blue-400" onClick={() => {
                         const reason = prompt("Warum hat Variante A gewonnen?");

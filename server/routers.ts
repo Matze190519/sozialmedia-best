@@ -29,8 +29,9 @@ export const appRouter = router({
 
   // ─── Dashboard Stats ───────────────────────────────────────
   dashboard: router({
-    stats: protectedProcedure.query(async () => {
-      return db.getContentStats();
+    stats: protectedProcedure.query(async ({ ctx }) => {
+      // Jeder User sieht nur seine eigenen Stats
+      return db.getContentStats(ctx.user.id);
     }),
   }),
 
@@ -42,9 +43,11 @@ export const appRouter = router({
         limit: z.number().optional(),
         offset: z.number().optional(),
       }).optional())
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
+        // Jeder User sieht nur seine eigenen Posts
         return db.getContentPosts({
           status: input?.status,
+          createdById: ctx.user.id,
           limit: input?.limit,
           offset: input?.offset,
         });
@@ -52,9 +55,11 @@ export const appRouter = router({
 
     getById: protectedProcedure
       .input(z.object({ id: z.number() }))
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
         const result = await db.getContentPostById(input.id);
         if (!result) throw new TRPCError({ code: "NOT_FOUND" });
+        // Jeder User sieht nur seine eigenen Posts
+        if (result.post.createdById !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Du kannst nur deinen eigenen Content ansehen." });
         return result;
       }),
 
@@ -407,7 +412,7 @@ export const appRouter = router({
 
   // ─── Approval Workflow ─────────────────────────────────────
   approval: router({
-    approve: adminProcedure
+    approve: protectedProcedure
       .input(z.object({
         id: z.number(),
         comment: z.string().optional(),
@@ -417,6 +422,8 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const post = await db.getContentPostById(input.id);
         if (!post) throw new TRPCError({ code: "NOT_FOUND" });
+        // Jeder Partner darf nur seinen EIGENEN Content freigeben
+        if (post.post.createdById !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Du kannst nur deinen eigenen Content freigeben." });
         if (post.post.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "Nur ausstehende Posts können genehmigt werden" });
 
         await db.updateContentPostStatus(input.id, "approved", ctx.user.id, input.comment);
@@ -486,7 +493,7 @@ export const appRouter = router({
         return { success: true };
       }),
 
-    reject: adminProcedure
+    reject: protectedProcedure
       .input(z.object({
         id: z.number(),
         comment: z.string(),
@@ -494,6 +501,8 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const post = await db.getContentPostById(input.id);
         if (!post) throw new TRPCError({ code: "NOT_FOUND" });
+        // Jeder Partner darf nur seinen EIGENEN Content ablehnen
+        if (post.post.createdById !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Du kannst nur deinen eigenen Content ablehnen." });
 
         await db.updateContentPostStatus(input.id, "rejected", ctx.user.id, input.comment);
         await db.createApprovalLog({
@@ -509,7 +518,7 @@ export const appRouter = router({
       }),
 
     // Publish approved post to Blotato (ONLY after approval!)
-    publish: adminProcedure
+    publish: protectedProcedure
       .input(z.object({
         id: z.number(),
         scheduledDate: z.string().optional(),
@@ -518,6 +527,8 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const post = await db.getContentPostById(input.id);
         if (!post) throw new TRPCError({ code: "NOT_FOUND" });
+        // Jeder Partner darf nur seinen EIGENEN Content publishen
+        if (post.post.createdById !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Du kannst nur deinen eigenen Content veröffentlichen." });
         if (post.post.status !== "approved") {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Nur genehmigte Posts können veröffentlicht werden. Bitte zuerst genehmigen!" });
         }
@@ -766,7 +777,7 @@ REGELN:
         return { id };
       }),
 
-    delete: adminProcedure
+    delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         await db.deleteContentTemplate(input.id);
@@ -789,7 +800,7 @@ REGELN:
 
     latest: protectedProcedure.query(async () => db.getLatestCreatorSpyReport()),
 
-    analyze: adminProcedure
+    analyze: protectedProcedure
       .input(z.object({ hashtags: z.array(z.string()).optional() }))
       .mutation(async ({ input }) => {
         const { invokeLLM } = await import("./_core/llm");
@@ -891,7 +902,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         return { success: true };
       }),
 
-    delete: adminProcedure
+    delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         await db.deleteFromContentLibrary(input.id);
@@ -954,7 +965,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         return { groupId, variantAId, variantBId };
       }),
 
-    complete: adminProcedure
+    complete: protectedProcedure
       .input(z.object({
         id: z.number(),
         winner: z.enum(["A", "B"]),
@@ -972,7 +983,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       .input(z.object({ limit: z.number().optional() }).optional())
       .query(async ({ input }) => db.getTopPerformingPosts(input?.limit || 10)),
 
-    updateScore: adminProcedure
+    updateScore: protectedProcedure
       .input(z.object({
         postId: z.number(),
         feedbackScore: z.number().min(0).max(100),
@@ -1059,7 +1070,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         return getBestTimeForDay(input.platform, input.dayOfWeek);
       }),
 
-    calculate: adminProcedure.mutation(async () => {
+    calculate: protectedProcedure.mutation(async () => {
       // Calculate optimal times from analytics data
       const db2 = await db.getDb();
       if (!db2) return { message: "Keine Daten verfügbar" };
@@ -1312,7 +1323,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         return product;
       }),
 
-    import: adminProcedure.mutation(async () => {
+    import: protectedProcedure.mutation(async () => {
       // Import products from Botpress ProductTable
       const https = await import("https");
       const TOKEN = "bp_bak_0JrsLy9xuwOrJinDMZwYxOXbymwyQ7oguOhh";
@@ -1378,14 +1389,14 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
 
   // ─── Trend Scanner ─────────────────────────────────────────
   trends: router({
-    scan: adminProcedure.mutation(async () => {
+    scan: protectedProcedure.mutation(async () => {
       const trends = await trendScanner.runFullTrendScan();
       if (trends.length > 0) {
         await db.saveTrendScans(trends);
       }
       return { scanned: trends.length, topTrends: trends.slice(0, 10) };
     }),
-    scanPillar: adminProcedure
+    scanPillar: protectedProcedure
       .input(z.object({ pillar: z.string(), platform: z.enum(["tiktok", "youtube", "reddit"]).optional() }))
       .mutation(async ({ input }) => {
         const pillarData = trendScanner.CONTENT_PILLARS[input.pillar as trendScanner.PillarKey];
@@ -1416,7 +1427,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       .query(async ({ input }) => {
         return db.getTopTrends(input?.hours || 24, input?.limit || 20);
       }),
-    generateIdeas: adminProcedure.mutation(async () => {
+    generateIdeas: protectedProcedure.mutation(async () => {
       const topTrends = await db.getTopTrends(48, 20);
       if (topTrends.length === 0) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Keine Trends gefunden. Bitte zuerst einen Scan durchführen." });
@@ -1424,7 +1435,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       const ideas = await trendScanner.generateContentIdeasFromTrends(topTrends);
       return ideas;
     }),
-    markUsed: adminProcedure
+    markUsed: protectedProcedure
       .input(z.object({ trendId: z.number(), contentPostId: z.number() }))
       .mutation(async ({ input }) => {
         await db.markTrendUsed(input.trendId, input.contentPostId);
@@ -1441,7 +1452,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
     }),
 
     // Autopilot: Trend → Content + Bild → zur Freigabe - alles in einem Schritt
-    autopilot: adminProcedure
+    autopilot: protectedProcedure
       .input(z.object({
         trendId: z.number(),
         trendTitle: z.string(),
@@ -1610,7 +1621,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
 
   // ─── Monatsplan Generator ─────────────────────────────────
   monthlyPlan: router({
-    generate: adminProcedure
+    generate: protectedProcedure
       .input(z.object({ month: z.number().min(1).max(12), year: z.number().min(2024).max(2030) }))
       .mutation(async ({ ctx, input }) => {
         const plan = await hashtagEngine.generateMonthlyPlan(input.month, input.year);
@@ -1633,7 +1644,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       .query(async ({ input }) => {
         return db.getMonthlyPlan(input.id);
       }),
-    createPostFromPlan: adminProcedure
+    createPostFromPlan: protectedProcedure
       .input(z.object({
         planId: z.number(),
         dayIndex: z.number(),
@@ -1673,7 +1684,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
 
   // ─── Evergreen Recycling ───────────────────────────────────
   evergreen: router({
-    add: adminProcedure
+    add: protectedProcedure
       .input(z.object({
         originalPostId: z.number(),
         recycleAfterDays: z.number().default(30),
@@ -1703,7 +1714,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
     candidates: protectedProcedure.query(async () => {
       return db.getEvergreenCandidates();
     }),
-    recycle: adminProcedure
+    recycle: protectedProcedure
       .input(z.object({ evergreenId: z.number() }))
       .mutation(async ({ ctx, input }) => {
         const egPosts = await db.getEvergreenPosts(true);
@@ -1742,7 +1753,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         });
         return { newPostId, recycleCount: eg.recycleCount + 1 };
       }),
-    remove: adminProcedure
+    remove: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         await db.removeEvergreenPost(input.id);
@@ -1873,7 +1884,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         };
       }),
 
-    generateBatch: adminProcedure
+    generateBatch: protectedProcedure
       .input(z.object({
         count: z.number().min(1).max(20).default(5),
         categories: z.array(z.string()).optional(),
@@ -1967,7 +1978,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       }),
 
     // Geplanten Post aktualisieren (Text, Medien, Zeitpunkt)
-    update: adminProcedure
+    update: protectedProcedure
       .input(z.object({
         id: z.string(),
         scheduledTime: z.string().optional(),
@@ -2003,7 +2014,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       }),
 
     // Geplanten Post verschieben (nur Zeitpunkt ändern)
-    reschedule: adminProcedure
+    reschedule: protectedProcedure
       .input(z.object({ id: z.string(), newTime: z.string() }))
       .mutation(async ({ input }) => {
         const success = await api.reschedulePost(input.id, input.newTime);
@@ -2012,7 +2023,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       }),
 
     // Geplanten Post löschen
-    delete: adminProcedure
+    delete: protectedProcedure
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
         const success = await api.deleteScheduledPost(input.id);

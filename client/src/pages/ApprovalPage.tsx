@@ -173,7 +173,7 @@ function PostCard({
           <SmartTimeRecommendation platforms={platforms} />
 
           {/* Action Buttons - large, touch-friendly */}
-          {isAdmin && variant === "pending" && (
+          {variant === "pending" && (
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/30">
               <Button
                 size="lg"
@@ -204,7 +204,7 @@ function PostCard({
             </div>
           )}
 
-          {isAdmin && variant === "approved" && (
+          {variant === "approved" && (
             <Button
               size="lg"
               className="gap-2 w-full h-12 text-sm"
@@ -283,21 +283,14 @@ export default function ApprovalPage() {
       <div>
         <h1 className="text-xl md:text-2xl font-bold tracking-tight">Freigabe-Center</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          {isAdmin ? "Prüfe und gib Posts frei." : "Status deiner eingereichten Posts."}
+          Prüfe und gib deine eigenen Posts frei.
         </p>
       </div>
 
-      {!isAdmin && (
-        <Card className="border-yellow-500/30 bg-yellow-500/5">
-          <CardContent className="p-4 flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-yellow-400 shrink-0 mt-0.5" />
-            <p className="text-sm text-yellow-200">Nur Admins können Posts genehmigen oder ablehnen.</p>
-          </CardContent>
-        </Card>
-      )}
+
 
       {/* Pipeline Status - compact for mobile */}
-      {isAdmin && (
+      {(
         <div className="flex gap-3">
           <div className="flex-1 text-center p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/20">
             <Clock className="h-5 w-5 text-yellow-400 mx-auto mb-1" />
@@ -349,7 +342,7 @@ export default function ApprovalPage() {
       </div>
 
       {/* Approved Posts */}
-      {isAdmin && approvedPosts && approvedPosts.length > 0 && (
+      {approvedPosts && approvedPosts.length > 0 && (
         <div>
           <h2 className="text-base font-semibold mb-3 flex items-center gap-2">
             <CheckCircle className="h-4 w-4 text-emerald-400" />

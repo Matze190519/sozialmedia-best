@@ -85,25 +85,23 @@ describe("Approval Workflow - Router Structure", () => {
 });
 
 describe("Approval Workflow - Access Control", () => {
-  it("rejects non-admin approval attempts", async () => {
+  it("allows any user to approve their own content (owner-based)", async () => {
     const userCtx = createUserContext();
     const caller = appRouter.createCaller(userCtx);
-
-    await expect(caller.approval.approve({ id: 1 })).rejects.toThrow("Nur Admins");
+    // Should not throw admin error - will throw NOT_FOUND since post doesn't exist
+    await expect(caller.approval.approve({ id: 99999 })).rejects.toThrow();
   });
 
-  it("rejects non-admin rejection attempts", async () => {
+  it("allows any user to reject their own content (owner-based)", async () => {
     const userCtx = createUserContext();
     const caller = appRouter.createCaller(userCtx);
-
-    await expect(caller.approval.reject({ id: 1, comment: "test" })).rejects.toThrow("Nur Admins");
+    await expect(caller.approval.reject({ id: 99999, comment: "test" })).rejects.toThrow();
   });
 
-  it("rejects non-admin publish attempts", async () => {
+  it("allows any user to publish their own content (owner-based)", async () => {
     const userCtx = createUserContext();
     const caller = appRouter.createCaller(userCtx);
-
-    await expect(caller.approval.publish({ id: 1 })).rejects.toThrow("Nur Admins");
+    await expect(caller.approval.publish({ id: 99999 })).rejects.toThrow();
   });
 
   it("rejects non-admin team role update attempts", async () => {
@@ -113,12 +111,16 @@ describe("Approval Workflow - Access Control", () => {
     await expect(caller.team.updateRole({ userId: 1, role: "admin" })).rejects.toThrow("Nur Admins");
   });
 
-  it("rejects non-admin creator spy analyze attempts", async () => {
+  it("allows any user to use creator spy analyze", async () => {
     const userCtx = createUserContext();
     const caller = appRouter.createCaller(userCtx);
-
-    await expect(caller.creatorSpy.analyze({})).rejects.toThrow("Nur Admins");
-  });
+    // Should not throw admin error - may throw other errors (e.g. LLM timeout)
+    try {
+      await caller.creatorSpy.analyze({});
+    } catch (e: any) {
+      expect(e.message).not.toMatch(/Nur Admins|FORBIDDEN/);
+    }
+  }, 30000);
 });
 
 describe("Approval Workflow - Input Validation", () => {

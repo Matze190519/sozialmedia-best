@@ -394,20 +394,18 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Info for Admin */}
-      {user?.role === "admin" && (
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="p-4 flex items-start gap-3">
-            <Shield className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-            <div className="text-sm">
-              <p className="font-medium">Admin-Info</p>
-              <p className="text-muted-foreground mt-1">
-                Als Admin kannst du Content für das ganze Team freigeben. Die fal.ai Kosten für Bild- und Video-KI übernimmst du zentral. Jedes Team-Mitglied braucht nur seinen eigenen Blotato Key (25€/Monat) für automatisches Posten. Wer kein Blotato hat, kann alles aus der Bibliothek kopieren und manuell posten.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Info */}
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="p-4 flex items-start gap-3">
+          <Shield className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+          <div className="text-sm">
+            <p className="font-medium">So funktioniert's</p>
+            <p className="text-muted-foreground mt-1">
+              Du gibst deinen eigenen Content selbst frei. Freigegebene Posts werden automatisch in der Bibliothek gespeichert. Mit Blotato (25€/Monat) kannst du automatisch auf allen Plattformen posten. Ohne Blotato kopierst du fertige Posts aus der Bibliothek und postest manuell.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

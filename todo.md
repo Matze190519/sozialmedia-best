@@ -208,3 +208,13 @@
 - [x] Dashboard-UI aufräumen: Bessere Card-Layouts und Spacing
 - [x] Dashboard-UI aufräumen: Mobile-optimierte Ansicht verbessern
 - [x] End-to-End UI Test: Post erstellen, Bild+Video in Freigabe prüfen, freigeben, Bibliothek kontrollieren
+
+## Freigabe-Logik Umbau (28.03.2026)
+- [x] Freigabe: Jeder Partner gibt seinen EIGENEN Content frei (nicht Admin für alle)
+- [x] Freigabe: Admin (Mathias) gibt nur seinen eigenen Content frei
+- [x] Freigabe: approve/reject/publish von adminProcedure auf owner-based protectedProcedure umbauen
+- [x] Freigabe: ApprovalPage zeigt nur eigene Posts (Partner sieht nur seine, Admin sieht nur seine)
+- [x] Freigabe: Tests aktualisieren
+- [x] Alle Features von adminProcedure auf protectedProcedure umgestellt (Partner haben vollen Zugriff)
+- [x] Nur Team-Management (Partner freischalten/sperren/Rollen) bleibt Admin-only
+- [x] 195/195 Tests bestehen (15 Test-Dateien)
