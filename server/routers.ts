@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { publicProcedure, approvedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as db from "./db";
@@ -10,8 +10,8 @@ import * as trendScanner from "./trendScanner";
 import * as hashtagEngine from "./hashtagEngine";
 import * as lifestyleEngine from "./lifestyleEngine";
 
-// Admin-only procedure
-const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+// Admin-only procedure (requires admin role)
+const adminProcedure = approvedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Nur Admins dürfen diese Aktion ausführen." });
   return next({ ctx });
 });
@@ -29,7 +29,7 @@ export const appRouter = router({
 
   // ─── Dashboard Stats ───────────────────────────────────────
   dashboard: router({
-    stats: protectedProcedure.query(async ({ ctx }) => {
+    stats: approvedProcedure.query(async ({ ctx }) => {
       // Jeder User sieht nur seine eigenen Stats
       return db.getContentStats(ctx.user.id);
     }),
@@ -37,7 +37,7 @@ export const appRouter = router({
 
   // ─── Content Posts ─────────────────────────────────────────
   content: router({
-    list: protectedProcedure
+    list: approvedProcedure
       .input(z.object({
         status: z.string().optional(),
         limit: z.number().optional(),
@@ -53,7 +53,7 @@ export const appRouter = router({
         });
       }),
 
-    getById: protectedProcedure
+    getById: approvedProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ ctx, input }) => {
         const result = await db.getContentPostById(input.id);
@@ -63,7 +63,7 @@ export const appRouter = router({
         return result;
       }),
 
-    getByDateRange: protectedProcedure
+    getByDateRange: approvedProcedure
       .input(z.object({
         start: z.string(),
         end: z.string(),
@@ -73,7 +73,7 @@ export const appRouter = router({
       }),
 
     // Generate content via GoViralBitch API and add to queue as PENDING
-    generate: protectedProcedure
+    generate: approvedProcedure
       .input(z.object({
         contentType: z.enum(["post", "reel", "story", "hooks", "ad_copy", "follow_up", "objection"]),
         topic: z.string().optional(),
@@ -196,7 +196,7 @@ export const appRouter = router({
       }),
 
     // Generate batch (week plan) via GoViralBitch
-    generateBatch: protectedProcedure
+    generateBatch: approvedProcedure
       .input(z.object({
         weekStart: z.string().optional(),
         platforms: z.array(z.string()).optional(),
@@ -232,7 +232,7 @@ export const appRouter = router({
       }),
 
     // Edit content (before approval)
-    edit: protectedProcedure
+    edit: approvedProcedure
       .input(z.object({
         id: z.number(),
         editedContent: z.string(),
@@ -263,7 +263,7 @@ export const appRouter = router({
       }),
 
     // Share post to content library for all team members
-    shareToLibrary: protectedProcedure
+    shareToLibrary: approvedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
         const post = await db.getContentPostById(input.id);
@@ -293,7 +293,7 @@ export const appRouter = router({
   // ─── KI Media Generation ──────────────────────────────────
   media: router({
     // Premium Bildgenerierung - Nano Banana Pro (Google Gemini 3 Pro Image)
-    generateImage: protectedProcedure
+    generateImage: approvedProcedure
       .input(z.object({
         prompt: z.string().min(1),
         contentPostId: z.number().optional(),
@@ -333,7 +333,7 @@ export const appRouter = router({
       }),
 
     // Premium Videogenerierung - Auto: Veo 3.1 (<=8s) / Kling 3.0 Pro (>8s)
-    generateVideo: protectedProcedure
+    generateVideo: approvedProcedure
       .input(z.object({
         prompt: z.string().min(1),
         imageUrl: z.string().optional(),
@@ -367,7 +367,7 @@ export const appRouter = router({
       }),
 
     // Attach a product image URL directly to a content post
-    attachProductImage: protectedProcedure
+    attachProductImage: approvedProcedure
       .input(z.object({
         contentPostId: z.number(),
         imageUrl: z.string(),
@@ -382,7 +382,7 @@ export const appRouter = router({
         return { url: input.imageUrl };
       }),
 
-    uploadMedia: protectedProcedure
+    uploadMedia: approvedProcedure
       .input(z.object({
         contentPostId: z.number(),
         mediaType: z.enum(["image", "video"]),
@@ -412,7 +412,7 @@ export const appRouter = router({
 
   // ─── Approval Workflow ─────────────────────────────────────
   approval: router({
-    approve: protectedProcedure
+    approve: approvedProcedure
       .input(z.object({
         id: z.number(),
         comment: z.string().optional(),
@@ -493,7 +493,7 @@ export const appRouter = router({
         return { success: true };
       }),
 
-    reject: protectedProcedure
+    reject: approvedProcedure
       .input(z.object({
         id: z.number(),
         comment: z.string(),
@@ -518,7 +518,7 @@ export const appRouter = router({
       }),
 
     // Publish approved post to Blotato (ONLY after approval!)
-    publish: protectedProcedure
+    publish: approvedProcedure
       .input(z.object({
         id: z.number(),
         scheduledDate: z.string().optional(),
@@ -573,7 +573,7 @@ export const appRouter = router({
         return { success: true, postIds };
       }),
 
-    logs: protectedProcedure
+    logs: approvedProcedure
       .input(z.object({ contentPostId: z.number() }))
       .query(async ({ input }) => {
         return db.getApprovalLogsForPost(input.contentPostId);
@@ -582,7 +582,7 @@ export const appRouter = router({
 
   // ─── Quality Gate ──────────────────────────────────────────
   qualityGate: router({
-    check: protectedProcedure
+    check: approvedProcedure
       .input(z.object({
         content: z.string(),
         platform: z.string(),
@@ -594,15 +594,15 @@ export const appRouter = router({
 
   // ─── Brand Voice & Viral Tools ─────────────────────────────
   brandVoice: router({
-    get: protectedProcedure.query(() => api.LR_BRAND_VOICE),
-    getCTAs: protectedProcedure
+    get: approvedProcedure.query(() => api.LR_BRAND_VOICE),
+    getCTAs: approvedProcedure
       .input(z.object({ platform: z.string() }))
       .query(({ input }) => api.CTA_TEMPLATES[input.platform.toLowerCase()] || {}),
-    getHooks: protectedProcedure.query(() => api.HOOK_FORMULAS),
-    getScriptTemplates: protectedProcedure.query(() => api.VIRAL_SCRIPT_TEMPLATES),
-    getBlockers: protectedProcedure.query(() => api.LR_BRAND_VOICE.audienceBlockers),
+    getHooks: approvedProcedure.query(() => api.HOOK_FORMULAS),
+    getScriptTemplates: approvedProcedure.query(() => api.VIRAL_SCRIPT_TEMPLATES),
+    getBlockers: approvedProcedure.query(() => api.LR_BRAND_VOICE.audienceBlockers),
 
-    generateWithVoice: protectedProcedure
+    generateWithVoice: approvedProcedure
       .input(z.object({
         contentType: z.enum(["post", "reel_script", "story", "carousel", "ad_copy", "linkedin", "youtube_script"]),
         platform: z.string(),
@@ -757,11 +757,11 @@ REGELN:
 
   // ─── Content Templates ─────────────────────────────────────
   templates: router({
-    list: protectedProcedure
+    list: approvedProcedure
       .input(z.object({ category: z.string().optional() }).optional())
       .query(async ({ input }) => db.getContentTemplates(input?.category)),
 
-    create: protectedProcedure
+    create: approvedProcedure
       .input(z.object({
         name: z.string(),
         category: z.string(),
@@ -777,14 +777,14 @@ REGELN:
         return { id };
       }),
 
-    delete: protectedProcedure
+    delete: approvedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         await db.deleteContentTemplate(input.id);
         return { success: true };
       }),
 
-    useTemplate: protectedProcedure
+    useTemplate: approvedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         await db.incrementTemplateUsage(input.id);
@@ -794,13 +794,13 @@ REGELN:
 
   // ─── Creator Spy ───────────────────────────────────────────
   creatorSpy: router({
-    reports: protectedProcedure
+    reports: approvedProcedure
       .input(z.object({ limit: z.number().optional() }).optional())
       .query(async ({ input }) => db.getCreatorSpyReports(input?.limit || 10)),
 
-    latest: protectedProcedure.query(async () => db.getLatestCreatorSpyReport()),
+    latest: approvedProcedure.query(async () => db.getLatestCreatorSpyReport()),
 
-    analyze: protectedProcedure
+    analyze: approvedProcedure
       .input(z.object({ hashtags: z.array(z.string()).optional() }))
       .mutation(async ({ input }) => {
         const { invokeLLM } = await import("./_core/llm");
@@ -859,7 +859,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
 
   // ─── Content Library (für alle Team-Mitglieder) ────────────
   library: router({
-    list: protectedProcedure
+    list: approvedProcedure
       .input(z.object({
         category: z.string().optional(),
         pillar: z.string().optional(),
@@ -875,7 +875,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         });
       }),
 
-    add: protectedProcedure
+    add: approvedProcedure
       .input(z.object({
         title: z.string(),
         category: z.enum(["image", "video", "text", "template", "reel_script"]),
@@ -895,14 +895,14 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         return { id };
       }),
 
-    copy: protectedProcedure
+    copy: approvedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         await db.incrementLibraryCopyCount(input.id);
         return { success: true };
       }),
 
-    delete: protectedProcedure
+    delete: approvedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         await db.deleteFromContentLibrary(input.id);
@@ -912,11 +912,11 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
 
   // ─── A/B Testing ───────────────────────────────────────────
   abTest: router({
-    list: protectedProcedure
+    list: approvedProcedure
       .input(z.object({ status: z.string().optional() }).optional())
       .query(async ({ input }) => db.getABTestGroups(input?.status)),
 
-    create: protectedProcedure
+    create: approvedProcedure
       .input(z.object({
         name: z.string(),
         variantAContent: z.string(),
@@ -965,7 +965,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         return { groupId, variantAId, variantBId };
       }),
 
-    complete: protectedProcedure
+    complete: approvedProcedure
       .input(z.object({
         id: z.number(),
         winner: z.enum(["A", "B"]),
@@ -979,11 +979,11 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
 
   // ─── Feedback Loop ─────────────────────────────────────────
   feedback: router({
-    topPerforming: protectedProcedure
+    topPerforming: approvedProcedure
       .input(z.object({ limit: z.number().optional() }).optional())
       .query(async ({ input }) => db.getTopPerformingPosts(input?.limit || 10)),
 
-    updateScore: protectedProcedure
+    updateScore: approvedProcedure
       .input(z.object({
         postId: z.number(),
         feedbackScore: z.number().min(0).max(100),
@@ -995,7 +995,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       }),
 
     // Analyze why a post performed well using LLM
-    analyzeSuccess: protectedProcedure
+    analyzeSuccess: approvedProcedure
       .input(z.object({ postId: z.number() }))
       .mutation(async ({ input }) => {
         const post = await db.getContentPostById(input.postId);
@@ -1027,12 +1027,12 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
 
   // ─── Optimal Posting Times ─────────────────────────────────
   postingTimes: router({
-    get: protectedProcedure
+    get: approvedProcedure
       .input(z.object({ platform: z.string().optional() }).optional())
       .query(async ({ input }) => db.getOptimalPostingTimes(input?.platform)),
 
     // Smart Scheduling: Nächsten optimalen Zeitpunkt für eine Plattform
-    smartNext: protectedProcedure
+    smartNext: approvedProcedure
       .input(z.object({ platform: z.string() }))
       .query(({ input }) => {
         const { getNextSmartPostingTime } = require("./smartPostingTimes");
@@ -1040,7 +1040,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       }),
 
     // Smart Scheduling: Nächste optimale Zeiten für mehrere Plattformen
-    smartNextMulti: protectedProcedure
+    smartNextMulti: approvedProcedure
       .input(z.object({ platforms: z.array(z.string()) }))
       .query(({ input }) => {
         const { getNextSmartPostingTimes } = require("./smartPostingTimes");
@@ -1048,7 +1048,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       }),
 
     // Kompletter Wochenplan für eine Plattform
-    weeklySchedule: protectedProcedure
+    weeklySchedule: approvedProcedure
       .input(z.object({ platform: z.string() }))
       .query(({ input }) => {
         const { getWeeklySchedule } = require("./smartPostingTimes");
@@ -1056,21 +1056,21 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       }),
 
     // Alle Plattform-Schedules auf einen Blick
-    allSchedules: protectedProcedure
+    allSchedules: approvedProcedure
       .query(() => {
         const { getAllSchedules } = require("./smartPostingTimes");
         return getAllSchedules();
       }),
 
     // Bester Zeitpunkt für einen bestimmten Tag
-    bestForDay: protectedProcedure
+    bestForDay: approvedProcedure
       .input(z.object({ platform: z.string(), dayOfWeek: z.number().min(0).max(6) }))
       .query(({ input }) => {
         const { getBestTimeForDay } = require("./smartPostingTimes");
         return getBestTimeForDay(input.platform, input.dayOfWeek);
       }),
 
-    calculate: protectedProcedure.mutation(async () => {
+    calculate: approvedProcedure.mutation(async () => {
       // Calculate optimal times from analytics data
       const db2 = await db.getDb();
       if (!db2) return { message: "Keine Daten verfügbar" };
@@ -1140,7 +1140,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
 
   // ─── User Settings (Personal Blotato Key, Branding, etc.) ──
   userSettings: router({
-    get: protectedProcedure.query(async ({ ctx }) => {
+    get: approvedProcedure.query(async ({ ctx }) => {
       const user = await db.getUserById(ctx.user.id);
       if (!user) throw new TRPCError({ code: "NOT_FOUND" });
       return {
@@ -1151,34 +1151,34 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       };
     }),
 
-    saveBlotatoKey: protectedProcedure
+    saveBlotatoKey: approvedProcedure
       .input(z.object({ blotatoApiKey: z.string().min(1) }))
       .mutation(async ({ ctx, input }) => {
         await db.updateUserBlotatoKey(ctx.user.id, input.blotatoApiKey);
         return { success: true };
       }),
 
-    removeBlotatoKey: protectedProcedure
+    removeBlotatoKey: approvedProcedure
       .mutation(async ({ ctx }) => {
         await db.updateUserBlotatoKey(ctx.user.id, null);
         return { success: true };
       }),
 
-    toggleAutoPost: protectedProcedure
+    toggleAutoPost: approvedProcedure
       .input(z.object({ enabled: z.boolean() }))
       .mutation(async ({ ctx, input }) => {
         await db.updateUserAutoPost(ctx.user.id, input.enabled);
         return { success: true };
       }),
 
-    savePostingTimes: protectedProcedure
+    savePostingTimes: approvedProcedure
       .input(z.object({ times: z.record(z.string(), z.string()) }))
       .mutation(async ({ ctx, input }) => {
         await db.updateUserPostingTimes(ctx.user.id, input.times as Record<string, string>);
         return { success: true };
       }),
 
-    savePersonalBranding: protectedProcedure
+    savePersonalBranding: approvedProcedure
       .input(z.object({
         signature: z.string().optional(),
         hashtags: z.array(z.string()).optional(),
@@ -1193,15 +1193,15 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
 
   // ─── Analytics ─────────────────────────────────────────────
   analytics: router({
-    summary: protectedProcedure.query(async () => db.getAnalyticsSummary()),
-    forPost: protectedProcedure
+    summary: approvedProcedure.query(async () => db.getAnalyticsSummary()),
+    forPost: approvedProcedure
       .input(z.object({ contentPostId: z.number() }))
       .query(async ({ input }) => db.getAnalyticsForPost(input.contentPostId)),
   }),
 
   // ─── Team Management ───────────────────────────────────────
   team: router({
-    list: protectedProcedure.query(async () => db.getAllUsers()),
+    list: approvedProcedure.query(async () => db.getAllUsers()),
     updateRole: adminProcedure
       .input(z.object({ userId: z.number(), role: z.enum(["user", "admin"]) }))
       .mutation(async ({ input }) => {
@@ -1227,7 +1227,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         return { success: true };
       }),
     // Partner-Profil aktualisieren (eigene Daten)
-    updateProfile: protectedProcedure
+    updateProfile: approvedProcedure
       .input(z.object({
         phoneNumber: z.string().optional(),
       }))
@@ -1289,7 +1289,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
 
   // ─── LR Products (Botpress Produktbild-Bibliothek) ────────
   products: router({
-    list: protectedProcedure
+    list: approvedProcedure
       .input(z.object({
         category: z.string().optional(),
         search: z.string().optional(),
@@ -1305,17 +1305,17 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         });
       }),
 
-    categories: protectedProcedure.query(async () => {
+    categories: approvedProcedure.query(async () => {
       return db.getLRProductCategories();
     }),
 
-    count: protectedProcedure
+    count: approvedProcedure
       .input(z.object({ category: z.string().optional() }).optional())
       .query(async ({ input }) => {
         return db.getLRProductCount(input?.category);
       }),
 
-    getById: protectedProcedure
+    getById: approvedProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
         const product = await db.getLRProductById(input.id);
@@ -1323,7 +1323,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         return product;
       }),
 
-    import: protectedProcedure.mutation(async () => {
+    import: approvedProcedure.mutation(async () => {
       // Import products from Botpress ProductTable
       const https = await import("https");
       const TOKEN = "bp_bak_0JrsLy9xuwOrJinDMZwYxOXbymwyQ7oguOhh";
@@ -1389,14 +1389,14 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
 
   // ─── Trend Scanner ─────────────────────────────────────────
   trends: router({
-    scan: protectedProcedure.mutation(async () => {
+    scan: approvedProcedure.mutation(async () => {
       const trends = await trendScanner.runFullTrendScan();
       if (trends.length > 0) {
         await db.saveTrendScans(trends);
       }
       return { scanned: trends.length, topTrends: trends.slice(0, 10) };
     }),
-    scanPillar: protectedProcedure
+    scanPillar: approvedProcedure
       .input(z.object({ pillar: z.string(), platform: z.enum(["tiktok", "youtube", "reddit"]).optional() }))
       .mutation(async ({ input }) => {
         const pillarData = trendScanner.CONTENT_PILLARS[input.pillar as trendScanner.PillarKey];
@@ -1417,17 +1417,17 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         if (allTrends.length > 0) await db.saveTrendScans(allTrends);
         return { scanned: allTrends.length, trends: allTrends.slice(0, 20) };
       }),
-    latest: protectedProcedure
+    latest: approvedProcedure
       .input(z.object({ platform: z.string().optional(), pillar: z.string().optional(), limit: z.number().optional() }).optional())
       .query(async ({ input }) => {
         return db.getLatestTrends({ platform: input?.platform, pillar: input?.pillar, limit: input?.limit });
       }),
-    top: protectedProcedure
+    top: approvedProcedure
       .input(z.object({ hours: z.number().optional(), limit: z.number().optional() }).optional())
       .query(async ({ input }) => {
         return db.getTopTrends(input?.hours || 24, input?.limit || 20);
       }),
-    generateIdeas: protectedProcedure.mutation(async () => {
+    generateIdeas: approvedProcedure.mutation(async () => {
       const topTrends = await db.getTopTrends(48, 20);
       if (topTrends.length === 0) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Keine Trends gefunden. Bitte zuerst einen Scan durchführen." });
@@ -1435,7 +1435,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       const ideas = await trendScanner.generateContentIdeasFromTrends(topTrends);
       return ideas;
     }),
-    markUsed: protectedProcedure
+    markUsed: approvedProcedure
       .input(z.object({ trendId: z.number(), contentPostId: z.number() }))
       .mutation(async ({ input }) => {
         await db.markTrendUsed(input.trendId, input.contentPostId);
@@ -1452,7 +1452,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
     }),
 
     // Autopilot: Trend → Content + Bild → zur Freigabe - alles in einem Schritt
-    autopilot: protectedProcedure
+    autopilot: approvedProcedure
       .input(z.object({
         trendId: z.number(),
         trendTitle: z.string(),
@@ -1587,7 +1587,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
 
   // ─── Smart Hashtag Engine ──────────────────────────────────
   hashtags: router({
-    generate: protectedProcedure
+    generate: approvedProcedure
       .input(z.object({
         content: z.string(),
         platform: z.string().default("instagram"),
@@ -1597,7 +1597,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       .mutation(async ({ input }) => {
         return hashtagEngine.generateSmartHashtags(input.content, input.platform, input.pillar, input.topic);
       }),
-    research: protectedProcedure
+    research: approvedProcedure
       .input(z.object({ topic: z.string(), pillar: z.string().optional() }))
       .mutation(async ({ input }) => {
         return hashtagEngine.researchInstagramHashtags(input.topic, input.pillar);
@@ -1621,7 +1621,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
 
   // ─── Monatsplan Generator ─────────────────────────────────
   monthlyPlan: router({
-    generate: protectedProcedure
+    generate: approvedProcedure
       .input(z.object({ month: z.number().min(1).max(12), year: z.number().min(2024).max(2030) }))
       .mutation(async ({ ctx, input }) => {
         const plan = await hashtagEngine.generateMonthlyPlan(input.month, input.year);
@@ -1636,15 +1636,15 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         });
         return { id: planId, ...plan };
       }),
-    list: protectedProcedure.query(async () => {
+    list: approvedProcedure.query(async () => {
       return db.getMonthlyPlans();
     }),
-    get: protectedProcedure
+    get: approvedProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
         return db.getMonthlyPlan(input.id);
       }),
-    createPostFromPlan: protectedProcedure
+    createPostFromPlan: approvedProcedure
       .input(z.object({
         planId: z.number(),
         dayIndex: z.number(),
@@ -1684,7 +1684,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
 
   // ─── Evergreen Recycling ───────────────────────────────────
   evergreen: router({
-    add: protectedProcedure
+    add: approvedProcedure
       .input(z.object({
         originalPostId: z.number(),
         recycleAfterDays: z.number().default(30),
@@ -1703,18 +1703,18 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         });
         return { id };
       }),
-    list: protectedProcedure
+    list: approvedProcedure
       .input(z.object({ activeOnly: z.boolean().optional() }).optional())
       .query(async ({ input }) => {
         return db.getEvergreenPosts(input?.activeOnly !== false);
       }),
-    due: protectedProcedure.query(async () => {
+    due: approvedProcedure.query(async () => {
       return db.getEvergreenPostsDueForRecycle();
     }),
-    candidates: protectedProcedure.query(async () => {
+    candidates: approvedProcedure.query(async () => {
       return db.getEvergreenCandidates();
     }),
-    recycle: protectedProcedure
+    recycle: approvedProcedure
       .input(z.object({ evergreenId: z.number() }))
       .mutation(async ({ ctx, input }) => {
         const egPosts = await db.getEvergreenPosts(true);
@@ -1753,7 +1753,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         });
         return { newPostId, recycleCount: eg.recycleCount + 1 };
       }),
-    remove: protectedProcedure
+    remove: approvedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         await db.removeEvergreenPost(input.id);
@@ -1776,7 +1776,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       }));
     }),
 
-    generate: protectedProcedure
+    generate: approvedProcedure
       .input(z.object({
         category: z.string(),
         topic: z.string().optional(),
@@ -1884,7 +1884,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         };
       }),
 
-    generateBatch: protectedProcedure
+    generateBatch: approvedProcedure
       .input(z.object({
         count: z.number().min(1).max(20).default(5),
         categories: z.array(z.string()).optional(),
@@ -1943,7 +1943,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         return { count: results.length, postIds, results };
       }),
 
-    customImagePrompt: protectedProcedure
+    customImagePrompt: approvedProcedure
       .input(z.object({
         text: z.string(),
         category: z.string(),
@@ -1962,14 +1962,14 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
   // ─── Blotato Calendar (Scheduled Posts) ────────────────────
   calendar: router({
     // Alle geplanten Posts von Blotato abrufen
-    list: protectedProcedure
+    list: approvedProcedure
       .input(z.object({ limit: z.number().optional(), cursor: z.string().optional() }).optional())
       .query(async ({ input }) => {
         return api.getScheduledPosts(input?.limit || 100, input?.cursor);
       }),
 
     // Einzelnen geplanten Post abrufen
-    get: protectedProcedure
+    get: approvedProcedure
       .input(z.object({ id: z.string() }))
       .query(async ({ input }) => {
         const post = await api.getScheduledPost(input.id);
@@ -1978,7 +1978,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       }),
 
     // Geplanten Post aktualisieren (Text, Medien, Zeitpunkt)
-    update: protectedProcedure
+    update: approvedProcedure
       .input(z.object({
         id: z.string(),
         scheduledTime: z.string().optional(),
@@ -2014,7 +2014,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       }),
 
     // Geplanten Post verschieben (nur Zeitpunkt ändern)
-    reschedule: protectedProcedure
+    reschedule: approvedProcedure
       .input(z.object({ id: z.string(), newTime: z.string() }))
       .mutation(async ({ input }) => {
         const success = await api.reschedulePost(input.id, input.newTime);
@@ -2023,7 +2023,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       }),
 
     // Geplanten Post löschen
-    delete: protectedProcedure
+    delete: approvedProcedure
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
         const success = await api.deleteScheduledPost(input.id);
@@ -2032,7 +2032,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       }),
 
     // Kalender-Übersicht: Posts nach Datum gruppiert
-    byDate: protectedProcedure
+    byDate: approvedProcedure
       .input(z.object({ limit: z.number().optional() }).optional())
       .query(async ({ input }) => {
         const result = await api.getScheduledPosts(input?.limit || 100);
@@ -2056,7 +2056,7 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       const healthy = await api.goViralBitchHealthCheck();
       return { status: healthy ? "online" : "offline", url: "https://goviralbitch-deploy.onrender.com" };
     }),
-    blotatoAccounts: protectedProcedure.query(async () => {
+    blotatoAccounts: approvedProcedure.query(async () => {
       try {
         const accounts = await api.getBlotatoAccounts();
         return { connected: accounts.length > 0, accounts, fallback: accounts.length === 0 };

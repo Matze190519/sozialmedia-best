@@ -13,6 +13,7 @@ function createAdminContext(): TrpcContext {
     loginMethod: "manus",
     role: "admin",
     createdAt: new Date(),
+    isApproved: true,
     updatedAt: new Date(),
     lastSignedIn: new Date(),
   };
@@ -32,6 +33,7 @@ function createUserContext(): TrpcContext {
     name: "Team Member",
     loginMethod: "manus",
     role: "user",
+    isApproved: true,
     createdAt: new Date(),
     updatedAt: new Date(),
     lastSignedIn: new Date(),

@@ -1,4 +1,4 @@
-import { NOT_ADMIN_ERR_MSG, UNAUTHED_ERR_MSG } from '@shared/const';
+import { NOT_ADMIN_ERR_MSG, NOT_APPROVED_ERR_MSG, UNAUTHED_ERR_MSG } from '@shared/const';
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import type { TrpcContext } from "./context";
@@ -26,6 +26,22 @@ const requireUser = t.middleware(async opts => {
 });
 
 export const protectedProcedure = t.procedure.use(requireUser);
+
+// Requires user to be both authenticated AND approved (or admin)
+const requireApproved = t.middleware(async opts => {
+  const { ctx, next } = opts;
+  if (!ctx.user) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
+  }
+  // Admins are always approved
+  if (ctx.user.role !== 'admin' && !ctx.user.isApproved) {
+    throw new TRPCError({ code: "FORBIDDEN", message: NOT_APPROVED_ERR_MSG });
+  }
+  return next({
+    ctx: { ...ctx, user: ctx.user },
+  });
+});
+export const approvedProcedure = t.procedure.use(requireApproved);
 
 export const adminProcedure = t.procedure.use(
   t.middleware(async opts => {

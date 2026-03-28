@@ -136,6 +136,38 @@ export default function DashboardLayout({
     );
   }
 
+  // Gate: Non-approved users see a waiting page
+  if (user.role !== 'admin' && !user.isApproved) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex items-center gap-3">
+              <Shield className="h-10 w-10 text-amber-500" />
+              <h1 className="text-3xl font-bold tracking-tight">Zugang ausstehend</h1>
+            </div>
+            <p className="text-sm text-muted-foreground text-center max-w-sm">
+              Hallo <span className="font-semibold text-foreground">{user.name || 'Partner'}</span>! Dein Account wurde erstellt, aber noch nicht freigeschaltet. Dein Teamleiter wird dich in Kürze freischalten.
+            </p>
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 w-full">
+              <p className="text-xs text-amber-200 text-center">
+                Sobald du freigeschaltet bist, hast du Zugriff auf alle Tools: Content erstellen, Trend-Scanner, KI-Coach, Bibliothek und vieles mehr.
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={() => { window.location.reload(); }}
+            variant="outline"
+            size="lg"
+            className="w-full"
+          >
+            Seite neu laden
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <SidebarProvider
       style={{ "--sidebar-width": `${sidebarWidth}px` } as CSSProperties}

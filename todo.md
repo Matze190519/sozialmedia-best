@@ -218,3 +218,8 @@
 - [x] Alle Features von adminProcedure auf protectedProcedure umgestellt (Partner haben vollen Zugriff)
 - [x] Nur Team-Management (Partner freischalten/sperren/Rollen) bleibt Admin-only
 - [x] 195/195 Tests bestehen (15 Test-Dateien)
+
+## Zugangsschutz - isApproved Gate (28.03.2026)
+- [x] Backend: isApproved-Prüfung auf alle approvedProcedures (nicht-freigeschaltete User blockieren)
+- [x] Frontend: Nicht-freigeschaltete User auf "Zugang ausstehend" Warte-Seite umleiten
+- [x] Testen: 5 Access-Gate-Tests + 200/200 Tests bestehen (16 Test-Dateien)
