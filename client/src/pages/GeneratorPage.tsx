@@ -20,6 +20,8 @@ import {
   Flame, Target, MessageSquare, Film, Mic, FileText, TrendingUp,
 } from "lucide-react";
 import { ProductImagePicker } from "@/components/ProductImagePicker";
+import AICopilot from "@/components/AICopilot";
+import PlatformPreview from "@/components/PlatformPreview";
 
 const CONTENT_TYPES = [
   { value: "post", label: "Social Media Post", icon: FileText },
@@ -489,14 +491,36 @@ export default function GeneratorPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="bg-accent/30 rounded-lg p-3 text-xs leading-relaxed whitespace-pre-wrap max-h-60 overflow-y-auto">
-                      {generatedContent}
-                    </div>
+                    <Textarea
+                      value={generatedContent}
+                      onChange={(e) => setGeneratedContent(e.target.value)}
+                      className="bg-accent/30 text-xs leading-relaxed min-h-[120px] max-h-60 resize-y"
+                    />
                     <div className="flex gap-2 mt-3">
                       <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={handleQualityCheck} disabled={qualityMut.isPending}>
                         {qualityMut.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <ShieldCheck className="h-3 w-3" />}
                         Quality Check
                       </Button>
+                    </div>
+
+                    {/* AI Copilot */}
+                    <div className="mt-3">
+                      <AICopilot
+                        content={generatedContent}
+                        onApply={(newContent) => setGeneratedContent(newContent)}
+                        platform={platform}
+                        contentType={contentType}
+                      />
+                    </div>
+
+                    {/* Plattform-Vorschau */}
+                    <div className="mt-3">
+                      <PlatformPreview
+                        content={generatedContent}
+                        imageUrl={generatedImageUrl || undefined}
+                        platforms={platforms}
+                        userName="LR Partner"
+                      />
                     </div>
                   </CardContent>
                 </Card>

@@ -28,6 +28,7 @@ import {
   Settings, Package, Rocket, Library,
   FileText, FlaskConical, TrendingUp, BookTemplate,
   HelpCircle, Hash, CalendarDays, Recycle, Sparkles,
+  Wand2, Globe, Repeat, Layers, Kanban, Trophy, Activity,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -41,9 +42,13 @@ const menuSections = [
     title: "Erstellen",
     items: [
       { icon: LayoutDashboard, label: "Dashboard", path: "/", desc: "Übersicht" },
+      { icon: Wand2, label: "Content Wizard", path: "/wizard", desc: "3-Schritt KI-Magie" },
       { icon: Zap, label: "Content erstellen", path: "/generator", desc: "Text + Bild + Video" },
+      { icon: Repeat, label: "Content Remix", path: "/remix", desc: "1 Thema → 5 Formate" },
       { icon: Sparkles, label: "Lifestyle-Engine", path: "/lifestyle", desc: "Freiheit, Autos, Erfolg" },
+      { icon: Layers, label: "Karussell", path: "/carousel", desc: "Slide-Content erstellen" },
       { icon: CheckCircle, label: "Freigabe", path: "/approval", desc: "Posts prüfen & posten", badge: "pending" as const },
+      { icon: Kanban, label: "Pipeline", path: "/kanban", desc: "Kanban-Board" },
       { icon: Library, label: "Bibliothek", path: "/library", desc: "Fertige Posts kopieren" },
     ],
   },
@@ -71,6 +76,7 @@ const menuSections = [
       { icon: FileText, label: "Content Queue", path: "/queue", desc: "Alle Posts" },
       { icon: FlaskConical, label: "A/B Tests", path: "/ab-test", desc: "Was performt besser?" },
       { icon: BarChart3, label: "Analytics", path: "/analytics", desc: "Zahlen & Insights" },
+      { icon: Activity, label: "Analytics+", path: "/analytics-plus", desc: "Heatmap & Trends" },
       { icon: Recycle, label: "Evergreen", path: "/evergreen", desc: "Top-Posts recyclen" },
       { icon: TrendingUp, label: "Feedback", path: "/feedback", desc: "Top-Performer" },
     ],
@@ -78,6 +84,8 @@ const menuSections = [
   {
     title: "System",
     items: [
+      { icon: Globe, label: "Blotato Command", path: "/blotato", desc: "9 Kanäle steuern" },
+      { icon: Trophy, label: "Leaderboard", path: "/leaderboard", desc: "Team-Rangliste" },
       { icon: Users, label: "Team", path: "/team", desc: "Partner verwalten" },
       { icon: Settings, label: "Einstellungen", path: "/settings", desc: "Blotato & Branding" },
       { icon: HelpCircle, label: "Quick-Start", path: "/onboarding", desc: "Setup-Anleitung" },

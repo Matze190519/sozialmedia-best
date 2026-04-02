@@ -232,3 +232,118 @@
 - [x] Hinweis für Partner ohne Blotato (manuell kopieren aus Bibliothek)
 - [x] Zugang über Lina erklärt auf OnboardingPage
 - [ ] Auch über Lina den Link zur Anleitung bereitstellen
+
+## Premium UI/UX Overhaul - Lichtjahre voraus (02.04.2026)
+- [ ] Premium Dashboard: Animierte Statistik-Karten mit Glassmorphism-Effekt und Glow
+- [ ] Animated Number Counter: Zahlen zählen beim Laden hoch (Count-Up Animation)
+- [ ] Gradient Glow Borders: Subtile animierte Rahmen um wichtige Karten
+- [ ] Micro-Interactions: Hover-Effekte, Pulse-Animationen, Smooth Transitions überall
+- [ ] AI Content Score: KI-basierte Bewertung jedes Posts vor Veröffentlichung (Viral-Potenzial)
+- [ ] Performance Prediction: KI sagt voraus wie gut ein Post performen wird
+- [ ] Activity Feed: Echtzeit-Aktivitäts-Stream (wer hat was erstellt/freigegeben)
+- [ ] Verbesserte Login-Seite: Premium-Look mit animiertem Hintergrund
+- [ ] Sidebar Upgrade: Aktive Seite mit Glow-Indikator und smooth Übergänge
+- [ ] Dashboard Greeting: Tageszeit-basierte Begrüßung mit motivierendem Spruch
+
+## MEGA-UPGRADE: AI Content Command Center (02.04.2026)
+### Blotato Deep Integration - 9 Kanäle Auto-Publishing
+- [ ] Blotato Account-Übersicht: Alle verbundenen Kanäle mit Status anzeigen
+- [ ] One-Click Multi-Publish: Content auf alle 9 Plattformen gleichzeitig posten
+- [ ] Plattform-Vorschau: Zeigt wie der Post auf jeder Plattform aussehen wird
+- [ ] Blotato Visual Templates: Carousels, Quote Cards, Slideshows direkt erstellen
+- [ ] Blotato Content Calendar Sync: Bidirektionale Kalender-Synchronisation
+- [ ] Scheduling mit Smart Slots: Automatisch nächsten freien Slot finden
+- [ ] Post-Status-Tracking: Live-Status jedes Posts auf jeder Plattform (polling)
+
+### AI Content Factory - Wie von einer anderen Welt
+- [ ] Content Wizard: Geführter 3-Schritt-Prozess (Thema → KI generiert → Vorschau → Publish)
+- [ ] Multi-Format Generator: Ein Thema → 5 Formate (Post, Reel-Script, Story, Carousel, Thread)
+- [ ] Content Remix: Bestehenden Post in andere Formate umwandeln
+- [ ] Blotato Source Integration: URLs/YouTube/TikTok als Content-Quelle extrahieren
+- [ ] Brand Voice Auto-Apply: Jeder generierte Text automatisch im LR Brand Voice
+- [ ] Hashtag Intelligence: Trend-basierte + Nischen-Hashtags pro Plattform
+
+### Team Workflow - Für dein LR Team über Lina
+- [ ] Team Activity Dashboard: Wer hat was erstellt, freigegeben, gepostet
+- [x] Content Pipeline Visualisierung: Kanban-Board (Entwurf → Review → Freigabe → Gepostet)
+- [x] Team Leaderboard: Wer postet am meisten, bester Content Score
+- [ ] Benachrichtigungen: Push wenn Content freigegeben oder gepostet wurde
+
+### Analytics Command Center
+- [ ] Cross-Platform Analytics: Engagement-Daten von allen 9 Plattformen
+- [ ] Best Performing Content: Top-Posts nach Engagement sortiert
+- [ ] Posting-Heatmap: Wann wird am meisten gepostet, wann am besten
+- [ ] Content-Mix Analyse: Welche Themen/Formate performen am besten
+
+## OPTIMIERUNG: Placeholder-Seiten füllen & Team-Isolation
+- [ ] Hashtag Engine: Echte KI-basierte Hashtag-Generierung mit Trend-Daten
+- [ ] Analytics Dashboard: Echte Cross-Platform Stats statt Placeholder
+- [ ] Creator Spy: Echte Wettbewerber-Analyse mit GoViralBitch
+- [ ] Templates Library: Echte wiederverwendbare Content-Templates
+- [ ] Team Management: Echte Partner-Übersicht mit Freigabe und Performance
+- [ ] Per-User Dashboard Isolation: Jeder sieht nur seinen eigenen Content
+- [ ] Per-User Blotato-Verbindung: Jeder verbindet seinen eigenen Blotato-Account
+- [ ] Admin-Freigabe: Nur von Matze freigegebene Team-Mitglieder haben Zugang
+- [ ] Content Calendar: Drag & Drop mit echten Daten
+- [ ] Post Queue: Live-Status aller geplanten Posts mit Blotato-Status
+- [x] Team Leaderboard: Gamification mit Punkte und Badges
+- [x] AI Copilot: KI-Assistent direkt im Content-Editor
+
+## MEGA-OPTIMIERUNG: Das geilste Content-System der Welt
+- [x] Karussell-Generator: Instagram/LinkedIn Karussells mit KI erstellen
+- [ ] Scroll-Stopping Visuals: Premium Bild-Templates die viral gehen
+- [x] Bibliothek Upgrade: Killer Copy-Paste Hub mit Vorschau + One-Click Kopieren
+- [ ] Direct Post: Von der Seite direkt posten (für Partner ohne Blotato)
+- [ ] Content-Qualität: Nur der beste Content - Lichtjahre voraus
+- [ ] Partner gibt eigenen Content selbst frei (nicht Admin)
+- [ ] Admin gibt nur Partner einmalig frei (Zugang zur Seite)
+- [ ] Premium Black-Gold Design durchgängig
+- [ ] Mobile-Optimierung aller Seiten
+
+## KORREKTUR: Freigabe-Flow
+- [ ] FIX: Jeder Partner gibt seinen EIGENEN Content selbst frei (nicht Admin)
+- [ ] FIX: Admin gibt nur einmalig Partner frei (Zugang zur Seite)
+- [ ] FIX: Bibliothek zeigt freigegebene Posts von ALLEN Partnern (gemeinsamer Pool)
+- [ ] FIX: Dashboard zeigt nur eigenen Content pro Partner
+- [ ] Direct Post von der Seite (für Partner ohne Blotato)
+
+## EINLADUNGS-TOKEN AUTH SYSTEM (02.04.2026)
+- [ ] DB-Tabelle: inviteTokens (token, partnerId, name, whatsappNumber, used, userId, createdAt, expiresAt)
+- [ ] API-Endpunkt: POST /api/invite/create (für Lina - generiert Token-Link)
+- [ ] API-Endpunkt: GET /api/invite/verify/:token (Token prüfen + User erstellen/einloggen)
+- [ ] Join-Seite: /join/:token (automatisch einloggen wenn Token gültig)
+- [ ] Landing-Page für nicht-autorisierte Besucher ("Zugang nur über Lina")
+- [ ] Token einmalig verwendbar, an Partnernummer + WhatsApp gebunden
+- [ ] Bestehenden Manus OAuth als Fallback für Admin (Matze) behalten
+- [ ] Admin: Übersicht aller Nutzer (Name, Partnernr, WhatsApp, letzter Login, Content-Anzahl)
+- [ ] Admin: Manuell Partner freischalten (Partnernummer + Name + WhatsApp eingeben)
+- [ ] Admin: Partner sperren (ein Klick → sofort raus)
+- [ ] Admin: Token-Übersicht (generiert, genutzt, abgelaufen)
+
+## Blueprint Features - Aus 50+ Links (02.04.2026)
+
+### Content Factory
+- [x] AI Copilot im Editor - KI-Assistent direkt beim Schreiben (Postiz-inspiriert)
+- [x] Karussell-Generator - Instagram/LinkedIn Slides erstellen
+- [x] Plattform-Vorschau - Phone-Mockups (Instagram/TikTok/LinkedIn Preview)
+
+### Team & Gamification
+- [x] Team Leaderboard - Wer postet am meisten, bester Content Score
+- [x] Gamification - Punkte, Badges, Levels für Team-Motivation
+- [x] Content Pipeline Kanban - Visuelles Board (Entwurf → Review → Freigabe → Gepostet)
+
+### Analytics Upgrade
+- [x] Cross-Platform Analytics erweitern - Engagement-Daten aggregiert
+- [x] Best Performing Content - Top-Posts nach Engagement
+- [x] Posting-Heatmap - Wann wird am meisten gepostet
+- [x] Content-Mix Analyse - Welche Themen/Formate performen am besten
+
+### Blotato Deep Integration
+- [ ] One-Click Multi-Publish Vorschau - Vor dem Posten sehen was passiert
+- [ ] Post-Status-Tracking - Live-Status jedes Posts
+
+### Premium UI/UX
+- [x] Scroll-Stopping Micro-Interactions - Framer Motion überall
+- [x] Premium Glassmorphism Cards
+- [x] Skeleton Loading States überall
+- [x] Empty States mit Illustrationen

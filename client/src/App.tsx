@@ -26,6 +26,13 @@ import MonthlyPlanPage from "./pages/MonthlyPlanPage";
 import EvergreenPage from "./pages/EvergreenPage";
 import LifestylePage from "./pages/LifestylePage";
 import PostingTimesPage from "./pages/PostingTimesPage";
+import ContentWizardPage from "./pages/ContentWizardPage";
+import BlotatoCommandPage from "./pages/BlotatoCommandPage";
+import ContentRemixPage from "./pages/ContentRemixPage";
+import CarouselPage from "./pages/CarouselPage";
+import KanbanPage from "./pages/KanbanPage";
+import LeaderboardPage from "./pages/LeaderboardPage";
+import AnalyticsPlusPage from "./pages/AnalyticsPlusPage";
 
 function Router() {
   return (
@@ -51,6 +58,13 @@ function Router() {
         <Route path="/evergreen" component={EvergreenPage} />
         <Route path="/lifestyle" component={LifestylePage} />
         <Route path="/posting-times" component={PostingTimesPage} />
+        <Route path="/wizard" component={ContentWizardPage} />
+        <Route path="/blotato" component={BlotatoCommandPage} />
+        <Route path="/remix" component={ContentRemixPage} />
+        <Route path="/carousel" component={CarouselPage} />
+        <Route path="/kanban" component={KanbanPage} />
+        <Route path="/leaderboard" component={LeaderboardPage} />
+        <Route path="/analytics-plus" component={AnalyticsPlusPage} />
         <Route path="/onboarding" component={OnboardingPage} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />

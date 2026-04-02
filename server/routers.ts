@@ -2050,6 +2050,379 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
       }),
   }),
 
+  // ─── AI Content Intelligence ────────────────────────────────
+  contentIntelligence: router({
+    // Deep AI scoring of a post - uses LLM for nuanced analysis
+    score: approvedProcedure
+      .input(z.object({
+        content: z.string(),
+        platform: z.string().default("instagram"),
+        contentType: z.string().default("post"),
+        hasMedia: z.boolean().default(false),
+        hasVideo: z.boolean().default(false),
+      }))
+      .mutation(async ({ input }) => {
+        const { invokeLLM } = await import("./_core/llm");
+        const llmResponse = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: `Du bist ein Social Media Experte und Content-Analyst für das LR Lifestyle Team. Bewerte den folgenden Content auf einer Skala von 0-100 und gib detailliertes Feedback.
+
+Bewertungskriterien:
+- Hook-Qualität (0-20): Fesselt der Einstieg sofort?
+- Emotionale Wirkung (0-20): Löst der Content Emotionen aus?
+- CTA-Stärke (0-15): Gibt es einen klaren Call-to-Action?
+- Plattform-Fit (0-15): Passt der Content zur Plattform ${input.platform}?
+- Viral-Potenzial (0-15): Würden Leute das teilen/kommentieren?
+- Brand-Alignment (0-15): Passt es zur LR Lifestyle Marke?
+
+Gib die Bewertung als JSON zurück.`
+            },
+            {
+              role: "user",
+              content: `Bewerte diesen ${input.contentType} für ${input.platform}:\n\n"${input.content}"\n\nHat Bild: ${input.hasMedia ? "Ja" : "Nein"}\nHat Video: ${input.hasVideo ? "Ja" : "Nein"}`
+            }
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "content_score",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  totalScore: { type: "integer", description: "Gesamtscore 0-100" },
+                  hookScore: { type: "integer", description: "Hook-Qualität 0-20" },
+                  emotionScore: { type: "integer", description: "Emotionale Wirkung 0-20" },
+                  ctaScore: { type: "integer", description: "CTA-Stärke 0-15" },
+                  platformFitScore: { type: "integer", description: "Plattform-Fit 0-15" },
+                  viralScore: { type: "integer", description: "Viral-Potenzial 0-15" },
+                  brandScore: { type: "integer", description: "Brand-Alignment 0-15" },
+                  feedback: { type: "string", description: "Kurzes Feedback (max 2 Sätze)" },
+                  improvements: { type: "array", items: { type: "string" }, description: "3 konkrete Verbesserungsvorschläge" },
+                  predictedEngagement: { type: "string", description: "Geschätzte Engagement-Rate (z.B. 2.5%-4%)" },
+                },
+                required: ["totalScore", "hookScore", "emotionScore", "ctaScore", "platformFitScore", "viralScore", "brandScore", "feedback", "improvements", "predictedEngagement"],
+                additionalProperties: false,
+              },
+            },
+          },
+        });
+
+        const raw = llmResponse.choices?.[0]?.message?.content;
+        if (typeof raw === "string") {
+          try {
+            return JSON.parse(raw);
+          } catch {
+            return { totalScore: 50, feedback: "Bewertung konnte nicht vollständig durchgeführt werden.", improvements: [], predictedEngagement: "k.A." };
+          }
+        }
+        return { totalScore: 50, feedback: "Bewertung nicht verfügbar.", improvements: [], predictedEngagement: "k.A." };
+      }),
+
+    // Suggest improvements for a post
+    improve: approvedProcedure
+      .input(z.object({
+        content: z.string(),
+        platform: z.string().default("instagram"),
+        focusArea: z.enum(["hook", "cta", "emotion", "viral", "all"]).default("all"),
+      }))
+      .mutation(async ({ input }) => {
+        const { invokeLLM } = await import("./_core/llm");
+        const focusMap: Record<string, string> = {
+          hook: "Verbessere den Hook/Einstieg - er muss in 2 Sekunden fesseln",
+          cta: "Verbessere den Call-to-Action - er muss klar und unwiderstehlich sein",
+          emotion: "Verstärke die emotionale Wirkung - der Content muss berühren",
+          viral: "Mach den Content viral-tauglicher - er muss geteilt werden wollen",
+          all: "Verbessere den gesamten Content in allen Bereichen",
+        };
+
+        const llmResponse = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: `Du bist ein Top Social Media Copywriter für das LR Lifestyle Team. ${focusMap[input.focusArea]}. Gib den verbesserten Content zurück.`
+            },
+            {
+              role: "user",
+              content: `Verbessere diesen ${input.platform}-Post:\n\n"${input.content}"\n\nGib NUR den verbesserten Text zurück, keine Erklärungen.`
+            }
+          ],
+        });
+
+        const improved = typeof llmResponse.choices?.[0]?.message?.content === "string"
+          ? llmResponse.choices[0].message.content
+          : input.content;
+
+        return { improvedContent: improved };
+      }),
+  }),
+
+  // ─── AI Copilot (Inline-Assistent beim Schreiben) ─────────
+  aiCopilot: router({
+    // Inline-Vorschläge beim Schreiben
+    suggest: approvedProcedure
+      .input(z.object({
+        text: z.string().min(1),
+        platform: z.string().default("instagram"),
+        contentType: z.string().default("post"),
+        action: z.enum(["continue", "improve", "hook", "cta", "hashtags", "shorten", "lengthen", "emoji", "translate"]),
+      }))
+      .mutation(async ({ input }) => {
+        const { invokeLLM } = await import("./_core/llm");
+        const actionPrompts: Record<string, string> = {
+          continue: "Schreibe den Text weiter. Behalte den Stil bei und füge 2-3 weitere Sätze hinzu.",
+          improve: "Verbessere den Text. Mach ihn fesselnder, emotionaler und professioneller.",
+          hook: "Schreibe 3 alternative Hooks/Einstiege für diesen Content. Nummeriere sie 1-3.",
+          cta: "Schreibe 3 starke Call-to-Actions die zum Text passen. Nummeriere sie 1-3.",
+          hashtags: `Generiere 5 relevante Hashtags für ${input.platform}. Nur die Hashtags, einer pro Zeile.`,
+          shorten: "Kürze den Text auf die Hälfte. Behalte die Kernaussage.",
+          lengthen: "Erweitere den Text um das Doppelte. Füge Details, Emotionen und Storytelling hinzu.",
+          emoji: "Füge passende Emojis an den richtigen Stellen ein. Nicht übertreiben, max 5-8 Emojis.",
+          translate: "Übersetze den Text ins Englische. Behalte den Stil und die Emotionen bei.",
+        };
+        const llmResponse = await invokeLLM({
+          messages: [
+            { role: "system", content: `Du bist ein KI-Copilot für Social Media Content. Du hilfst beim Schreiben von ${input.platform}-Posts. Antworte NUR mit dem Ergebnis, keine Erklärungen.` },
+            { role: "user", content: `${actionPrompts[input.action]}\n\nAktueller Text:\n"${input.text}"` },
+          ],
+        });
+        const result = typeof llmResponse.choices?.[0]?.message?.content === "string"
+          ? llmResponse.choices[0].message.content
+          : "";
+        return { suggestion: result, action: input.action };
+      }),
+
+    // Kompletten Content aus Stichworten generieren
+    fromBullets: approvedProcedure
+      .input(z.object({
+        bullets: z.array(z.string()).min(1),
+        platform: z.string().default("instagram"),
+        contentType: z.string().default("post"),
+        tone: z.enum(["professional", "casual", "motivational", "provocative", "storytelling"]).default("motivational"),
+      }))
+      .mutation(async ({ input }) => {
+        const { invokeLLM } = await import("./_core/llm");
+        const toneMap: Record<string, string> = {
+          professional: "professionell und seriös",
+          casual: "locker und nahbar",
+          motivational: "motivierend und inspirierend",
+          provocative: "provokant und polarisierend",
+          storytelling: "als persönliche Geschichte erzählt",
+        };
+        const llmResponse = await invokeLLM({
+          messages: [
+            { role: "system", content: `Du bist ein Top Social Media Copywriter für das LR Lifestyle Team. Erstelle aus Stichpunkten einen fertigen ${input.platform}-Post. Ton: ${toneMap[input.tone]}. Antworte NUR mit dem fertigen Post.` },
+            { role: "user", content: `Erstelle einen ${input.contentType} für ${input.platform} aus diesen Stichpunkten:\n${input.bullets.map((b, i) => `${i + 1}. ${b}`).join("\n")}` },
+          ],
+        });
+        const result = typeof llmResponse.choices?.[0]?.message?.content === "string"
+          ? llmResponse.choices[0].message.content
+          : "";
+        return { content: result };
+      }),
+  }),
+
+  // ─── Karussell-Generator ───────────────────────────────────
+  carousel: router({
+    generate: approvedProcedure
+      .input(z.object({
+        topic: z.string(),
+        pillar: z.string().optional(),
+        platform: z.enum(["instagram", "linkedin"]).default("instagram"),
+        slideCount: z.number().min(3).max(15).default(7),
+        style: z.enum(["educational", "storytelling", "listicle", "before_after", "tips"]).default("educational"),
+      }))
+      .mutation(async ({ input }) => {
+        const { invokeLLM } = await import("./_core/llm");
+        const styleMap: Record<string, string> = {
+          educational: "Lehrreich: Slide 1 = Hook, Slides 2-N = Wissen, letzte Slide = CTA",
+          storytelling: "Geschichte: Slide 1 = Aufhänger, Slides 2-N = Story-Verlauf, letzte Slide = Moral + CTA",
+          listicle: "Liste: Slide 1 = Titel/Hook, Slides 2-N = je 1 Punkt, letzte Slide = Zusammenfassung + CTA",
+          before_after: "Vorher/Nachher: Slide 1 = Problem, Slides 2-3 = Vorher, Slides 4-5 = Nachher, letzte Slide = CTA",
+          tips: "Tipps: Slide 1 = Hook/Titel, Slides 2-N = je 1 Tipp mit Erklärung, letzte Slide = CTA",
+        };
+        const llmResponse = await invokeLLM({
+          messages: [
+            { role: "system", content: `Du bist ein Karussell-Content-Experte für ${input.platform}. Erstelle ein ${input.slideCount}-Slide Karussell. Format: ${styleMap[input.style]}. Für LR Health & Beauty / Lifestyle. Antworte als JSON.` },
+            { role: "user", content: `Erstelle ein ${input.slideCount}-Slide Karussell zum Thema: "${input.topic}"${input.pillar ? ` (Pillar: ${input.pillar})` : ""}` },
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "carousel_slides",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  title: { type: "string", description: "Karussell-Titel" },
+                  slides: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        slideNumber: { type: "integer" },
+                        headline: { type: "string", description: "Slide-Überschrift (max 8 Wörter)" },
+                        body: { type: "string", description: "Slide-Text (max 30 Wörter)" },
+                        designHint: { type: "string", description: "Kurzer Design-Hinweis (Farbe, Icon, Bild-Idee)" },
+                        emoji: { type: "string", description: "Passendes Emoji" },
+                      },
+                      required: ["slideNumber", "headline", "body", "designHint", "emoji"],
+                      additionalProperties: false,
+                    },
+                  },
+                  caption: { type: "string", description: "Post-Caption für unter dem Karussell" },
+                  hashtags: { type: "array", items: { type: "string" }, description: "5 relevante Hashtags" },
+                },
+                required: ["title", "slides", "caption", "hashtags"],
+                additionalProperties: false,
+              },
+            },
+          },
+        });
+        const raw = llmResponse.choices?.[0]?.message?.content;
+        if (typeof raw === "string") {
+          try { return JSON.parse(raw); } catch { /* fallthrough */ }
+        }
+        return { title: input.topic, slides: [], caption: "", hashtags: [] };
+      }),
+  }),
+
+  // ─── Team Leaderboard & Gamification ───────────────────────
+  leaderboard: router({
+    // Team-Rangliste basierend auf Content-Aktivität
+    rankings: approvedProcedure.query(async () => {
+      const dbConn = await db.getDb();
+      if (!dbConn) return [];
+      const { contentPosts, users } = await import("../drizzle/schema");
+      const { sql, eq, desc, count, avg } = await import("drizzle-orm");
+
+      // Get post counts and avg scores per user
+      const stats = await dbConn.select({
+        userId: contentPosts.createdById,
+        userName: users.name,
+        totalPosts: count(contentPosts.id),
+        avgScore: avg(contentPosts.feedbackScore),
+        publishedCount: sql<number>`SUM(CASE WHEN ${contentPosts.status} = 'published' THEN 1 ELSE 0 END)`,
+        approvedCount: sql<number>`SUM(CASE WHEN ${contentPosts.status} = 'approved' THEN 1 ELSE 0 END)`,
+        pendingCount: sql<number>`SUM(CASE WHEN ${contentPosts.status} = 'pending' THEN 1 ELSE 0 END)`,
+      })
+        .from(contentPosts)
+        .leftJoin(users, eq(contentPosts.createdById, users.id))
+        .groupBy(contentPosts.createdById, users.name)
+        .orderBy(desc(count(contentPosts.id)));
+
+      return stats.map((s, i) => ({
+        rank: i + 1,
+        userId: s.userId,
+        userName: s.userName || "Unbekannt",
+        totalPosts: Number(s.totalPosts),
+        avgScore: s.avgScore ? Math.round(Number(s.avgScore)) : 0,
+        publishedCount: Number(s.publishedCount || 0),
+        approvedCount: Number(s.approvedCount || 0),
+        pendingCount: Number(s.pendingCount || 0),
+        // Gamification: Punkte berechnen
+        points: Number(s.totalPosts) * 10 + Number(s.publishedCount || 0) * 25 + (s.avgScore ? Math.round(Number(s.avgScore)) : 0),
+        badge: Number(s.totalPosts) >= 100 ? "diamond" : Number(s.totalPosts) >= 50 ? "gold" : Number(s.totalPosts) >= 20 ? "silver" : Number(s.totalPosts) >= 5 ? "bronze" : "starter",
+        level: Math.floor(Math.log2(Number(s.totalPosts) + 1)) + 1,
+      }));
+    }),
+
+    // Eigene Stats
+    myStats: approvedProcedure.query(async ({ ctx }) => {
+      const stats = await db.getContentStats(ctx.user.id) as Record<string, number>;
+      const topPosts = await db.getTopPerformingPosts(5);
+      const myTopPosts = topPosts.filter((p: any) => p.createdBy?.id === ctx.user.id);
+      const total = stats.total || 0;
+      const published = stats.published || 0;
+      return {
+        total,
+        pending: stats.pending || 0,
+        approved: stats.approved || 0,
+        published,
+        rejected: stats.rejected || 0,
+        topPosts: myTopPosts.length,
+        points: total * 10 + published * 25,
+        badge: total >= 100 ? "diamond" : total >= 50 ? "gold" : total >= 20 ? "silver" : total >= 5 ? "bronze" : "starter",
+        level: Math.floor(Math.log2(total + 1)) + 1,
+      };
+    }),
+  }),
+
+  // ─── Analytics Upgrade ─────────────────────────────────────
+  analyticsPlus: router({
+    // Content-Mix Analyse: Welche Pillars/Formate performen am besten
+    contentMix: approvedProcedure.query(async () => {
+      const dbConn = await db.getDb();
+      if (!dbConn) return { byPillar: [], byType: [], byPlatform: [] };
+      const { contentPosts } = await import("../drizzle/schema");
+      const { sql, count, avg } = await import("drizzle-orm");
+
+      const byPillar = await dbConn.select({
+        pillar: contentPosts.pillar,
+        count: count(contentPosts.id),
+        avgScore: avg(contentPosts.feedbackScore),
+      }).from(contentPosts).groupBy(contentPosts.pillar);
+
+      const byType = await dbConn.select({
+        contentType: contentPosts.contentType,
+        count: count(contentPosts.id),
+        avgScore: avg(contentPosts.feedbackScore),
+      }).from(contentPosts).groupBy(contentPosts.contentType);
+
+      return {
+        byPillar: byPillar.map(r => ({ name: r.pillar || "Ohne Pillar", count: Number(r.count), avgScore: r.avgScore ? Math.round(Number(r.avgScore)) : 0 })),
+        byType: byType.map(r => ({ name: r.contentType || "post", count: Number(r.count), avgScore: r.avgScore ? Math.round(Number(r.avgScore)) : 0 })),
+      };
+    }),
+
+    // Posting-Heatmap: Wann wird am meisten gepostet
+    heatmap: approvedProcedure.query(async () => {
+      const dbConn = await db.getDb();
+      if (!dbConn) return [];
+      const { contentPosts } = await import("../drizzle/schema");
+      const { sql } = await import("drizzle-orm");
+
+      const data = await dbConn.execute(
+        sql`SELECT DAYOFWEEK(${contentPosts.createdAt}) as dow, HOUR(${contentPosts.createdAt}) as hod, COUNT(*) as cnt FROM ${contentPosts} GROUP BY dow, hod`
+      );
+
+      const rows = (data as any)[0] || data;
+      return (Array.isArray(rows) ? rows : []).map((d: any) => ({
+        day: Number(d.dow) - 1,
+        hour: Number(d.hod),
+        count: Number(d.cnt),
+      }));
+    }),
+
+    // Best Performing Content
+    bestPerformers: approvedProcedure
+      .input(z.object({ limit: z.number().optional() }).optional())
+      .query(async ({ input }) => {
+        return db.getTopPerformingPosts(input?.limit || 20);
+      }),
+
+    // Wöchentlicher Trend (Posts pro Woche)
+    weeklyTrend: approvedProcedure.query(async () => {
+      const dbConn = await db.getDb();
+      if (!dbConn) return [];
+      const { contentPosts } = await import("../drizzle/schema");
+      const { sql } = await import("drizzle-orm");
+
+      const data = await dbConn.execute(
+        sql`SELECT DATE_FORMAT(${contentPosts.createdAt}, '%Y-%u') as week_label, COUNT(*) as cnt, AVG(${contentPosts.feedbackScore}) as avg_score FROM ${contentPosts} GROUP BY week_label ORDER BY week_label`
+      );
+
+      const rows = (data as any)[0] || data;
+      return (Array.isArray(rows) ? rows : []).map((d: any) => ({
+        week: String(d.week_label || ''),
+        count: Number(d.cnt || 0),
+        avgScore: d.avg_score ? Math.round(Number(d.avg_score)) : 0,
+      }));
+    }),
+  }),
+
   // ─── API Health ────────────────────────────────────────────
   apiHealth: router({
     goViralBitch: publicProcedure.query(async () => {
