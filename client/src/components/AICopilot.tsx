@@ -109,7 +109,7 @@ export default function AICopilot({
           >
             <div className="p-3 border-t border-blue-500/20 space-y-3">
               {/* Action Buttons Grid */}
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className="grid grid-cols-3 sm:grid-cols-3 gap-1">
                 {COPILOT_ACTIONS.map((action) => (
                   <Button
                     key={action.id}

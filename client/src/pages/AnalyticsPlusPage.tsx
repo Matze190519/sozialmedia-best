@@ -50,8 +50,8 @@ export default function AnalyticsPlusPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-          <BarChart3 className="h-6 w-6 text-primary" />
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight flex items-center gap-2">
+          <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
           Analytics Command Center
         </h1>
         <p className="text-muted-foreground text-sm mt-1">
@@ -59,7 +59,7 @@ export default function AnalyticsPlusPage() {
         </p>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Content Mix by Pillar */}
         <Card className="border-border/30">
           <CardHeader>
@@ -71,7 +71,7 @@ export default function AnalyticsPlusPage() {
           </CardHeader>
           <CardContent>
             {contentMix?.byPillar && contentMix.byPillar.length > 0 ? (
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-center gap-4">
                 <div className="w-40 h-40">
                   <ResponsiveContainer width="100%" height="100%">
                     <RechartsPie>

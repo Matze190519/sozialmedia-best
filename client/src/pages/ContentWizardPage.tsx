@@ -261,7 +261,7 @@ export default function ContentWizardPage() {
                   <Target className="h-4 w-4 inline mr-1.5 text-primary" />
                   Content-Säule wählen
                 </Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2">
                   {PILLARS.map(p => (
                     <motion.button
                       key={p.value}
@@ -299,7 +299,7 @@ export default function ContentWizardPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <Label className="text-xs mb-1.5 block">Content-Typ</Label>
                     <Select value={contentType} onValueChange={(v) => setContentType(v as ContentTypeValue)}>
@@ -344,7 +344,7 @@ export default function ContentWizardPage() {
                   <Globe className="h-4 w-4 inline mr-1.5 text-violet-400" />
                   Plattformen ({selectedPlatforms.length}/9)
                 </Label>
-                <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2">
                   {ALL_PLATFORMS.map(p => {
                     const isSelected = selectedPlatforms.includes(p.id);
                     const isConnected = connectedPlatforms.includes(p.id);
@@ -386,7 +386,7 @@ export default function ContentWizardPage() {
                   <Image className="h-4 w-4 inline mr-1.5 text-yellow-400" />
                   Medien
                 </Label>
-                <div className="flex flex-wrap gap-4">
+                <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <Switch checked={generateImage} onCheckedChange={setGenerateImage} />
                     <span className="text-sm">KI-Bild generieren</span>

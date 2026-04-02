@@ -36,7 +36,7 @@ export default function LeaderboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight flex items-center gap-2">
           <Trophy className="h-6 w-6 text-amber-400" />
           Team Leaderboard
         </h1>
@@ -49,7 +49,7 @@ export default function LeaderboardPage() {
       {myStats && (
         <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className={`w-14 h-14 rounded-xl ${BADGE_CONFIG[myStats.badge]?.bg || "bg-accent"} flex items-center justify-center`}>
                   {(() => {
@@ -63,7 +63,7 @@ export default function LeaderboardPage() {
                   <p className="text-xs text-muted-foreground">Level {myStats.level}</p>
                 </div>
               </div>
-              <div className="grid grid-cols-4 gap-6 text-center">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 text-center">
                 <div>
                   <p className="text-2xl font-bold text-primary">{myStats.points}</p>
                   <p className="text-[10px] text-muted-foreground">Punkte</p>
@@ -175,7 +175,7 @@ export default function LeaderboardPage() {
                     </div>
 
                     {/* Stats */}
-                    <div className="flex items-center gap-4 text-center">
+                    <div className="hidden sm:flex items-center gap-4 text-center">
                       <div>
                         <p className="text-sm font-bold">{user.totalPosts}</p>
                         <p className="text-[8px] text-muted-foreground">Posts</p>
@@ -210,7 +210,7 @@ export default function LeaderboardPage() {
             <BarChart3 className="h-3.5 w-3.5 text-primary" />
             Punkte-System
           </h4>
-          <div className="grid grid-cols-3 gap-3 text-[10px] text-muted-foreground">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 text-[10px] text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <Zap className="h-3 w-3 text-blue-400" />
               <span>Post erstellt: +10 Punkte</span>

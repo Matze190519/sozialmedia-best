@@ -22,28 +22,19 @@ export function GlowCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay, ease: "easeOut" }}
-      whileHover={{ scale: 1.02, y: -2 }}
+      whileHover={{ scale: 1.01 }}
       whileTap={onClick ? { scale: 0.98 } : undefined}
       onClick={onClick}
       className={cn(
-        "relative rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm",
+        "relative rounded-xl border border-border/40 bg-card/80",
         "transition-shadow duration-300",
-        "hover:shadow-[0_0_30px_-5px_var(--glow-color)]",
         onClick && "cursor-pointer",
         className
       )}
-      style={{ "--glow-color": glowColor } as React.CSSProperties}
+      style={{
+        boxShadow: `0 0 20px -8px ${glowColor}`,
+      }}
     >
-      {/* Subtle gradient border on hover */}
-      <div className="absolute inset-0 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-        style={{
-          background: `linear-gradient(135deg, ${glowColor}, transparent 60%)`,
-          mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-          maskComposite: "exclude",
-          padding: "1px",
-          borderRadius: "inherit",
-        }}
-      />
       {children}
     </motion.div>
   );

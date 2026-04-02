@@ -43,7 +43,7 @@ export default function TeamActivityPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 p-6">
+      <div className="space-y-4 sm:space-y-6">
         <Skeleton className="h-8 w-64" />
         <div className="space-y-3">
           {Array.from({ length: 10 }).map((_, i) => (
@@ -68,12 +68,12 @@ export default function TeamActivityPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center">
-            <Activity className="h-5 w-5 text-white" />
+        <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2 sm:gap-3">
+          <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center shrink-0">
+            <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
           </div>
           Team-Aktivitäten
         </h1>
@@ -117,7 +117,7 @@ export default function TeamActivityPage() {
                   >
                     <Card className="hover:border-border/60 transition-colors">
                       <CardContent className="py-3 px-4">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-start sm:items-center gap-2 sm:gap-3">
                           <div className={`h-8 w-8 rounded-lg bg-card border border-border/30 flex items-center justify-center shrink-0 ${config.color}`}>
                             <Icon className="h-4 w-4" />
                           </div>
@@ -136,7 +136,7 @@ export default function TeamActivityPage() {
                               </p>
                             )}
                           </div>
-                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground shrink-0">
+                          <div className="hidden sm:flex items-center gap-1 text-[10px] text-muted-foreground shrink-0">
                             <Clock className="h-3 w-3" />
                             {formatTimeAgo(item.activity.createdAt)}
                           </div>

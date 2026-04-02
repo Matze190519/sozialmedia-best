@@ -104,8 +104,8 @@ export default function CarouselPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-          <Layers className="h-6 w-6 text-primary" />
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight flex items-center gap-2">
+          <Layers className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
           Karussell-Generator
         </h1>
         <p className="text-muted-foreground text-sm mt-1">
@@ -113,7 +113,7 @@ export default function CarouselPage() {
         </p>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Left: Settings */}
         <div className="space-y-4">
           <Card className="border-primary/30">
@@ -134,7 +134,7 @@ export default function CarouselPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>Plattform</Label>
                   <Select value={platform} onValueChange={v => setPlatform(v as any)}>
@@ -173,7 +173,7 @@ export default function CarouselPage() {
 
               <div className="space-y-2">
                 <Label>Stil</Label>
-                <div className="grid grid-cols-5 gap-1.5">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
                   {STYLES.map(s => (
                     <Button
                       key={s.value}

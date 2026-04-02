@@ -347,3 +347,12 @@
 - [x] Premium Glassmorphism Cards
 - [x] Skeleton Loading States überall
 - [x] Empty States mit Illustrationen
+
+## BUG-FIX: Load Failed auf Content Wizard (02.04.2026)
+- [x] FIX: "Load failed" Fehler - GlowCard maskComposite entfernt, PlatformPreview vereinfacht
+- [x] CHECK: Trend-Scanner ist in der Sidebar unter Recherche vorhanden
+
+## MOBILE FIX: Responsiveness (02.04.2026)
+- [x] FIX: Kanban Pipeline auf Mobile - horizontal scrollbar, größere Karten, Swipe-Gesten
+- [x] FIX: Content Wizard "Load failed" auf Mobile - GlowCard + PlatformPreview gefixed
+- [x] FIX: Alle neuen Seiten mobile-responsive (Leaderboard, Analytics+, Carousel, TeamActivity, InviteTokens, Home)

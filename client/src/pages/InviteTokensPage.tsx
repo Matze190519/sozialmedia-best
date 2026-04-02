@@ -61,7 +61,7 @@ export default function InviteTokensPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 p-6">
+      <div className="space-y-4 sm:space-y-6">
         <Skeleton className="h-8 w-64" />
         <div className="grid gap-3">
           {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-20" />)}
@@ -75,17 +75,17 @@ export default function InviteTokensPage() {
   const expiredTokens = tokens?.filter(t => !t.used && t.expiresAt && new Date(t.expiresAt) <= new Date()) || [];
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center">
-              <UserPlus className="h-5 w-5 text-white" />
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2 sm:gap-3">
+            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center shrink-0">
+              <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
             </div>
             Einladungs-Links
           </h1>
-          <p className="text-muted-foreground mt-1">Partner per WhatsApp-Link einladen</p>
+          <p className="text-muted-foreground text-sm mt-1">Partner per WhatsApp-Link einladen</p>
         </div>
         <Dialog open={showCreate} onOpenChange={setShowCreate}>
           <DialogTrigger asChild>
@@ -190,12 +190,12 @@ export default function InviteTokensPage() {
                 >
                   <Card className="hover:border-primary/30 transition-colors">
                     <CardContent className="py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
-                          <Link className="h-4 w-4 text-emerald-400" />
+                        <div className="flex items-start sm:items-center gap-2 sm:gap-3">
+                        <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                          <Link className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-sm font-medium">{token.name || "Unbenannt"}</span>
                             {token.partnerNumber && (
                               <Badge variant="outline" className="text-[9px] h-4">{token.partnerNumber}</Badge>
@@ -206,7 +206,7 @@ export default function InviteTokensPage() {
                             Gültig bis {token.expiresAt ? new Date(token.expiresAt).toLocaleDateString("de-DE") : "Unbegrenzt"}
                           </div>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 shrink-0">
                           <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => copyInviteLink(token.token)}>
                             <Copy className="h-3.5 w-3.5" />
                           </Button>
