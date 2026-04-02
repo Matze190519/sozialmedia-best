@@ -20,6 +20,9 @@ function createMockApp() {
     get: (path: string, handler: Function) => {
       routes[path] = handler;
     },
+    post: (path: string, handler: Function) => {
+      routes[path] = handler;
+    },
     routes,
   };
 }
@@ -226,11 +229,12 @@ describe("Lina REST API", () => {
   });
 
   describe("Route registration", () => {
-    it("should register all 4 Lina endpoints", () => {
+    it("should register all 5 Lina endpoints", () => {
       expect(app.routes["/api/lina/content"]).toBeDefined();
       expect(app.routes["/api/lina/library"]).toBeDefined();
       expect(app.routes["/api/lina/products"]).toBeDefined();
       expect(app.routes["/api/lina/status"]).toBeDefined();
+      expect(app.routes["/api/lina/invite"]).toBeDefined();
     });
   });
 });

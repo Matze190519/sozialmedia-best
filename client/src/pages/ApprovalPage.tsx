@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { PostTrackingPanel } from "@/components/PostTrackingPanel";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import {
@@ -205,14 +206,20 @@ function PostCard({
           )}
 
           {variant === "approved" && (
-            <Button
-              size="lg"
-              className="gap-2 w-full h-12 text-sm"
-              onClick={() => onPublish?.(item.post.id, platforms)}
-            >
-              <Send className="h-4 w-4" />
-              Auf Blotato veröffentlichen
-            </Button>
+            <div className="space-y-2">
+              <Button
+                size="lg"
+                className="gap-2 w-full h-12 text-sm"
+                onClick={() => onPublish?.(item.post.id, platforms)}
+              >
+                <Send className="h-4 w-4" />
+                Auf Blotato veröffentlichen
+              </Button>
+              {/* Live Post-Status Tracking */}
+              {(item.post.blotatoPostIds as string[])?.length > 0 && (
+                <PostTrackingPanel contentPostId={item.post.id} />
+              )}
+            </div>
           )}
         </div>
       </CardContent>

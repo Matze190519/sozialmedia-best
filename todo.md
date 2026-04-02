@@ -356,3 +356,19 @@
 - [x] FIX: Kanban Pipeline auf Mobile - horizontal scrollbar, größere Karten, Swipe-Gesten
 - [x] FIX: Content Wizard "Load failed" auf Mobile - GlowCard + PlatformPreview gefixed
 - [x] FIX: Alle neuen Seiten mobile-responsive (Leaderboard, Analytics+, Carousel, TeamActivity, InviteTokens, Home)
+
+## Finale Runde: Bestes Social Media System (02.04.2026)
+- [x] Post-Status-Tracking: Live-Status jedes Posts auf jeder Plattform (Blotato Polling)
+- [x] Push-Benachrichtigungen: Auto-Notify bei Freigabe, Posting, Ablehnung (notifyOwner)
+- [x] Lina API-Endpoint: Öffentlicher REST-Endpoint für Botpress Content Hub (11 Endpoints)
+- [x] Partner-Selbstfreigabe: POST /api/lina/self-approve
+- [x] Admin-Nutzerübersicht: AdminUsersPage mit Stats pro Partner
+
+## Magic Link Auth + WhatsApp Notifications (02.04.2026)
+- [x] Magic Link Auth: Partner bekommt Login-Link von Lina → klickt → sofort eingeloggt
+- [x] Kein Manus OAuth für Partner nötig - nur Token-basierter Login
+- [x] Lina API: POST /api/lina/login-link - generiert persönlichen Login-Link für Partner
+- [x] Login-Seite: JoinPage mit Auto-Login nach 2.5s
+- [x] Session-Cookie setzen nach Token-Login (JWT via sdk.createSessionToken)
+- [x] Lina WhatsApp Notifications: POST /api/lina/notify für Content-Status-Updates
+- [x] Admin (Matze) behält Manus OAuth als Login-Methode

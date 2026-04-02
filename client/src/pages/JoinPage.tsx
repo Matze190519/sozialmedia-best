@@ -1,42 +1,65 @@
-import { useMemo } from "react";
-import { trpc } from "@/lib/trpc";
+import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
-import { CheckCircle, XCircle, Clock, Sparkles, ArrowRight } from "lucide-react";
-import { getLoginUrl } from "@/const";
+import { CheckCircle, XCircle, Clock, Sparkles, Loader2 } from "lucide-react";
 
+/**
+ * JoinPage - Magic Link Landing
+ * 
+ * Flow:
+ * 1. Partner bekommt Link von Lina: sozialmedia.best/join/TOKEN
+ * 2. Diese Seite prüft den Token via REST API
+ * 3. Wenn gültig → zeigt Willkommens-Nachricht → Auto-Redirect zum Magic Login
+ * 4. Magic Login setzt JWT Cookie → Partner ist eingeloggt
+ * 
+ * Kein Manus-Konto nötig! Kein Passwort! Kein E-Mail!
+ */
 export default function JoinPage() {
-  // Extract token from URL
+  const [status, setStatus] = useState<"loading" | "valid" | "invalid" | "expired" | "redirecting">("loading");
+  const [tokenInfo, setTokenInfo] = useState<{ name?: string; partnerNumber?: string; reason?: string }>({});
+
+  // Extract token from URL path: /join/:token
   const token = useMemo(() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get("token") || "";
+    const path = window.location.pathname;
+    const parts = path.split("/");
+    const joinIdx = parts.indexOf("join");
+    return joinIdx >= 0 && parts[joinIdx + 1] ? parts[joinIdx + 1] : "";
   }, []);
 
-  const { data, isLoading } = trpc.inviteTokens.verify.useQuery(
-    { token },
-    { enabled: !!token }
-  );
+  useEffect(() => {
+    if (!token) {
+      setStatus("invalid");
+      setTokenInfo({ reason: "Kein Token im Link gefunden" });
+      return;
+    }
 
-  if (!token) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="py-12 text-center">
-            <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-            <h1 className="text-xl font-bold mb-2">Kein Einladungs-Token</h1>
-            <p className="text-sm text-muted-foreground">
-              Du benötigst einen gültigen Einladungs-Link um beizutreten.
-              Bitte kontaktiere deinen Team-Leader.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+    // Verify token via REST API
+    fetch(`/api/lina/invite/${token}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.valid) {
+          setTokenInfo({ name: data.name, partnerNumber: data.partnerNumber });
+          setStatus("valid");
 
-  if (isLoading) {
+          // Auto-redirect to magic login after 2 seconds
+          setTimeout(() => {
+            setStatus("redirecting");
+            // The magic login endpoint creates a JWT session and redirects to /
+            window.location.href = `/api/auth/magic/${token}`;
+          }, 2500);
+        } else {
+          setStatus(data.reason?.includes("abgelaufen") ? "expired" : "invalid");
+          setTokenInfo({ reason: data.reason });
+        }
+      })
+      .catch(() => {
+        setStatus("invalid");
+        setTokenInfo({ reason: "Verbindungsfehler. Bitte versuche es nochmal." });
+      });
+  }, [token]);
+
+  if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="max-w-md w-full">
@@ -50,27 +73,34 @@ export default function JoinPage() {
     );
   }
 
-  if (!data?.valid) {
+  if (status === "invalid" || status === "expired") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full"
         >
-          <Card className="max-w-md w-full border-destructive/30">
+          <Card className="border-destructive/30">
             <CardContent className="py-12 text-center">
-              {data?.reason?.includes("abgelaufen") ? (
+              {status === "expired" ? (
                 <Clock className="h-12 w-12 text-amber-400 mx-auto mb-4" />
               ) : (
                 <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
               )}
-              <h1 className="text-xl font-bold mb-2">Einladung ungültig</h1>
+              <h1 className="text-xl font-bold mb-2">
+                {status === "expired" ? "Link abgelaufen" : "Link ungültig"}
+              </h1>
               <p className="text-sm text-muted-foreground">
-                {data?.reason || "Dieser Einladungs-Link ist nicht mehr gültig."}
+                {tokenInfo.reason || "Dieser Einladungs-Link ist nicht mehr gültig."}
               </p>
-              <p className="text-xs text-muted-foreground mt-4">
-                Bitte kontaktiere deinen Team-Leader für einen neuen Link.
-              </p>
+              <div className="mt-6 p-4 rounded-lg bg-muted/30 border border-border/30">
+                <p className="text-sm font-medium mb-1">Neuen Link anfordern?</p>
+                <p className="text-xs text-muted-foreground">
+                  Schreibe einfach <strong>"Content Hub öffnen"</strong> an Lina auf WhatsApp.
+                  Sie schickt dir sofort einen neuen Link.
+                </p>
+              </div>
             </CardContent>
           </Card>
         </motion.div>
@@ -78,6 +108,7 @@ export default function JoinPage() {
     );
   }
 
+  // Valid token → Show welcome + auto-redirect
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <motion.div
@@ -100,13 +131,13 @@ export default function JoinPage() {
 
           <CardContent className="py-8 text-center">
             <h1 className="text-2xl font-bold mb-2">
-              Willkommen{data.name ? `, ${data.name}` : ""}!
+              Willkommen{tokenInfo.name ? `, ${tokenInfo.name}` : ""}!
             </h1>
             <p className="text-sm text-muted-foreground mb-6">
               Du wurdest zum LR Content System eingeladen.
-              {data.partnerNumber && (
+              {tokenInfo.partnerNumber && (
                 <span className="block mt-1 text-xs">
-                  Partnernummer: <strong>{data.partnerNumber}</strong>
+                  Partnernummer: <strong>{tokenInfo.partnerNumber}</strong>
                 </span>
               )}
             </p>
@@ -135,19 +166,22 @@ export default function JoinPage() {
               </div>
             </div>
 
-            <Button
-              className="w-full mt-6 gap-2 h-12 text-base"
-              onClick={() => {
-                // Store token in localStorage for after login
-                localStorage.setItem("lr_invite_token", token);
-                window.location.href = getLoginUrl();
-              }}
-            >
-              Jetzt beitreten <ArrowRight className="h-5 w-5" />
-            </Button>
+            {status === "redirecting" ? (
+              <div className="mt-6 flex items-center justify-center gap-2 text-primary">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span className="text-sm font-medium">Du wirst eingeloggt...</span>
+              </div>
+            ) : (
+              <div className="mt-6">
+                <div className="flex items-center justify-center gap-2 text-emerald-400">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-sm">Wird vorbereitet...</span>
+                </div>
+              </div>
+            )}
 
             <p className="text-[10px] text-muted-foreground mt-4">
-              Du wirst zur Anmeldung weitergeleitet. Nach der Anmeldung wirst du automatisch freigeschaltet.
+              Du wirst automatisch eingeloggt. Kein Passwort nötig.
             </p>
           </CardContent>
         </Card>

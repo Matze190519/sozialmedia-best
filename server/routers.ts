@@ -9,6 +9,7 @@ import * as api from "./externalApis";
 import * as trendScanner from "./trendScanner";
 import * as hashtagEngine from "./hashtagEngine";
 import * as lifestyleEngine from "./lifestyleEngine";
+import { notifyOwner } from "./_core/notification";
 
 // Admin-only procedure (requires admin role)
 const adminProcedure = approvedProcedure.use(({ ctx, next }) => {
@@ -440,6 +441,14 @@ export const appRouter = router({
           newStatus: "approved",
         });
 
+        // Send notification to owner
+        try {
+          await notifyOwner({
+            title: `✅ Content freigegeben`,
+            content: `${ctx.user.name || "Partner"} hat Content freigegeben: "${(post.post.editedContent || post.post.content).substring(0, 100)}..." | Plattformen: ${(post.post.platforms as string[]).join(", ")}`,
+          });
+        } catch { /* notification failure shouldn't block approval */ }
+
         // Auto-save to content library on every approval
         try {
           await db.addToContentLibrary({
@@ -514,6 +523,14 @@ export const appRouter = router({
           newStatus: "rejected",
         });
 
+        // Send notification for rejection
+        try {
+          await notifyOwner({
+            title: `❌ Content abgelehnt`,
+            content: `${ctx.user.name || "Partner"} hat Content abgelehnt: "${(post.post.editedContent || post.post.content).substring(0, 80)}..." | Grund: ${input.comment}`,
+          });
+        } catch { /* notification failure shouldn't block rejection */ }
+
         return { success: true };
       }),
 
@@ -569,6 +586,14 @@ export const appRouter = router({
           previousStatus: "approved",
           newStatus: "scheduled",
         });
+
+        // Send notification for publishing
+        try {
+          await notifyOwner({
+            title: `🚀 Content veröffentlicht`,
+            content: `${ctx.user.name || "Partner"} hat Content auf ${platforms.join(", ")} veröffentlicht via Blotato. ${postIds.length} Plattform(en) geplant.`,
+          });
+        } catch { /* notification failure shouldn't block publishing */ }
 
         return { success: true, postIds };
       }),
@@ -2701,7 +2726,129 @@ Gib die Bewertung als JSON zurück.`
           partnerNumber: tokenData.partnerNumber,
         };
       }),
+   }),
+
+  // ─── Post-Status-Tracking (Blotato Polling) ───────────────
+  postTracking: router({
+    // Get live status of a post's Blotato schedules
+    getStatus: approvedProcedure
+      .input(z.object({ contentPostId: z.number() }))
+      .query(async ({ input }) => {
+        const post = await db.getContentPostById(input.contentPostId);
+        if (!post) throw new TRPCError({ code: "NOT_FOUND" });
+        const blotatoPostIds = (post.post.blotatoPostIds as string[]) || [];
+        if (blotatoPostIds.length === 0) {
+          return { tracked: false, schedules: [], message: "Kein Blotato-Post verknüpft" };
+        }
+        // Fetch each schedule from Blotato
+        const schedules = await Promise.all(
+          blotatoPostIds.map(async (scheduleId) => {
+            try {
+              const schedule = await api.getScheduledPost(scheduleId);
+              if (!schedule) return { id: scheduleId, status: "not_found", platform: "unknown", accountName: "" };
+              return {
+                id: scheduleId,
+                status: schedule.scheduledAt ? (new Date(schedule.scheduledAt) < new Date() ? "published" : "scheduled") : "draft",
+                platform: schedule.draft?.content?.platform || "unknown",
+                accountName: schedule.account?.name || schedule.account?.username || "",
+                scheduledAt: schedule.scheduledAt,
+                text: schedule.draft?.content?.text?.substring(0, 100),
+                mediaUrls: schedule.draft?.content?.mediaUrls || [],
+              };
+            } catch {
+              return { id: scheduleId, status: "error", platform: "unknown", accountName: "" };
+            }
+          })
+        );
+        return { tracked: true, schedules, total: schedules.length };
+      }),
+
+    // Bulk status check for multiple posts (dashboard overview)
+    bulkStatus: approvedProcedure
+      .input(z.object({ contentPostIds: z.array(z.number()).max(50) }))
+      .query(async ({ input }) => {
+        const results: Record<number, { total: number; published: number; scheduled: number; failed: number }> = {};
+        for (const postId of input.contentPostIds) {
+          const post = await db.getContentPostById(postId);
+          if (!post) continue;
+          const ids = (post.post.blotatoPostIds as string[]) || [];
+          if (ids.length === 0) {
+            results[postId] = { total: 0, published: 0, scheduled: 0, failed: 0 };
+            continue;
+          }
+          let published = 0, scheduled = 0, failed = 0;
+          for (const sid of ids) {
+            try {
+              const s = await api.getScheduledPost(sid);
+              if (!s) { failed++; continue; }
+              if (s.scheduledAt && new Date(s.scheduledAt) < new Date()) published++;
+              else scheduled++;
+            } catch { failed++; }
+          }
+          results[postId] = { total: ids.length, published, scheduled, failed };
+        }
+        return results;
+      }),
+  }),
+
+  // ─── Benachrichtigungen ────────────────────────────────────
+  notifications: router({
+    // Manually send a notification (admin)
+    send: adminProcedure
+      .input(z.object({
+        title: z.string().min(1).max(200),
+        content: z.string().min(1).max(5000),
+      }))
+      .mutation(async ({ input }) => {
+        const success = await notifyOwner({ title: input.title, content: input.content });
+        return { success };
+      }),
+
+    // Test notification
+    test: adminProcedure.mutation(async () => {
+      const success = await notifyOwner({
+        title: "LR Content Hub - Test",
+        content: "Benachrichtigungen funktionieren! Du wirst automatisch informiert bei Freigaben, Posts und wichtigen Ereignissen.",
+      });
+      return { success };
+    }),
+  }),
+
+  // ─── Admin Nutzer-Übersicht ────────────────────────────────
+  adminUsers: router({
+    // Full user overview with stats
+    overview: adminProcedure.query(async () => {
+      const users = await db.getAllUsers();
+      const userStats = await Promise.all(
+        users.map(async (user) => {
+          const posts = await db.getContentPosts({ createdById: user.id });
+          const totalPosts = posts.length;
+          const approvedPosts = posts.filter(p => ["approved", "scheduled", "published"].includes(p.post.status)).length;
+          const pendingPosts = posts.filter(p => p.post.status === "pending").length;
+          const avgScore = posts.reduce((sum, p) => sum + (p.post.qualityScore || 0), 0) / (totalPosts || 1);
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            partnerNumber: user.partnerNumber,
+            phoneNumber: user.phoneNumber,
+            isApproved: user.isApproved,
+            hasBlotatoKey: !!user.blotatoApiKey,
+            autoPostEnabled: user.autoPostEnabled,
+            lastSignedIn: user.lastSignedIn,
+            createdAt: user.createdAt,
+            stats: {
+              totalPosts,
+              approvedPosts,
+              pendingPosts,
+              avgQualityScore: Math.round(avgScore),
+            },
+          };
+        })
+      );
+      return userStats;
+    }),
   }),
 });
-
 export type AppRouter = typeof appRouter;

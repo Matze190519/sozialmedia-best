@@ -89,6 +89,7 @@ const menuSections = [
       { icon: Activity, label: "Team-Aktivitäten", path: "/team-activity", desc: "Echtzeit-Stream" },
       { icon: UserPlus, label: "Einladungen", path: "/invite-tokens", desc: "Partner einladen" },
       { icon: Users, label: "Team", path: "/team", desc: "Partner verwalten" },
+      { icon: Shield, label: "Nutzer-Übersicht", path: "/admin-users", desc: "Admin: Alle Partner" },
       { icon: Settings, label: "Einstellungen", path: "/settings", desc: "Blotato & Branding" },
       { icon: HelpCircle, label: "Quick-Start", path: "/onboarding", desc: "Setup-Anleitung" },
     ],
