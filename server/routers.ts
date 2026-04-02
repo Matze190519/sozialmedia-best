@@ -2438,6 +2438,270 @@ Gib die Bewertung als JSON zurück.`
       }
     }),
   }),
+
+  // ─── Blotato Multi-Publish Vorschau ──────────────────────
+  multiPublish: router({
+    // Preview: Zeigt wie der Post auf jeder Plattform aussehen wird
+    preview: approvedProcedure
+      .input(z.object({
+        contentPostId: z.number(),
+      }))
+      .query(async ({ ctx, input }) => {
+        const post = await db.getContentPostById(input.contentPostId);
+        if (!post) throw new TRPCError({ code: "NOT_FOUND" });
+
+        const content = post.post.editedContent || post.post.content;
+        const platforms = (post.post.platforms as string[]) || [];
+        const mediaUrl = post.post.mediaUrl;
+        const videoUrl = post.post.videoUrl;
+
+        // Get user's Blotato accounts
+        const creator = await db.getUserById(post.post.createdById);
+        const blotatoKey = creator?.blotatoApiKey || process.env.BLOTATO_API_KEY;
+        let accounts: api.BlotatoAccount[] = [];
+        try {
+          if (blotatoKey) accounts = await api.getBlotatoAccounts(blotatoKey);
+          if (accounts.length === 0) accounts = api.LR_BLOTATO_ACCOUNTS;
+        } catch {
+          accounts = api.LR_BLOTATO_ACCOUNTS;
+        }
+
+        // Build preview for each platform
+        const previews = platforms.map(platform => {
+          const account = accounts.find(a => a.platform.toLowerCase() === platform.toLowerCase());
+          const tone = api.LR_BRAND_VOICE.tonePerPlatform[platform.toLowerCase() as keyof typeof api.LR_BRAND_VOICE.tonePerPlatform];
+          const charLimit = platform === "twitter" ? 280 : platform === "linkedin" ? 3000 : 2200;
+          const truncated = content.length > charLimit;
+
+          return {
+            platform,
+            accountName: account?.displayName || account?.username || `${platform}-Konto`,
+            accountId: account?.id,
+            hasAccount: !!account,
+            content: truncated ? content.substring(0, charLimit) + "..." : content,
+            charCount: content.length,
+            charLimit,
+            truncated,
+            mediaUrl,
+            videoUrl,
+            tone: tone?.tone || "Standard",
+            format: tone?.format || "Post",
+            frequency: tone?.frequency || "1x täglich",
+          };
+        });
+
+        return {
+          post: {
+            id: post.post.id,
+            content,
+            topic: post.post.topic,
+            pillar: post.post.pillar,
+            mediaUrl,
+            videoUrl,
+          },
+          previews,
+          totalPlatforms: platforms.length,
+          connectedAccounts: accounts.length,
+          hasBlotatoKey: !!blotatoKey,
+        };
+      }),
+
+    // Publish to selected platforms
+    publishSelected: approvedProcedure
+      .input(z.object({
+        contentPostId: z.number(),
+        platforms: z.array(z.string()),
+        scheduledDate: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const post = await db.getContentPostById(input.contentPostId);
+        if (!post) throw new TRPCError({ code: "NOT_FOUND" });
+        if (post.post.createdById !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN" });
+        if (post.post.status !== "approved") throw new TRPCError({ code: "BAD_REQUEST", message: "Post muss zuerst genehmigt werden" });
+
+        const creator = await db.getUserById(post.post.createdById);
+        const blotatoKey = creator?.blotatoApiKey || process.env.BLOTATO_API_KEY;
+        if (!blotatoKey) throw new TRPCError({ code: "BAD_REQUEST", message: "Kein Blotato API Key vorhanden" });
+
+        let accounts = await api.getBlotatoAccounts(blotatoKey);
+        if (accounts.length === 0) accounts = api.LR_BLOTATO_ACCOUNTS;
+
+        const contentToPublish = post.post.editedContent || post.post.content;
+        const mediaUrls: string[] = [];
+        if (post.post.mediaUrl) mediaUrls.push(post.post.mediaUrl);
+        if (post.post.videoUrl) mediaUrls.push(post.post.videoUrl);
+
+        const postIds = await api.publishToAllPlatforms(
+          contentToPublish, input.platforms, accounts,
+          mediaUrls.length > 0 ? mediaUrls : undefined,
+          input.scheduledDate, blotatoKey,
+        );
+
+        await db.setBlotatoPostIds(input.contentPostId, postIds);
+        await db.updateContentPostStatus(input.contentPostId, "scheduled", ctx.user.id);
+
+        await db.logTeamActivity({
+          userId: ctx.user.id,
+          actionType: "content_published",
+          description: `Content auf ${input.platforms.join(", ")} veröffentlicht`,
+          contentPostId: input.contentPostId,
+          metadata: { platforms: input.platforms, postIds },
+        });
+
+        return { success: true, postIds, platformCount: input.platforms.length };
+      }),
+  }),
+
+  // ─── Direct Post (ohne Blotato) ────────────────────────────
+  directPost: router({
+    // Get post content formatted for manual posting
+    getForCopy: approvedProcedure
+      .input(z.object({ contentPostId: z.number() }))
+      .query(async ({ input }) => {
+        const post = await db.getContentPostById(input.contentPostId);
+        if (!post) throw new TRPCError({ code: "NOT_FOUND" });
+
+        const content = post.post.editedContent || post.post.content;
+        const platforms = (post.post.platforms as string[]) || [];
+
+        // Build platform-specific deeplinks
+        const deeplinks: Record<string, string> = {
+          instagram: "instagram://library",
+          tiktok: "snssdk1233://",
+          facebook: "fb://publish",
+          linkedin: "linkedin://shareArticle",
+          twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(content.substring(0, 280))}`,
+          threads: "barcelona://",
+          youtube: "vnd.youtube://upload",
+        };
+
+        return {
+          content,
+          mediaUrl: post.post.mediaUrl,
+          videoUrl: post.post.videoUrl,
+          platforms: platforms.map(p => ({
+            name: p,
+            deeplink: deeplinks[p.toLowerCase()] || `https://${p}.com`,
+            webUrl: p === "instagram" ? "https://www.instagram.com" :
+                    p === "tiktok" ? "https://www.tiktok.com/upload" :
+                    p === "facebook" ? "https://www.facebook.com" :
+                    p === "linkedin" ? "https://www.linkedin.com/feed/" :
+                    p === "twitter" ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(content.substring(0, 280))}` :
+                    `https://${p}.com`,
+          })),
+          topic: post.post.topic,
+          pillar: post.post.pillar,
+        };
+      }),
+
+    // Mark post as manually published
+    markPublished: approvedProcedure
+      .input(z.object({
+        contentPostId: z.number(),
+        platform: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const post = await db.getContentPostById(input.contentPostId);
+        if (!post) throw new TRPCError({ code: "NOT_FOUND" });
+        if (post.post.createdById !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN" });
+
+        await db.updateContentPostStatus(input.contentPostId, "published", ctx.user.id);
+        await db.createApprovalLog({
+          contentPostId: input.contentPostId,
+          userId: ctx.user.id,
+          action: "published",
+          comment: `Manuell gepostet auf ${input.platform}`,
+          previousStatus: post.post.status,
+          newStatus: "published",
+        });
+
+        await db.logTeamActivity({
+          userId: ctx.user.id,
+          actionType: "content_published",
+          description: `Content manuell auf ${input.platform} gepostet`,
+          contentPostId: input.contentPostId,
+        });
+
+        return { success: true };
+      }),
+  }),
+
+  // ─── Team Activity Dashboard ───────────────────────────────
+  teamActivity: router({
+    // Get recent team activities
+    list: approvedProcedure
+      .input(z.object({ limit: z.number().optional() }).optional())
+      .query(async ({ input }) => {
+        return db.getTeamActivities(input?.limit || 50);
+      }),
+
+    // Get activities for a specific user
+    byUser: approvedProcedure
+      .input(z.object({ userId: z.number(), limit: z.number().optional() }))
+      .query(async ({ input }) => {
+        return db.getTeamActivitiesByUser(input.userId, input.limit || 20);
+      }),
+  }),
+
+  // ─── Einladungs-Token System ───────────────────────────────
+  inviteTokens: router({
+    // Admin: Create a new invite token
+    create: adminProcedure
+      .input(z.object({
+        name: z.string().optional(),
+        partnerNumber: z.string().optional(),
+        whatsappNumber: z.string().optional(),
+        expiresInDays: z.number().optional().default(7),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const token = crypto.randomUUID();
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + (input.expiresInDays || 7));
+
+        const id = await db.createInviteToken({
+          token,
+          name: input.name || null,
+          partnerNumber: input.partnerNumber || null,
+          whatsappNumber: input.whatsappNumber || null,
+          expiresAt,
+          createdById: ctx.user.id,
+        });
+
+        return { id, token, expiresAt: expiresAt.toISOString() };
+      }),
+
+    // Admin: List all tokens
+    list: adminProcedure
+      .input(z.object({ limit: z.number().optional() }).optional())
+      .query(async ({ input }) => {
+        return db.listInviteTokens(input?.limit || 50);
+      }),
+
+    // Admin: Delete a token
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.deleteInviteToken(input.id);
+        return { success: true };
+      }),
+
+    // Public: Verify a token (for the join page)
+    verify: publicProcedure
+      .input(z.object({ token: z.string() }))
+      .query(async ({ input }) => {
+        const tokenData = await db.getInviteTokenByToken(input.token);
+        if (!tokenData) return { valid: false, reason: "Token nicht gefunden" };
+        if (tokenData.used) return { valid: false, reason: "Token wurde bereits verwendet" };
+        if (tokenData.expiresAt && new Date(tokenData.expiresAt) < new Date()) {
+          return { valid: false, reason: "Token ist abgelaufen" };
+        }
+        return {
+          valid: true,
+          name: tokenData.name,
+          partnerNumber: tokenData.partnerNumber,
+        };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

@@ -14,6 +14,8 @@ import {
   trendScans, InsertTrendScan,
   evergreenPosts, InsertEvergreenPost,
   monthlyPlans, InsertMonthlyPlan,
+  inviteTokens, InsertInviteToken,
+  teamActivityLog, InsertTeamActivity,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { like } from "drizzle-orm";
@@ -713,5 +715,89 @@ export async function getEvergreenCandidates(minScore: number = 70, limit: numbe
       gte(contentPosts.feedbackScore, minScore),
     ))
     .orderBy(desc(contentPosts.feedbackScore))
+    .limit(limit);
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// INVITE TOKENS
+// ═══════════════════════════════════════════════════════════════
+
+export async function createInviteToken(data: InsertInviteToken): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const [result] = await db.insert(inviteTokens).values(data).$returningId();
+  return result.id;
+}
+
+export async function getInviteTokenByToken(token: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const [row] = await db.select().from(inviteTokens).where(eq(inviteTokens.token, token));
+  return row || null;
+}
+
+export async function markInviteTokenUsed(tokenId: number, userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(inviteTokens).set({
+    used: true,
+    usedByUserId: userId,
+    usedAt: new Date(),
+  }).where(eq(inviteTokens.id, tokenId));
+}
+
+export async function listInviteTokens(limit: number = 50) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(inviteTokens).orderBy(desc(inviteTokens.createdAt)).limit(limit);
+}
+
+export async function deleteInviteToken(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(inviteTokens).where(eq(inviteTokens.id, id));
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TEAM ACTIVITY LOG
+// ═══════════════════════════════════════════════════════════════
+
+export async function logTeamActivity(data: InsertTeamActivity): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  try {
+    const [result] = await db.insert(teamActivityLog).values(data).$returningId();
+    return result.id;
+  } catch (err) {
+    console.error("[TeamActivity] Failed to log:", err);
+    return 0;
+  }
+}
+
+export async function getTeamActivities(limit: number = 50) {
+  const db = await getDb();
+  if (!db) return [];
+  const activities = await db.select({
+    activity: teamActivityLog,
+    user: {
+      id: users.id,
+      name: users.name,
+      role: users.role,
+    },
+  })
+    .from(teamActivityLog)
+    .leftJoin(users, eq(teamActivityLog.userId, users.id))
+    .orderBy(desc(teamActivityLog.createdAt))
+    .limit(limit);
+  return activities;
+}
+
+export async function getTeamActivitiesByUser(userId: number, limit: number = 20) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(teamActivityLog)
+    .where(eq(teamActivityLog.userId, userId))
+    .orderBy(desc(teamActivityLog.createdAt))
     .limit(limit);
 }

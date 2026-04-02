@@ -240,7 +240,7 @@
 - [ ] Micro-Interactions: Hover-Effekte, Pulse-Animationen, Smooth Transitions überall
 - [ ] AI Content Score: KI-basierte Bewertung jedes Posts vor Veröffentlichung (Viral-Potenzial)
 - [ ] Performance Prediction: KI sagt voraus wie gut ein Post performen wird
-- [ ] Activity Feed: Echtzeit-Aktivitäts-Stream (wer hat was erstellt/freigegeben)
+- [x] Activity Feed: Echtzeit-Aktivitäts-Stream (wer hat was erstellt/freigegeben)
 - [ ] Verbesserte Login-Seite: Premium-Look mit animiertem Hintergrund
 - [ ] Sidebar Upgrade: Aktive Seite mit Glow-Indikator und smooth Übergänge
 - [ ] Dashboard Greeting: Tageszeit-basierte Begrüßung mit motivierendem Spruch
@@ -248,8 +248,8 @@
 ## MEGA-UPGRADE: AI Content Command Center (02.04.2026)
 ### Blotato Deep Integration - 9 Kanäle Auto-Publishing
 - [ ] Blotato Account-Übersicht: Alle verbundenen Kanäle mit Status anzeigen
-- [ ] One-Click Multi-Publish: Content auf alle 9 Plattformen gleichzeitig posten
-- [ ] Plattform-Vorschau: Zeigt wie der Post auf jeder Plattform aussehen wird
+- [x] One-Click Multi-Publish: Content auf alle 9 Plattformen gleichzeitig posten
+- [x] Plattform-Vorschau: Zeigt wie der Post auf jeder Plattform aussehen wird
 - [ ] Blotato Visual Templates: Carousels, Quote Cards, Slideshows direkt erstellen
 - [ ] Blotato Content Calendar Sync: Bidirektionale Kalender-Synchronisation
 - [ ] Scheduling mit Smart Slots: Automatisch nächsten freien Slot finden
@@ -264,7 +264,7 @@
 - [ ] Hashtag Intelligence: Trend-basierte + Nischen-Hashtags pro Plattform
 
 ### Team Workflow - Für dein LR Team über Lina
-- [ ] Team Activity Dashboard: Wer hat was erstellt, freigegeben, gepostet
+- [x] Team Activity Dashboard: Wer hat was erstellt, freigegeben, gepostet
 - [x] Content Pipeline Visualisierung: Kanban-Board (Entwurf → Review → Freigabe → Gepostet)
 - [x] Team Leaderboard: Wer postet am meisten, bester Content Score
 - [ ] Benachrichtigungen: Push wenn Content freigegeben oder gepostet wurde
@@ -293,7 +293,7 @@
 - [x] Karussell-Generator: Instagram/LinkedIn Karussells mit KI erstellen
 - [ ] Scroll-Stopping Visuals: Premium Bild-Templates die viral gehen
 - [x] Bibliothek Upgrade: Killer Copy-Paste Hub mit Vorschau + One-Click Kopieren
-- [ ] Direct Post: Von der Seite direkt posten (für Partner ohne Blotato)
+- [x] Direct Post: Von der Seite direkt posten (für Partner ohne Blotato)
 - [ ] Content-Qualität: Nur der beste Content - Lichtjahre voraus
 - [ ] Partner gibt eigenen Content selbst frei (nicht Admin)
 - [ ] Admin gibt nur Partner einmalig frei (Zugang zur Seite)
@@ -305,20 +305,20 @@
 - [ ] FIX: Admin gibt nur einmalig Partner frei (Zugang zur Seite)
 - [ ] FIX: Bibliothek zeigt freigegebene Posts von ALLEN Partnern (gemeinsamer Pool)
 - [ ] FIX: Dashboard zeigt nur eigenen Content pro Partner
-- [ ] Direct Post von der Seite (für Partner ohne Blotato)
+- [x] Direct Post von der Seite (für Partner ohne Blotato)
 
 ## EINLADUNGS-TOKEN AUTH SYSTEM (02.04.2026)
-- [ ] DB-Tabelle: inviteTokens (token, partnerId, name, whatsappNumber, used, userId, createdAt, expiresAt)
+- [x] DB-Tabelle: inviteTokens (token, partnerId, name, whatsappNumber, used, userId, createdAt, expiresAt)
 - [ ] API-Endpunkt: POST /api/invite/create (für Lina - generiert Token-Link)
 - [ ] API-Endpunkt: GET /api/invite/verify/:token (Token prüfen + User erstellen/einloggen)
-- [ ] Join-Seite: /join/:token (automatisch einloggen wenn Token gültig)
+- [x] Join-Seite: /join/:token (automatisch einloggen wenn Token gültig)
 - [ ] Landing-Page für nicht-autorisierte Besucher ("Zugang nur über Lina")
-- [ ] Token einmalig verwendbar, an Partnernummer + WhatsApp gebunden
+- [x] Token einmalig verwendbar, an Partnernummer + WhatsApp gebunden
 - [ ] Bestehenden Manus OAuth als Fallback für Admin (Matze) behalten
 - [ ] Admin: Übersicht aller Nutzer (Name, Partnernr, WhatsApp, letzter Login, Content-Anzahl)
 - [ ] Admin: Manuell Partner freischalten (Partnernummer + Name + WhatsApp eingeben)
 - [ ] Admin: Partner sperren (ein Klick → sofort raus)
-- [ ] Admin: Token-Übersicht (generiert, genutzt, abgelaufen)
+- [x] Admin: Token-Übersicht (generiert, genutzt, abgelaufen)
 
 ## Blueprint Features - Aus 50+ Links (02.04.2026)
 
@@ -339,7 +339,7 @@
 - [x] Content-Mix Analyse - Welche Themen/Formate performen am besten
 
 ### Blotato Deep Integration
-- [ ] One-Click Multi-Publish Vorschau - Vor dem Posten sehen was passiert
+- [x] One-Click Multi-Publish Vorschau - Vor dem Posten sehen was passiert
 - [ ] Post-Status-Tracking - Live-Status jedes Posts
 
 ### Premium UI/UX

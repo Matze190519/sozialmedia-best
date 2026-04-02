@@ -33,6 +33,17 @@ import CarouselPage from "./pages/CarouselPage";
 import KanbanPage from "./pages/KanbanPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import AnalyticsPlusPage from "./pages/AnalyticsPlusPage";
+import TeamActivityPage from "./pages/TeamActivityPage";
+import InviteTokensPage from "./pages/InviteTokensPage";
+import JoinPage from "./pages/JoinPage";
+
+function JoinRouter() {
+  return (
+    <Switch>
+      <Route path="/join" component={JoinPage} />
+    </Switch>
+  );
+}
 
 function Router() {
   return (
@@ -65,6 +76,8 @@ function Router() {
         <Route path="/kanban" component={KanbanPage} />
         <Route path="/leaderboard" component={LeaderboardPage} />
         <Route path="/analytics-plus" component={AnalyticsPlusPage} />
+        <Route path="/team-activity" component={TeamActivityPage} />
+        <Route path="/invite-tokens" component={InviteTokensPage} />
         <Route path="/onboarding" component={OnboardingPage} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
@@ -79,7 +92,10 @@ function App() {
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <Switch>
+            <Route path="/join">{() => <JoinRouter />}</Route>
+            <Route>{() => <Router />}</Route>
+          </Switch>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

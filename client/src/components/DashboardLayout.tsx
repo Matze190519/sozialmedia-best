@@ -28,7 +28,7 @@ import {
   Settings, Package, Rocket, Library,
   FileText, FlaskConical, TrendingUp, BookTemplate,
   HelpCircle, Hash, CalendarDays, Recycle, Sparkles,
-  Wand2, Globe, Repeat, Layers, Kanban, Trophy, Activity,
+  Wand2, Globe, Repeat, Layers, Kanban, Trophy, Activity, UserPlus,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -86,6 +86,8 @@ const menuSections = [
     items: [
       { icon: Globe, label: "Blotato Command", path: "/blotato", desc: "9 Kanäle steuern" },
       { icon: Trophy, label: "Leaderboard", path: "/leaderboard", desc: "Team-Rangliste" },
+      { icon: Activity, label: "Team-Aktivitäten", path: "/team-activity", desc: "Echtzeit-Stream" },
+      { icon: UserPlus, label: "Einladungen", path: "/invite-tokens", desc: "Partner einladen" },
       { icon: Users, label: "Team", path: "/team", desc: "Partner verwalten" },
       { icon: Settings, label: "Einstellungen", path: "/settings", desc: "Blotato & Branding" },
       { icon: HelpCircle, label: "Quick-Start", path: "/onboarding", desc: "Setup-Anleitung" },

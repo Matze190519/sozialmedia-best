@@ -363,3 +363,60 @@ export const monthlyPlans = mysqlTable("monthly_plans", {
 
 export type MonthlyPlan = typeof monthlyPlans.$inferSelect;
 export type InsertMonthlyPlan = typeof monthlyPlans.$inferInsert;
+
+// ═══════════════════════════════════════════════════════════════
+// INVITE TOKENS - Partner per WhatsApp-Link einladen
+// ═══════════════════════════════════════════════════════════════
+
+export const inviteTokens = mysqlTable("invite_tokens", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Unique token string (UUID) */
+  token: varchar("token", { length: 128 }).notNull().unique(),
+  /** LR Partner number */
+  partnerNumber: varchar("partnerNumber", { length: 32 }),
+  /** Partner name */
+  name: varchar("name", { length: 255 }),
+  /** WhatsApp phone number */
+  whatsappNumber: varchar("whatsappNumber", { length: 32 }),
+  /** Whether this token has been used */
+  used: boolean("used").default(false).notNull(),
+  /** User ID of the user who used this token */
+  usedByUserId: int("usedByUserId"),
+  /** When the token was used */
+  usedAt: timestamp("usedAt"),
+  /** Token expiry date */
+  expiresAt: timestamp("expiresAt"),
+  /** Created by admin user ID */
+  createdById: int("createdById").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type InviteToken = typeof inviteTokens.$inferSelect;
+export type InsertInviteToken = typeof inviteTokens.$inferInsert;
+
+// ═══════════════════════════════════════════════════════════════
+// TEAM ACTIVITY LOG - Echtzeit-Aktivitäts-Stream
+// ═══════════════════════════════════════════════════════════════
+
+export const teamActivityLog = mysqlTable("team_activity_log", {
+  id: int("id").autoincrement().primaryKey(),
+  /** User who performed the action */
+  userId: int("userId").notNull(),
+  /** Action type */
+  actionType: mysqlEnum("actionType", [
+    "content_created", "content_approved", "content_rejected",
+    "content_published", "content_edited", "image_generated",
+    "video_generated", "template_created", "library_shared",
+    "trend_scanned", "carousel_created", "login", "joined"
+  ]).notNull(),
+  /** Description of the action */
+  description: text("description"),
+  /** Related content post ID */
+  contentPostId: int("contentPostId"),
+  /** Additional metadata */
+  metadata: json("metadata").$type<Record<string, unknown>>(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type TeamActivity = typeof teamActivityLog.$inferSelect;
+export type InsertTeamActivity = typeof teamActivityLog.$inferInsert;

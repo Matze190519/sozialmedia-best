@@ -57,6 +57,13 @@
       "when": 1774624200752,
       "tag": "0007_dear_drax",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1775153966815,
+      "tag": "0008_past_strong_guy",
+      "breakpoints": true
     }
   ]
 }
