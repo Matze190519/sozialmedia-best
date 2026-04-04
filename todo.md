@@ -393,5 +393,12 @@
 
 ## System-Optimierung (04.04.2026)
 - [ ] fal.ai Video/Bild-Alternativen recherchieren
-- [ ] Claude-Prompt für Botpress WhatsApp-Integration schreiben
-- [ ] Blotato Posting verifizieren und fixen
+- [x] Claude-Prompt für Botpress WhatsApp-Integration schreiben (CLAUDE_BOTPRESS_PROMPT.md auf GitHub gepusht)
+- [x] Blotato Posting verifizieren und fixen (autoPublish=true als Standard + self-approve auto-publishes)
+
+## Auto-Bild/Video bei Content-Erstellung (04.04.2026)
+- [x] Content-Generierung automatisch mit Bildgenerierung verbinden
+- [x] /api/lina/generate soll automatisch Bild generieren
+- [ ] Content Wizard soll automatisch Bild generieren
+- [ ] Freigabe-Center: Posts ohne Medien nicht mehr möglich
+- [ ] Beste KI-Tools für Video/Bild 2026 recherchieren und vergleichen

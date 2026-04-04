@@ -255,7 +255,7 @@ export default function ApprovalPage() {
   const [rejectComment, setRejectComment] = useState("");
   const [editDialog, setEditDialog] = useState<{ id: number; content: string; open: boolean }>({ id: 0, content: "", open: false });
   const [approveDialog, setApproveDialog] = useState<{ id: number; open: boolean; platforms: string[] }>({ id: 0, open: false, platforms: [] });
-  const [approveAutoPublish, setApproveAutoPublish] = useState(false);
+  const [approveAutoPublish, setApproveAutoPublish] = useState(true);
   const [approveScheduledAt, setApproveScheduledAt] = useState("");
   const [publishDialog, setPublishDialog] = useState<{ id: number; open: boolean; platforms: string[] }>({ id: 0, open: false, platforms: [] });
   const [publishScheduledDate, setPublishScheduledDate] = useState("");

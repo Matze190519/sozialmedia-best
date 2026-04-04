@@ -422,10 +422,35 @@ export function registerLinaRoutes(app: Express) {
       // Approve the post
       await db.updateContentPostStatus(Number(postId), "approved", user.id);
 
+      // Auto-Publish via Blotato (immer!)
+      let published = false;
+      try {
+        const blotatoKey = (user as any).blotatoApiKey || process.env.BLOTATO_API_KEY;
+        if (blotatoKey) {
+          const { getBlotatoAccounts, LR_BLOTATO_ACCOUNTS, publishToAllPlatforms } = await import("./externalApis");
+          const contentToPublish = post.post.editedContent || post.post.content;
+          const platforms = post.post.platforms as string[];
+          let accounts = await getBlotatoAccounts(blotatoKey);
+          if (accounts.length === 0) accounts = LR_BLOTATO_ACCOUNTS;
+          const mediaUrls: string[] = [];
+          if (post.post.mediaUrl) mediaUrls.push(post.post.mediaUrl);
+          if (post.post.videoUrl) mediaUrls.push(post.post.videoUrl);
+          const postIds = await publishToAllPlatforms(contentToPublish, platforms, accounts, mediaUrls.length > 0 ? mediaUrls : undefined, undefined, blotatoKey);
+          await db.setBlotatoPostIds(Number(postId), postIds);
+          await db.updateContentPostStatus(Number(postId), "scheduled", user.id);
+          published = true;
+        }
+      } catch (pubErr: any) {
+        console.error("[Lina self-approve] Auto-Publish failed:", pubErr.message);
+      }
+
       res.json({
         success: true,
-        message: `Post "${post.post.topic || "Ohne Titel"}" wurde freigegeben und ist bereit zum Posten!`,
+        message: published
+          ? `Post "${post.post.topic || "Ohne Titel"}" freigegeben und auf Blotato geplant!`
+          : `Post "${post.post.topic || "Ohne Titel"}" freigegeben! (Blotato nicht verfügbar)`,
         postId: Number(postId),
+        published,
       });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
@@ -508,11 +533,35 @@ export function registerLinaRoutes(app: Express) {
         personalizationNotes: "Erstellt via Lina WhatsApp",
       });
 
+      // AUTO-BILD: Immer automatisch ein Bild generieren!
+      let imageUrl: string | null = null;
+      try {
+        const imgPrompt = `${topic || pillar || "LR Lifestyle"}, premium social media content for ${platform}, cinematic lighting, professional photography, vibrant colors, no text, no words, no letters, no watermarks`;
+        if (process.env.FAL_API_KEY) {
+          const { generatePremiumImage } = await import("./externalApis");
+          const premiumResult = await generatePremiumImage({ prompt: imgPrompt, aspectRatio: platform === "instagram" ? "1:1" : "9:16" });
+          imageUrl = premiumResult.imageUrl;
+        } else {
+          const { generateImage } = await import("./_core/imageGeneration");
+          const fallbackResult = await generateImage({ prompt: imgPrompt });
+          imageUrl = fallbackResult.url || null;
+        }
+        if (imageUrl) {
+          await db.updateContentPost(postId, { mediaUrl: imageUrl, mediaType: "image", imagePrompt: imgPrompt } as any);
+          console.log(`[Lina] Auto-Bild generiert für Post ${postId}: ${imageUrl.substring(0, 60)}...`);
+        }
+      } catch (imgErr: any) {
+        console.error("[Lina] Auto-Bild Fehler (Post trotzdem erstellt):", imgErr.message);
+      }
+
       res.json({
         success: true,
         postId,
         content: apiResponse?.content || apiResponse?.text || apiResponse,
-        message: `Content zum Thema "${topic}" erstellt! Jetzt im Dashboard freigeben.`,
+        imageUrl,
+        message: imageUrl
+          ? `Content zum Thema "${topic}" mit Bild erstellt! Jetzt im Dashboard freigeben.`
+          : `Content zum Thema "${topic}" erstellt (Bild konnte nicht generiert werden). Jetzt im Dashboard freigeben.`,
       });
     } catch (error: any) {
       console.error("[Lina] Generate failed:", error);

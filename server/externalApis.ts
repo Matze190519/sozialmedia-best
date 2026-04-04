@@ -430,11 +430,11 @@ export async function generatePremiumImage(req: PremiumImageRequest): Promise<Pr
     resolution: req.resolution || "2K",
     output_format: req.outputFormat || "png",
   };
-  const result = await fal.subscribe("fal-ai/nano-banana-pro", { input }) as { data: { images: Array<{ url: string; content_type: string }>; description: string } };
+  const result = await fal.subscribe("fal-ai/nano-banana-2", { input }) as { data: { images: Array<{ url: string; content_type: string }>; description: string } };
 
   const tempImageUrl = result.data?.images?.[0]?.url || "";
   if (!tempImageUrl) {
-    throw new Error("Nano Banana Pro hat kein Bild generiert");
+    throw new Error("Nano Banana 2 hat kein Bild generiert");
   }
 
   // Bild auf S3 speichern damit die URL nicht abläuft (fal.ai URLs sind temporär!)
@@ -458,7 +458,7 @@ export async function generatePremiumImage(req: PremiumImageRequest): Promise<Pr
 
   return {
     imageUrl,
-    model: "nano-banana-pro",
+    model: "nano-banana-2",
     description: result.data?.description || "",
   };
 }
