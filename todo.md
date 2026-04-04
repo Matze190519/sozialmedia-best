@@ -435,4 +435,11 @@
 - [x] Text-only Eintraege aus Bibliothek loeschen (nur Posts mit Bild/Video behalten)
 - [x] Admin Kosten-Uebersicht Seite (Monatskosten, Generierungen pro Partner, Budget-Verbrauch)
 - [x] Claude-Prompt (CLAUDE_BOTPRESS_KORREKTUR.md) mit allen Aenderungen aktualisieren
-- [ ] Alles auf GitHub speichern (Sozial Repo)
+- [x] Alles auf GitHub speichern (Sozial Repo) - gepusht am 04.04.2026
+
+## Blotato Fehler + Claude Prompt Fix (04.04.2026)
+- [x] Blotato: 11 fehlgeschlagene Requests analysieren - Platform-spezifische Target-Felder gefixed
+- [x] Blotato: Smart Posting Times gefixed - bevorzugt jetzt heute/morgen statt Tage voraus
+- [x] Claude-Prompt: WhatsApp max 10 Buttons pro Single Choice Node einbauen
+- [x] Claude-Prompt: Blotato-Fehler-Infos einbauen (Platform-Regeln Tabelle + bekannte Fehler)
+- [ ] Alles auf GitHub pushen

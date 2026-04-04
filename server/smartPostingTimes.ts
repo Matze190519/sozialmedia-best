@@ -481,12 +481,16 @@ export function getNextSmartPostingTime(platform: string): SmartScheduleResult {
 
       const hoursFromNow = (targetDate.getTime() - now.getTime()) / (1000 * 60 * 60);
 
-      // Bevorzuge Slots mit hohem Score UND in naher Zukunft
-      // Score-Gewichtung: 70% Engagement-Score, 30% Nähe
-      const proximityBonus = Math.max(0, 20 - dayOffset * 3); // Nähere Tage bekommen Bonus
-      const effectiveScore = slot.score * 0.7 + proximityBonus * 0.3 + (daySchedule.isTopDay ? 5 : 0);
+      // STARK heute/morgen bevorzugen - Posts sollen NICHT Tage voraus geplant werden!
+      // Gewichtung: 50% Engagement-Score, 50% Nähe (vorher 70/30)
+      // Massiver Abzug für Tage > 1 in der Zukunft
+      const proximityBonus = dayOffset === 0 ? 30 : (dayOffset === 1 ? 15 : Math.max(0, 5 - dayOffset * 2));
+      const effectiveScore = slot.score * 0.5 + proximityBonus + (daySchedule.isTopDay ? 3 : 0);
 
-      if (!bestResult || effectiveScore > (bestResult.score * 0.7 + Math.max(0, 20 - Math.floor(bestResult.hoursFromNow / 24) * 3) * 0.3)) {
+      const bestEffective = bestResult 
+        ? bestResult.score * 0.5 + (bestResult.isToday ? 30 : (bestResult.hoursFromNow < 48 ? 15 : Math.max(0, 5 - Math.floor(bestResult.hoursFromNow / 24) * 2))) + 0
+        : 0;
+      if (!bestResult || effectiveScore > bestEffective) {
         bestResult = {
           scheduledTime: targetDate.toISOString(),
           platform,

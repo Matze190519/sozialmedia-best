@@ -779,6 +779,89 @@ export async function getBlotatoAccounts(apiKey?: string): Promise<BlotatoAccoun
   }
 }
 
+/**
+ * Baut das platform-spezifische Target-Objekt für Blotato API.
+ * Jede Plattform hat eigene Pflichtfelder - ohne diese gibt es 400/422 Fehler.
+ * Docs: https://help.blotato.com/api/publish-post
+ */
+function buildPlatformTarget(platform: string, text: string): Record<string, any> {
+  const p = platform.toLowerCase();
+  
+  switch (p) {
+    case "youtube":
+      // YouTube PFLICHT: title, privacyStatus, shouldNotifySubscribers
+      return {
+        targetType: "youtube",
+        title: text.substring(0, 100).split("\n")[0] || "Neues Video",
+        privacyStatus: "public",
+        shouldNotifySubscribers: true,
+        containsSyntheticMedia: true, // KI-generierter Content
+      };
+    
+    case "tiktok":
+      // TikTok PFLICHT: privacyLevel, disabledComments, disabledDuet, disabledStitch,
+      //                 isBrandedContent, isYourBrand, isAiGenerated
+      return {
+        targetType: "tiktok",
+        privacyLevel: "PUBLIC_TO_EVERYONE",
+        disabledComments: false,
+        disabledDuet: false,
+        disabledStitch: false,
+        isBrandedContent: false,
+        isYourBrand: false,
+        isAiGenerated: true,
+      };
+    
+    case "facebook":
+      // Facebook PFLICHT: pageId (aus LR_BLOTATO_ACCOUNTS)
+      // pageId wird aus dem Account geholt, hier Fallback
+      return {
+        targetType: "facebook",
+        // pageId wird automatisch von Blotato aus dem Account abgeleitet
+        // wenn es trotzdem fehlt, muss der User die Facebook Page in Blotato verbinden
+      };
+    
+    case "linkedin":
+      // LinkedIn: nur targetType ist Pflicht, pageId optional
+      return {
+        targetType: "linkedin",
+      };
+    
+    case "instagram":
+      // Instagram: nur targetType Pflicht, mediaType optional
+      return {
+        targetType: "instagram",
+      };
+    
+    case "threads":
+      // Threads: nur targetType Pflicht
+      return {
+        targetType: "threads",
+      };
+    
+    case "twitter":
+      // Twitter: nur targetType Pflicht
+      return {
+        targetType: "twitter",
+      };
+    
+    case "bluesky":
+      return {
+        targetType: "bluesky",
+      };
+    
+    case "pinterest":
+      // Pinterest PFLICHT: boardId (muss vom User konfiguriert werden)
+      return {
+        targetType: "pinterest",
+        // boardId muss separat konfiguriert werden
+      };
+    
+    default:
+      return { targetType: platform };
+  }
+}
+
 export async function scheduleOnBlotato(
   accountId: number,
   text: string,
@@ -789,6 +872,9 @@ export async function scheduleOnBlotato(
   // IMMER konkreten Zeitpunkt verwenden - useNextFreeSlot funktioniert nicht wenn Slots voll sind
   const scheduledTime = scheduledDate || getNextOptimalPostingTime(platform);
   
+  // Platform-spezifische Target-Felder (Blotato API Pflichtfelder)
+  const target = buildPlatformTarget(platform, text);
+  
   const postData = {
     post: {
       accountId: String(accountId),
@@ -797,9 +883,7 @@ export async function scheduleOnBlotato(
         mediaUrls: mediaUrls || [],
         platform,
       },
-      target: {
-        targetType: platform,
-      },
+      target,
     },
     useNextFreeSlot: false,
     scheduledTime,
