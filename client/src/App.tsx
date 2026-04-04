@@ -37,6 +37,7 @@ import TeamActivityPage from "./pages/TeamActivityPage";
 import InviteTokensPage from "./pages/InviteTokensPage";
 import JoinPage from "./pages/JoinPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
+import SuperProfilePage from "./pages/SuperProfilePage";
 
 function JoinRouter() {
   return (
@@ -81,6 +82,7 @@ function Router() {
         <Route path="/invite-tokens" component={InviteTokensPage} />
         <Route path="/admin-users" component={AdminUsersPage} />
         <Route path="/onboarding" component={OnboardingPage} />
+        <Route path="/instagram-growth" component={SuperProfilePage} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>

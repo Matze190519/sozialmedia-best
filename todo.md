@@ -408,3 +408,8 @@
 - [x] Brevo Test-Mail erfolgreich gesendet (messageId bestätigt)
 - [x] Sender: LR Lifestyle Team <info@lr-lifestyle.info>
 - [x] Empfänger: jedermannhandy@googlemail.com
+
+## SuperProfile Anleitung einbauen (04.04.2026)
+- [x] SuperProfile-Anleitung als eigene Seite in sozialmedia.best einbauen
+- [x] Navigation/Sidebar-Link "Instagram Growth" hinzufuegen
+- [x] Claude-Prompt fuer Lina/Botpress aktualisieren (neuer Menuepunkt)
