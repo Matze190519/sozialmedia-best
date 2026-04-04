@@ -424,3 +424,9 @@
 - [x] Alles generierte automatisch in Bibliothek speichern (war schon eingebaut)
 - [x] Limit-Check in alle Generierungs-Endpoints einbauen (image + video)
 - [ ] Admin-Dashboard: Kosten-Uebersicht pro Monat anzeigen
+
+## Bibliothek-Filter (04.04.2026)
+- [x] Nur vollstaendige Posts in Bibliothek (Text + Bild/Video + Hashtags)
+- [x] Reiner Text-Content wird NICHT in Bibliothek gespeichert
+- [ ] Bestehende Text-only Eintraege aus Bibliothek entfernen
+- [x] Partner-Limits auf 40 Bilder / 10 Videos erhoeht (Testphase)

@@ -2,8 +2,8 @@
  * Budget Tracker - Kontrolliert Generierungs-Kosten
  * 
  * Limits pro Partner/Monat:
- * - 20 Bilder ($0.08 each = $1.60 max)
- * - 5 Videos ($0.84 each = $4.20 max)
+ * - 40 Bilder ($0.08 each = $3.20 max) [TESTPHASE]
+ * - 10 Videos ($0.84 each = $8.40 max) [TESTPHASE]
  * 
  * Globaler Monatsdeckel: $200 (20000 cents)
  */
@@ -13,8 +13,8 @@ import { generationUsage, globalBudget } from "../drizzle/schema";
 import { eq, and, sql } from "drizzle-orm";
 
 // Limits
-const PARTNER_IMAGE_LIMIT = 20;
-const PARTNER_VIDEO_LIMIT = 5;
+const PARTNER_IMAGE_LIMIT = 40; // TESTPHASE (normal: 20)
+const PARTNER_VIDEO_LIMIT = 10; // TESTPHASE (normal: 5)
 const GLOBAL_BUDGET_CENTS = 20000; // $200
 
 // Kosten in Cents

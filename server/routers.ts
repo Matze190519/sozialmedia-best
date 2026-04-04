@@ -271,12 +271,15 @@ export const appRouter = router({
         const post = await db.getContentPostById(input.id);
         if (!post) throw new TRPCError({ code: "NOT_FOUND" });
 
+         // Nur vollstaendige Posts mit Bild/Video in Bibliothek
+        if (!post.post.mediaUrl && !post.post.videoUrl) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Nur Posts mit Bild oder Video können in die Bibliothek. Generiere zuerst ein Bild oder Video." });
+        }
         await db.sharePostToLibrary(input.id);
-
         // Also add to content library table
         await db.addToContentLibrary({
           title: post.post.topic || `${post.post.contentType} - ${new Date().toLocaleDateString("de-DE")}`,
-          category: post.post.mediaUrl ? (post.post.videoUrl ? "video" : "image") : "text",
+          category: post.post.videoUrl ? "video" : "image",
           pillar: post.post.pillar || undefined,
           textContent: post.post.editedContent || post.post.content,
           imageUrl: post.post.mediaUrl || undefined,
@@ -493,11 +496,13 @@ export const appRouter = router({
           });
         } catch { /* notification failure shouldn't block approval */ }
 
-        // Auto-save to content library on every approval
+        // Auto-save to content library on every approval - NUR wenn Bild oder Video vorhanden
+        const hasMedia = !!(post.post.mediaUrl || post.post.videoUrl);
+        if (hasMedia) {
         try {
           await db.addToContentLibrary({
             title: post.post.topic || `${post.post.contentType} - ${new Date().toLocaleDateString("de-DE")}`,
-            category: post.post.mediaUrl ? (post.post.videoUrl ? "video" : "image") : "text",
+            category: post.post.videoUrl ? "video" : "image",
             pillar: post.post.pillar || undefined,
             textContent: post.post.editedContent || post.post.content,
             imageUrl: post.post.mediaUrl || undefined,
@@ -511,6 +516,7 @@ export const appRouter = router({
         } catch (libErr) {
           console.error("[Approval] Auto-save to library failed:", libErr);
         }
+        } // end hasMedia check
 
         // Auto-publish if requested and user has Blotato key or system key exists
         if (input.autoPublish) {
