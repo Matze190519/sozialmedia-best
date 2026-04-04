@@ -402,3 +402,9 @@
 - [ ] Content Wizard soll automatisch Bild generieren
 - [ ] Freigabe-Center: Posts ohne Medien nicht mehr möglich
 - [ ] Beste KI-Tools für Video/Bild 2026 recherchieren und vergleichen
+
+## Brevo Benachrichtigungen (04.04.2026)
+- [x] Benachrichtigungen von Manus auf Brevo umgestellt (alle 5 notifyOwner Stellen ersetzt)
+- [x] Brevo Test-Mail erfolgreich gesendet (messageId bestätigt)
+- [x] Sender: LR Lifestyle Team <info@lr-lifestyle.info>
+- [x] Empfänger: jedermannhandy@googlemail.com

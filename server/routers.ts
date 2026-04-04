@@ -10,6 +10,7 @@ import * as trendScanner from "./trendScanner";
 import * as hashtagEngine from "./hashtagEngine";
 import * as lifestyleEngine from "./lifestyleEngine";
 import { notifyOwner } from "./_core/notification";
+import { sendBrevoNotification } from "./brevoNotify";
 
 // Admin-only procedure (requires admin role)
 const adminProcedure = approvedProcedure.use(({ ctx, next }) => {
@@ -441,9 +442,9 @@ export const appRouter = router({
           newStatus: "approved",
         });
 
-        // Send notification to owner
+        // Send notification via Brevo
         try {
-          await notifyOwner({
+          await sendBrevoNotification({
             title: `✅ Content freigegeben`,
             content: `${ctx.user.name || "Partner"} hat Content freigegeben: "${(post.post.editedContent || post.post.content).substring(0, 100)}..." | Plattformen: ${(post.post.platforms as string[]).join(", ")}`,
           });
@@ -523,9 +524,9 @@ export const appRouter = router({
           newStatus: "rejected",
         });
 
-        // Send notification for rejection
+        // Send notification via Brevo
         try {
-          await notifyOwner({
+          await sendBrevoNotification({
             title: `❌ Content abgelehnt`,
             content: `${ctx.user.name || "Partner"} hat Content abgelehnt: "${(post.post.editedContent || post.post.content).substring(0, 80)}..." | Grund: ${input.comment}`,
           });
@@ -587,9 +588,9 @@ export const appRouter = router({
           newStatus: "scheduled",
         });
 
-        // Send notification for publishing
+        // Send notification via Brevo
         try {
-          await notifyOwner({
+          await sendBrevoNotification({
             title: `🚀 Content veröffentlicht`,
             content: `${ctx.user.name || "Partner"} hat Content auf ${platforms.join(", ")} veröffentlicht via Blotato. ${postIds.length} Plattform(en) geplant.`,
           });
@@ -2800,13 +2801,13 @@ Gib die Bewertung als JSON zurück.`
         content: z.string().min(1).max(5000),
       }))
       .mutation(async ({ input }) => {
-        const success = await notifyOwner({ title: input.title, content: input.content });
+        const success = await sendBrevoNotification({ title: input.title, content: input.content });
         return { success };
       }),
 
     // Test notification
     test: adminProcedure.mutation(async () => {
-      const success = await notifyOwner({
+      const success = await sendBrevoNotification({
         title: "LR Content Hub - Test",
         content: "Benachrichtigungen funktionieren! Du wirst automatisch informiert bei Freigaben, Posts und wichtigen Ereignissen.",
       });
