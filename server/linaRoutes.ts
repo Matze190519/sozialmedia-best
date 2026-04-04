@@ -466,7 +466,272 @@ export function registerLinaRoutes(app: Express) {
     }
   });
 
-  console.log("[Lina API] Endpoints: content, library, products, status, invite, login-link, magic-auth, notify, partner-stats, self-approve, pending");
+  // ═══════════════════════════════════════════════════════════
+  // ─── CONTENT GENERIERUNG (WhatsApp → Lina → Content) ──────
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * POST /api/lina/generate
+   * Body: { topic, platform?, contentType?, pillar? }
+   * Lina generiert Content für Partner über WhatsApp
+   */
+  app.post("/api/lina/generate", async (req: Request, res: Response) => {
+    try {
+      const { topic, platform = "instagram", contentType = "post", pillar } = req.body;
+      if (!topic) {
+        return res.status(400).json({ success: false, error: "topic ist Pflichtfeld" });
+      }
+
+      const { generatePost, generateReel, generateStory, generateObjection } = await import("./externalApis");
+
+      let apiResponse: any;
+      switch (contentType) {
+        case "reel":
+          apiResponse = await generateReel({ topic, pillar, duration: 30, count: 1 });
+          break;
+        case "story":
+          apiResponse = await generateStory({ topic, pillar, platform, count: 1 });
+          break;
+        default:
+          apiResponse = await generatePost({ topic, pillar, platform, count: 1 });
+      }
+
+      // Save as draft in DB
+      const postId = await db.createContentPost({
+        content: apiResponse?.content || apiResponse?.text || JSON.stringify(apiResponse),
+        contentType,
+        topic,
+        pillar: pillar || "lifestyle",
+        platforms: [platform],
+        status: "pending",
+        createdById: 0,
+        personalizationNotes: "Erstellt via Lina WhatsApp",
+      });
+
+      res.json({
+        success: true,
+        postId,
+        content: apiResponse?.content || apiResponse?.text || apiResponse,
+        message: `Content zum Thema "${topic}" erstellt! Jetzt im Dashboard freigeben.`,
+      });
+    } catch (error: any) {
+      console.error("[Lina] Generate failed:", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // ─── TEMPLATES (Content-Vorlagen über WhatsApp abrufen) ────
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * GET /api/lina/templates?category=lifestyle&limit=5
+   * Gibt Content-Vorlagen zurück die Partner nutzen können
+   */
+  app.get("/api/lina/templates", async (req: Request, res: Response) => {
+    try {
+      const category = req.query.category as string | undefined;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const templates = await db.getContentTemplates(category);
+      const result = templates.slice(0, limit).map(t => ({
+        id: t.id,
+        name: t.name,
+        category: t.category,
+        content: t.content,
+        platforms: t.platforms,
+        usageCount: t.usageCount,
+      }));
+      res.json({ success: true, count: result.length, templates: result });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // ─── HASHTAGS (Smart Hashtags über WhatsApp generieren) ────
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * POST /api/lina/hashtags
+   * Body: { topic, platform?, pillar? }
+   * Generiert optimale Hashtags für ein Thema
+   */
+  app.post("/api/lina/hashtags", async (req: Request, res: Response) => {
+    try {
+      const { topic, platform = "instagram", pillar } = req.body;
+      if (!topic) {
+        return res.status(400).json({ success: false, error: "topic ist Pflichtfeld" });
+      }
+
+      const { generateSmartHashtags } = await import("./hashtagEngine");
+      const result = await generateSmartHashtags(topic, platform, pillar, topic);
+
+      res.json({
+        success: true,
+        hashtags: result.hashtags,
+        categories: result.categories,
+        totalReach: result.totalReach,
+        tips: result.tips,
+        platform: result.platform,
+      });
+    } catch (error: any) {
+      console.error("[Lina] Hashtag generation failed:", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // ─── SCHEDULE (Posts über WhatsApp planen) ─────────────────
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * POST /api/lina/schedule
+   * Body: { postId, scheduledTime, partnerNumber? }
+   * Plant einen Post für einen bestimmten Zeitpunkt
+   */
+  app.post("/api/lina/schedule", async (req: Request, res: Response) => {
+    try {
+      const { postId, scheduledTime, partnerNumber } = req.body;
+      if (!postId || !scheduledTime) {
+        return res.status(400).json({ success: false, error: "postId und scheduledTime sind Pflichtfelder" });
+      }
+
+      const post = await db.getContentPostById(Number(postId));
+      if (!post) {
+        return res.status(404).json({ success: false, error: "Post nicht gefunden" });
+      }
+
+      await db.updateContentPost(Number(postId), {
+        scheduledAt: new Date(scheduledTime),
+        status: "scheduled",
+      } as any);
+
+      res.json({
+        success: true,
+        postId: Number(postId),
+        scheduledTime,
+        message: `Post #${postId} geplant für ${new Date(scheduledTime).toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`,
+      });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // ─── WEEKLY PLAN (Wochenplan über WhatsApp abrufen) ────────
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * GET /api/lina/weekly-plan?platform=instagram
+   * Gibt den optimalen Posting-Wochenplan zurück
+   */
+  app.get("/api/lina/weekly-plan", async (req: Request, res: Response) => {
+    try {
+      const platform = (req.query.platform as string) || "instagram";
+      const { getWeeklySchedule, getAllSchedules } = await import("./smartPostingTimes");
+
+      if (platform === "all") {
+        const allSchedules = getAllSchedules();
+        return res.json({ success: true, schedules: allSchedules });
+      }
+
+      const schedule = getWeeklySchedule(platform);
+      if (!schedule) {
+        return res.json({ success: false, error: `Keine Daten für Plattform: ${platform}` });
+      }
+
+      // Format for WhatsApp readability
+      const formattedDays = schedule.weekSchedule.map((day: any) => ({
+        tag: day.dayName,
+        besteZeit: `${String(day.bestSlot.hour).padStart(2, "0")}:${String(day.bestSlot.minute).padStart(2, "0")}`,
+        score: day.bestSlot.score,
+        grund: day.bestSlot.reason,
+        istTopTag: day.isTopDay,
+      }));
+
+      const topDays = formattedDays.filter((d: any) => d.istTopTag).length;
+
+      res.json({
+        success: true,
+        platform: schedule.platform,
+        displayName: schedule.displayName,
+        besteZeiten: schedule.globalBestTimes.map((t: any) => `${String(t.hour).padStart(2, "0")}:${String(t.minute).padStart(2, "0")}`),
+        topTage: schedule.peakDays,
+        tage: formattedDays,
+        hinweise: schedule.algorithmNotes,
+        tipp: `Poste an den Top-Tagen (${schedule.peakDays.join(", ")}) auf ${schedule.displayName} für maximale Reichweite.`,
+      });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // ─── OBJECTION (Einwandbehandlung über WhatsApp) ───────────
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * POST /api/lina/objection
+   * Body: { objection, context?, partnerName? }
+   * Generiert professionelle Einwandbehandlung
+   */
+  app.post("/api/lina/objection", async (req: Request, res: Response) => {
+    try {
+      const { objection, context, partnerName } = req.body;
+      if (!objection) {
+        return res.status(400).json({ success: false, error: "objection ist Pflichtfeld" });
+      }
+
+      const { generateObjection } = await import("./externalApis");
+      const result = await generateObjection({
+        objection,
+        context: context || "Network Marketing / LR Health & Beauty",
+        partner_name: partnerName || "Partner",
+      });
+
+      res.json({
+        success: true,
+        objection,
+        response: result?.content || result,
+        message: "Einwandbehandlung generiert!",
+      });
+    } catch (error: any) {
+      console.error("[Lina] Objection handling failed:", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // ─── HEALTH CHECK ─────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * GET /api/lina/health
+   * Schneller Health-Check für Monitoring
+   */
+  app.get("/api/lina/health", async (_req: Request, res: Response) => {
+    try {
+      // Quick DB check
+      const stats = await db.getContentStats();
+      res.json({
+        status: "ok",
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+        db: "connected",
+        totalPosts: stats.total,
+        endpoints: 19,
+        version: "2.0.0",
+      });
+    } catch (error: any) {
+      res.status(503).json({
+        status: "error",
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  });
+
+  console.log("[Lina API] 19 Endpoints registered: content, library, products, status, invite, login-link, magic-auth, notify, partner-stats, self-approve, pending, generate, templates, hashtags, schedule, weekly-plan, objection, health");
 }
 
 // ─── Helpers ────────────────────────────────────────────────

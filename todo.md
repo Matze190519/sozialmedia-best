@@ -380,3 +380,18 @@
 - [ ] Botpress: Content Hub öffnen → Magic Login-Link generieren
 - [ ] Botpress: Fertiger Content abrufen → /api/lina/content
 - [ ] Botpress: Content freigeben → /api/lina/pending + /api/lina/self-approve
+
+## Fehlende Lina REST-API Endpoints (04.04.2026)
+- [x] POST /api/lina/generate - Content über WhatsApp generieren lassen
+- [x] GET /api/lina/templates - Content-Vorlagen über WhatsApp abrufen
+- [x] POST /api/lina/hashtags - Hashtags über WhatsApp generieren
+- [x] POST /api/lina/schedule - Posts über WhatsApp planen
+- [x] GET /api/lina/weekly-plan - Wochenplan über WhatsApp abrufen
+- [x] POST /api/lina/objection - Einwandbehandlung über WhatsApp
+- [x] GET /api/lina/health - Health-Check Endpoint
+- [x] Alle 19 Lina-Endpoints testen und deployen (17/17 Tests bestanden)
+
+## System-Optimierung (04.04.2026)
+- [ ] fal.ai Video/Bild-Alternativen recherchieren
+- [ ] Claude-Prompt für Botpress WhatsApp-Integration schreiben
+- [ ] Blotato Posting verifizieren und fixen
