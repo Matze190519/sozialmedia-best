@@ -1,6 +1,22 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
+
+// Mock image generation to prevent timeouts
+vi.mock("./_core/imageGeneration", () => ({
+  generateImage: vi.fn().mockResolvedValue({ url: "https://example.com/test-image.png" }),
+}));
+vi.mock("./productImageMatcher", () => ({
+  getImageForContent: vi.fn().mockResolvedValue({ type: "ai", imageUrl: null, productName: null }),
+}));
+vi.mock("./externalApis", async (importOriginal) => {
+  const actual = await importOriginal() as any;
+  return {
+    ...actual,
+    generatePremiumImage: vi.fn().mockResolvedValue({ imageUrl: "https://example.com/test.jpg" }),
+    generateVideoWithFal: vi.fn().mockResolvedValue({ videoUrl: "https://example.com/test.mp4" }),
+  };
+});
 
 function createAdminContext(): TrpcContext {
   return {

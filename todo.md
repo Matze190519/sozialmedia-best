@@ -464,3 +464,20 @@
 - [x] Produktbilder: Lina /api/lina/generate nutzt echte Produktbilder für Produkt-Topics
 - [x] Claude-Prompt: Alle neuen Regeln dokumentieren
 - [x] GitHub Push: Alle Änderungen committen und pushen
+
+## Content-Vielfalt & Karussells (04.04.2026 - Session 3)
+- [x] Claude-Prompt: TikTok JPG-Konvertierung Regel einbauen
+- [ ] TikTok JPG-Fix permanent im Code einbauen (PNG→JPG vor Blotato)
+- [ ] Karussell-Content generieren und auf Instagram posten
+- [ ] Verschiedene Content-Formate zeigen (Karussell, Bild, Video)
+- [x] Dashboard-Features prüfen: Was kann das Tool alles?
+- [ ] FIX: Lina "Neue Features" Menü zeigt keine Buttons/Optionen an
+- [x] Alle Features auf sozialmedia.best durchgehen und ungenutzte identifizieren
+- [ ] Karussell-Content generieren und posten
+- [ ] Diverse Content-Formate testen (nicht nur Bilder/Videos)
+- [ ] Content auf Instagram UND TikTok posten (mit funktionierenden Zeiten)
+- [ ] FIX: E-Mail-Benachrichtigung bei Freigabe fehlt (nur Ablehnung funktioniert)
+- [ ] FIX: E-Mail-Benachrichtigung wenn neuer Content zur Freigabe bereit ist (Team-Notification)
+- [ ] FIX: E-Mail-Benachrichtigung wenn Post erfolgreich gepostet wurde
+- [x] FIX: Automatische Bildgenerierung bei JEDEM Post erzwingen - kein Post ohne Bild
+- [ ] FIX: Posts ohne Bilder nachträglich mit Bildern versehen (6 von 11 Posts betroffen)

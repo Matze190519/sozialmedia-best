@@ -796,7 +796,74 @@ export function registerLinaRoutes(app: Express) {
     }
   });
 
-  console.log("[Lina API] 19 Endpoints registered: content, library, products, status, invite, login-link, magic-auth, notify, partner-stats, self-approve, pending, generate, templates, hashtags, schedule, weekly-plan, objection, health");
+  // ═══════════════════════════════════════════════════════════
+  // ─── PUBLISH TO BLOTATO (Admin: direkt an Blotato senden) ─────
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * POST /api/lina/publish-to-blotato
+   * Body: { postId, platforms?, scheduledTime?, adminKey }
+   * Sendet einen Post direkt an Blotato (Admin-Endpoint)
+   */
+  app.post("/api/lina/publish-to-blotato", async (req: Request, res: Response) => {
+    try {
+      const { postId, platforms, scheduledTime, adminKey } = req.body;
+
+      // Simple admin key check
+      const expectedKey = process.env.BLOTATO_API_KEY?.substring(0, 16);
+      if (adminKey !== expectedKey) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
+
+      if (!postId) {
+        return res.status(400).json({ success: false, error: "postId ist Pflichtfeld" });
+      }
+
+      const post = await db.getContentPostById(Number(postId));
+      if (!post) {
+        return res.status(404).json({ success: false, error: "Post nicht gefunden" });
+      }
+
+      const { getBlotatoAccounts, LR_BLOTATO_ACCOUNTS, publishToAllPlatforms } = await import("./externalApis");
+
+      const contentToPublish = post.post.editedContent || post.post.content || "";
+      const targetPlatforms = platforms || (post.post.platforms as string[]) || ["instagram", "tiktok"];
+      const blotatoKey = process.env.BLOTATO_API_KEY;
+
+      let accounts = await getBlotatoAccounts(blotatoKey);
+      if (accounts.length === 0) accounts = LR_BLOTATO_ACCOUNTS;
+
+      const mediaUrls: string[] = [];
+      if (post.post.mediaUrl) mediaUrls.push(post.post.mediaUrl);
+      if (post.post.videoUrl) mediaUrls.push(post.post.videoUrl);
+
+      const postIds = await publishToAllPlatforms(
+        contentToPublish,
+        targetPlatforms,
+        accounts,
+        mediaUrls.length > 0 ? mediaUrls : undefined,
+        scheduledTime,
+        blotatoKey,
+      );
+
+      await db.setBlotatoPostIds(Number(postId), postIds);
+      await db.updateContentPostStatus(Number(postId), "scheduled", 1);
+
+      res.json({
+        success: true,
+        postId: Number(postId),
+        topic: post.post.topic,
+        platforms: targetPlatforms,
+        blotatoPostIds: postIds,
+        message: `Post "${post.post.topic}" auf ${targetPlatforms.join(", ")} geplant! IDs: ${postIds.join(", ")}`
+      });
+    } catch (error: any) {
+      console.error("[Lina publish-to-blotato] Error:", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  console.log("[Lina API] 20 Endpoints registered: content, library, products, status, invite, login-link, magic-auth, notify, partner-stats, self-approve, pending, generate, templates, hashtags, schedule, weekly-plan, objection, health, publish-to-blotato");
 }
 
 // ─── Helpers ────────────────────────────────────────────────

@@ -147,9 +147,9 @@ export const appRouter = router({
           newStatus: "pending",
         });
 
-        // Auto-generate image if requested
+        // Auto-generate image ALWAYS (default true) - kein Post ohne Bild!
         let imageUrl: string | null = null;
-        if (input.autoGenerateImage) {
+        if (input.autoGenerateImage !== false) {
           try {
             // ZUERST: Prüfen ob ein echtes LR-Produktbild existiert
             const { getImageForContent } = await import("./productImageMatcher");
@@ -186,7 +186,7 @@ export const appRouter = router({
 
         // Auto-generate video if requested
         let videoUrl: string | null = null;
-        if (input.autoGenerateVideo) {
+        if (input.autoGenerateVideo === true) {
           try {
             const vidPrompt = `${input.topic || input.pillar || "LR Lifestyle"}, cinematic slow motion, premium social media content, professional`;
             const videoResult = await api.generateVideoWithFal({
@@ -245,6 +245,25 @@ export const appRouter = router({
           previousStatus: null,
           newStatus: "pending",
         });
+
+        // Auto-generate image for batch posts
+        try {
+          const imgPrompt = `LR Lifestyle, Wochenplan, premium social media content, cinematic lighting, professional photography, no text, no words, no letters, no watermarks`;
+          let imageUrl: string | null = null;
+          if (process.env.FAL_API_KEY) {
+            const premiumResult = await api.generatePremiumImage({ prompt: imgPrompt, aspectRatio: "1:1" });
+            imageUrl = premiumResult.imageUrl;
+          } else {
+            const { generateImage } = await import("./_core/imageGeneration");
+            const fallbackResult = await generateImage({ prompt: imgPrompt });
+            imageUrl = fallbackResult.url || null;
+          }
+          if (imageUrl) {
+            await db.updateContentPost(postId, { mediaUrl: imageUrl, mediaType: "image", imagePrompt: imgPrompt } as any);
+          }
+        } catch (err) {
+          console.error("[AutoImage] Batch generation failed:", err);
+        }
 
         return { id: postId, content: apiResponse.content };
       }),
@@ -803,9 +822,9 @@ REGELN:
           newStatus: "pending",
         });
 
-        // Auto-generate image if requested
+        // Auto-generate image ALWAYS (default true) - kein Post ohne Bild!
         let imageUrl: string | null = null;
-        if (input.autoGenerateImage) {
+        if (input.autoGenerateImage !== false) {
           try {
             // ZUERST: Prüfen ob ein echtes LR-Produktbild existiert
             const { getImageForContent } = await import("./productImageMatcher");
@@ -840,7 +859,7 @@ REGELN:
 
         // Auto-generate video if requested
         let videoUrl: string | null = null;
-        if (input.autoGenerateVideo) {
+        if (input.autoGenerateVideo === true) {
           try {
             const vidPrompt = `${input.topic}, ${input.pillar}, cinematic slow motion, premium social media content, professional`;
             const videoResult = await api.generateVideoWithFal({
@@ -1074,6 +1093,27 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         // Link posts to group
         await db.updateContentPost(variantAId, { abTestGroupId: groupId } as any);
         await db.updateContentPost(variantBId, { abTestGroupId: groupId } as any);
+
+        // Auto-generate images for both variants
+        for (const pid of [variantAId, variantBId]) {
+          try {
+            const imgPrompt = `${input.topic || input.pillar || "LR Lifestyle"}, premium social media content, cinematic lighting, professional photography, no text, no words, no letters, no watermarks`;
+            let imageUrl: string | null = null;
+            if (process.env.FAL_API_KEY) {
+              const premiumResult = await api.generatePremiumImage({ prompt: imgPrompt, aspectRatio: "1:1" });
+              imageUrl = premiumResult.imageUrl;
+            } else {
+              const { generateImage } = await import("./_core/imageGeneration");
+              const fallbackResult = await generateImage({ prompt: imgPrompt });
+              imageUrl = fallbackResult.url || null;
+            }
+            if (imageUrl) {
+              await db.updateContentPost(pid, { mediaUrl: imageUrl, mediaType: "image", imagePrompt: imgPrompt } as any);
+            }
+          } catch (err) {
+            console.error(`[AutoImage] A/B Test image failed for post ${pid}:`, err);
+          }
+        }
 
         return { groupId, variantAId, variantBId };
       }),
@@ -1791,7 +1831,34 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         if (plan) {
           await db.updateMonthlyPlan(input.planId, { postsCreated: (plan.postsCreated || 0) + 1 });
         }
-        return { postId, content: generated.content };
+
+        // Auto-generate image - kein Post ohne Bild!
+        let imageUrl: string | null = null;
+        try {
+          const { getImageForContent } = await import("./productImageMatcher");
+          const imageDecision = await getImageForContent(input.topic || "", input.pillar);
+          if (imageDecision.type === "product" && imageDecision.imageUrl) {
+            imageUrl = imageDecision.imageUrl;
+            await db.updateContentPost(postId, { mediaUrl: imageUrl, mediaType: "image", imagePrompt: `Echtes Produktbild: ${imageDecision.productName}` } as any);
+          } else {
+            const imgPrompt = `${input.topic}, ${input.pillar}, premium social media content, cinematic lighting, professional photography, no text, no words, no letters, no watermarks`;
+            if (process.env.FAL_API_KEY) {
+              const premiumResult = await api.generatePremiumImage({ prompt: imgPrompt, aspectRatio: "1:1" });
+              imageUrl = premiumResult.imageUrl;
+            } else {
+              const { generateImage } = await import("./_core/imageGeneration");
+              const fallbackResult = await generateImage({ prompt: imgPrompt });
+              imageUrl = fallbackResult.url || null;
+            }
+            if (imageUrl) {
+              await db.updateContentPost(postId, { mediaUrl: imageUrl, mediaType: "image", imagePrompt: imgPrompt } as any);
+            }
+          }
+        } catch (err) {
+          console.error("[AutoImage] Monthly plan generation failed:", err);
+        }
+
+        return { postId, content: generated.content, imageUrl };
       }),
   }),
 
