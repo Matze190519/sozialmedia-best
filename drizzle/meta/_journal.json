@@ -64,6 +64,13 @@
       "when": 1775153966815,
       "tag": "0008_past_strong_guy",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1775302123076,
+      "tag": "0009_closed_salo",
+      "breakpoints": true
     }
   ]
 }

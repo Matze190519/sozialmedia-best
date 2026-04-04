@@ -420,3 +420,51 @@ export const teamActivityLog = mysqlTable("team_activity_log", {
 
 export type TeamActivity = typeof teamActivityLog.$inferSelect;
 export type InsertTeamActivity = typeof teamActivityLog.$inferInsert;
+
+// ═══════════════════════════════════════════════════════════════
+// GENERATION USAGE TRACKING - Budget-Kontrolle
+// ═══════════════════════════════════════════════════════════════
+
+export const generationUsage = mysqlTable("generation_usage", {
+  id: int("id").autoincrement().primaryKey(),
+  /** User who generated */
+  userId: int("userId").notNull(),
+  /** Type: image or video */
+  type: mysqlEnum("type", ["image", "video"]).notNull(),
+  /** Month key: YYYY-MM */
+  monthKey: varchar("monthKey", { length: 7 }).notNull(),
+  /** Cost in USD cents (e.g. 8 = $0.08) */
+  costCents: int("costCents").default(0).notNull(),
+  /** Model used */
+  model: varchar("model", { length: 128 }),
+  /** Duration in seconds (for videos) */
+  durationSeconds: int("durationSeconds"),
+  /** Related content post ID */
+  contentPostId: int("contentPostId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type GenerationUsageRecord = typeof generationUsage.$inferSelect;
+export type InsertGenerationUsage = typeof generationUsage.$inferInsert;
+
+// ═══════════════════════════════════════════════════════════════
+// GLOBAL BUDGET - Monatsdeckel
+// ═══════════════════════════════════════════════════════════════
+
+export const globalBudget = mysqlTable("global_budget", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Month key: YYYY-MM */
+  monthKey: varchar("monthKey", { length: 7 }).notNull().unique(),
+  /** Total spent in USD cents */
+  totalSpentCents: int("totalSpentCents").default(0).notNull(),
+  /** Monthly limit in USD cents (default $200 = 20000 cents) */
+  limitCents: int("limitCents").default(20000).notNull(),
+  /** Total images generated this month */
+  totalImages: int("totalImages").default(0).notNull(),
+  /** Total videos generated this month */
+  totalVideos: int("totalVideos").default(0).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type GlobalBudgetRecord = typeof globalBudget.$inferSelect;
+export type InsertGlobalBudget = typeof globalBudget.$inferInsert;

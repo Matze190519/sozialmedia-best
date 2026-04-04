@@ -303,7 +303,17 @@ export const appRouter = router({
         aspectRatio: z.string().optional(),
         resolution: z.enum(["1K", "2K", "4K"]).optional(),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        // Budget-Check (Admin hat kein Limit)
+        const { checkBudget, trackUsage } = await import("./budgetTracker");
+        const isAdmin = ctx.user.role === "admin";
+        if (!isAdmin) {
+          const budgetCheck = await checkBudget(ctx.user.id, "image");
+          if (!budgetCheck.allowed) {
+            throw new TRPCError({ code: "FORBIDDEN", message: budgetCheck.reason || "Budget erreicht" });
+          }
+        }
+
         let imageUrl: string;
 
         if (input.usePremium !== false && process.env.FAL_API_KEY) {
@@ -322,6 +332,9 @@ export const appRouter = router({
           if (!result.url) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Bild konnte nicht generiert werden" });
           imageUrl = result.url;
         }
+
+        // Budget tracken
+        await trackUsage(ctx.user.id, "image", "nano-banana-2", input.contentPostId);
 
         if (input.contentPostId) {
           await db.updateContentPost(input.contentPostId, {
@@ -346,16 +359,32 @@ export const appRouter = router({
         resolution: z.enum(["720p", "1080p", "4k"]).optional(),
         contentPostId: z.number().optional(),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        // Budget-Check (Admin hat kein Limit)
+        const { checkBudget, trackUsage } = await import("./budgetTracker");
+        const isAdmin = ctx.user.role === "admin";
+        if (!isAdmin) {
+          const budgetCheck = await checkBudget(ctx.user.id, "video");
+          if (!budgetCheck.allowed) {
+            throw new TRPCError({ code: "FORBIDDEN", message: budgetCheck.reason || "Budget erreicht" });
+          }
+        }
+
+        // Admin = Veo 3.1 (Top-Modell), Partner = Kling 3.0 Pro (guenstiger mit Musik)
+        const videoModel = isAdmin ? (input.model || "veo-3") : "kling-3";
+
         const result = await api.generateVideoWithFal({
           prompt: input.prompt,
           imageUrl: input.imageUrl,
-          model: input.model || "auto", // Auto = immer das Beste
+          model: videoModel,
           duration: input.duration || "5",
           aspectRatio: input.aspectRatio,
-          generateAudio: input.generateAudio,
+          generateAudio: input.generateAudio !== false, // Immer mit Audio/Musik
           resolution: input.resolution,
         });
+
+        // Budget tracken
+        await trackUsage(ctx.user.id, "video", result.model || "kling-3", input.contentPostId, parseInt(input.duration || "5"));
 
         if (input.contentPostId) {
           await db.updateContentPost(input.contentPostId, {
@@ -410,6 +439,20 @@ export const appRouter = router({
 
         return { url };
       }),
+  }),
+
+  // ─── Budget Tracking ──────────────────────────────────────
+  budget: router({
+    // Admin: Globaler Budget-Status
+    status: approvedProcedure.query(async () => {
+      const { getBudgetStatus } = await import("./budgetTracker");
+      return getBudgetStatus();
+    }),
+    // Partner: Eigene Usage
+    myUsage: approvedProcedure.query(async ({ ctx }) => {
+      const { getPartnerUsage } = await import("./budgetTracker");
+      return getPartnerUsage(ctx.user.id);
+    }),
   }),
 
   // ─── Approval Workflow ─────────────────────────────────────

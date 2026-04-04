@@ -487,10 +487,9 @@ export interface VideoGenerationResult {
 /** Automatische Premium-Modellwahl: Veo 3.1 für <=8s, Kling 3.0 Pro für >8s */
 function selectBestVideoModel(duration: string, hasImage: boolean): { model: "veo-3" | "kling-3"; reason: string } {
   const dur = parseInt(duration, 10) || 5;
-  if (dur <= 8) {
-    return { model: "veo-3", reason: `Veo 3.1 Fast (${dur}s, 4K, Audio+Lip-Sync)` };
-  }
-  return { model: "kling-3", reason: `Kling 3.0 Pro (${dur}s, bis 15s, Audio)` };
+  // Standard: Kling 3.0 Pro fuer alle Videos (guenstiger: $0.168/s vs $0.40/s, mit Audio/Musik)
+  // Veo 3.1 nur wenn explizit angefordert (Premium)
+  return { model: "kling-3", reason: `Kling 3.0 Pro (${dur}s, mit Audio/Musik, kosteneffizient)` };
 }
 
 export async function generateVideoWithFal(req: VideoGenerationRequest): Promise<VideoGenerationResult> {

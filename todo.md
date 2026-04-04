@@ -413,3 +413,14 @@
 - [x] SuperProfile-Anleitung als eigene Seite in sozialmedia.best einbauen
 - [x] Navigation/Sidebar-Link "Instagram Growth" hinzufuegen
 - [x] Claude-Prompt fuer Lina/Botpress aktualisieren (neuer Menuepunkt)
+
+## Budget-System und Kosten-Kontrolle (04.04.2026)
+- [x] DB-Schema: generationUsage Tabelle (userId, type, month, count, cost)
+- [x] DB-Schema: globalBudget Tabelle (month, totalSpent, limit)
+- [x] Partner-Limits: 20 Bilder/Monat, 5 Videos/Monat pro Partner
+- [x] Globaler Monatsdeckel: $200
+- [x] Videos MIT Audio/Musik (Kling 3.0 Pro fuer Partner, Veo 3.1 fuer Admin)
+- [x] Admin hat kein Budget-Limit + Top-Modell Veo 3.1
+- [x] Alles generierte automatisch in Bibliothek speichern (war schon eingebaut)
+- [x] Limit-Check in alle Generierungs-Endpoints einbauen (image + video)
+- [ ] Admin-Dashboard: Kosten-Uebersicht pro Monat anzeigen
