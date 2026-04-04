@@ -372,3 +372,11 @@
 - [x] Session-Cookie setzen nach Token-Login (JWT via sdk.createSessionToken)
 - [x] Lina WhatsApp Notifications: POST /api/lina/notify für Content-Status-Updates
 - [x] Admin (Matze) behält Manus OAuth als Login-Methode
+
+## Botpress/Lina Integration (02.04.2026)
+- [ ] Botpress: Startsets im Menü ändern
+- [ ] Botpress: Lina Menü-Flows mit sozialmedia.best API-Endpoints verbinden
+- [ ] Botpress: Prüfen ob alle Flows korrekt funktionieren
+- [ ] Botpress: Content Hub öffnen → Magic Login-Link generieren
+- [ ] Botpress: Fertiger Content abrufen → /api/lina/content
+- [ ] Botpress: Content freigeben → /api/lina/pending + /api/lina/self-approve
