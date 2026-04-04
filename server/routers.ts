@@ -456,6 +456,11 @@ export const appRouter = router({
       const { getPartnerUsage } = await import("./budgetTracker");
       return getPartnerUsage(ctx.user.id);
     }),
+    // Admin: Alle Partner Usage + Kosten-Details
+    allPartnerUsage: adminProcedure.query(async () => {
+      const { getAllPartnerUsage } = await import("./budgetTracker");
+      return getAllPartnerUsage();
+    }),
   }),
 
   // ─── Approval Workflow ─────────────────────────────────────

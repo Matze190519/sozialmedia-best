@@ -423,10 +423,16 @@
 - [x] Admin hat kein Budget-Limit + Top-Modell Veo 3.1
 - [x] Alles generierte automatisch in Bibliothek speichern (war schon eingebaut)
 - [x] Limit-Check in alle Generierungs-Endpoints einbauen (image + video)
-- [ ] Admin-Dashboard: Kosten-Uebersicht pro Monat anzeigen
+- [x] Admin-Dashboard: Kosten-Uebersicht pro Monat anzeigen
 
 ## Bibliothek-Filter (04.04.2026)
 - [x] Nur vollstaendige Posts in Bibliothek (Text + Bild/Video + Hashtags)
 - [x] Reiner Text-Content wird NICHT in Bibliothek gespeichert
-- [ ] Bestehende Text-only Eintraege aus Bibliothek entfernen
+- [x] Bestehende Text-only Eintraege aus Bibliothek entfernen (2 geloescht, 14 mit Bild/Video bleiben)
 - [x] Partner-Limits auf 40 Bilder / 10 Videos erhoeht (Testphase)
+
+## Bibliothek Cleanup + Admin Kosten + Claude Prompt (04.04.2026)
+- [x] Text-only Eintraege aus Bibliothek loeschen (nur Posts mit Bild/Video behalten)
+- [x] Admin Kosten-Uebersicht Seite (Monatskosten, Generierungen pro Partner, Budget-Verbrauch)
+- [x] Claude-Prompt (CLAUDE_BOTPRESS_KORREKTUR.md) mit allen Aenderungen aktualisieren
+- [ ] Alles auf GitHub speichern (Sozial Repo)

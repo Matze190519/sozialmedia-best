@@ -28,7 +28,7 @@ import {
   Settings, Package, Library, Rocket,
   FileText, FlaskConical, TrendingUp, BookTemplate,
   HelpCircle, Hash, CalendarDays, Recycle, Sparkles,
-  Wand2, Globe, Repeat, Layers, Kanban, Trophy, Activity, UserPlus,
+  Wand2, Globe, Repeat, Layers, Kanban, Trophy, Activity, UserPlus, DollarSign,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -90,6 +90,7 @@ const menuSections = [
       { icon: UserPlus, label: "Einladungen", path: "/invite-tokens", desc: "Partner einladen" },
       { icon: Users, label: "Team", path: "/team", desc: "Partner verwalten" },
       { icon: Shield, label: "Nutzer-Übersicht", path: "/admin-users", desc: "Admin: Alle Partner" },
+      { icon: DollarSign, label: "Kosten-Übersicht", path: "/budget", desc: "Budget & Verbrauch" },
       { icon: Settings, label: "Einstellungen", path: "/settings", desc: "Blotato & Branding" },
       { icon: HelpCircle, label: "Quick-Start", path: "/onboarding", desc: "Setup-Anleitung" },
       { icon: Rocket, label: "Instagram Growth", path: "/instagram-growth", desc: "AutoDM & Leads" },

@@ -178,6 +178,82 @@ export async function getBudgetStatus(): Promise<{
 }
 
 /**
+ * Admin: Alle Partner-Generierungen diesen Monat (fuer Kosten-Uebersicht)
+ */
+export async function getAllPartnerUsage(): Promise<{
+  partners: Array<{
+    userId: number;
+    userName: string | null;
+    partnerNumber: string | null;
+    images: number;
+    videos: number;
+    totalCostCents: number;
+  }>;
+  totals: {
+    images: number;
+    videos: number;
+    totalCostCents: number;
+  };
+}> {
+  const monthKey = getCurrentMonthKey();
+  const db = (await getDb())!;
+
+  // Get all usage grouped by user for this month
+  const usageRows = await db
+    .select({
+      userId: generationUsage.userId,
+      type: generationUsage.type,
+      count: sql<number>`COUNT(*)`,
+      totalCost: sql<number>`SUM(${generationUsage.costCents})`,
+    })
+    .from(generationUsage)
+    .where(eq(generationUsage.monthKey, monthKey))
+    .groupBy(generationUsage.userId, generationUsage.type);
+
+  // Get user names
+  const { users } = await import("../drizzle/schema");
+  const allUsers = await db.select({ id: users.id, name: users.name, partnerNumber: users.partnerNumber }).from(users);
+  const userMap = new Map(allUsers.map(u => [u.id, u]));
+
+  // Aggregate per partner
+  const partnerMap = new Map<number, { images: number; videos: number; totalCostCents: number }>();
+  let totalImages = 0, totalVideos = 0, totalCost = 0;
+
+  for (const row of usageRows) {
+    if (!partnerMap.has(row.userId)) {
+      partnerMap.set(row.userId, { images: 0, videos: 0, totalCostCents: 0 });
+    }
+    const p = partnerMap.get(row.userId)!;
+    const count = Number(row.count);
+    const cost = Number(row.totalCost);
+    if (row.type === "image") {
+      p.images += count;
+      totalImages += count;
+    } else {
+      p.videos += count;
+      totalVideos += count;
+    }
+    p.totalCostCents += cost;
+    totalCost += cost;
+  }
+
+  const partners = Array.from(partnerMap.entries()).map(([userId, data]) => {
+    const user = userMap.get(userId);
+    return {
+      userId,
+      userName: user?.name || null,
+      partnerNumber: user?.partnerNumber || null,
+      ...data,
+    };
+  }).sort((a, b) => b.totalCostCents - a.totalCostCents);
+
+  return {
+    partners,
+    totals: { images: totalImages, videos: totalVideos, totalCostCents: totalCost },
+  };
+}
+
+/**
  * Partner-Usage fuer einen bestimmten User
  */
 export async function getPartnerUsage(userId: number): Promise<{
