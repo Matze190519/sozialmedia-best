@@ -151,17 +151,33 @@ export const appRouter = router({
         let imageUrl: string | null = null;
         if (input.autoGenerateImage) {
           try {
-            const imgPrompt = `${input.topic || input.pillar || "LR Lifestyle"}, premium social media content, cinematic lighting, professional photography, no text, no words, no letters, no watermarks`;
-            if (process.env.FAL_API_KEY) {
-              const premiumResult = await api.generatePremiumImage({ prompt: imgPrompt, aspectRatio: "1:1" });
-              imageUrl = premiumResult.imageUrl;
+            // ZUERST: Prüfen ob ein echtes LR-Produktbild existiert
+            const { getImageForContent } = await import("./productImageMatcher");
+            const imageDecision = await getImageForContent(input.topic || "", input.pillar);
+            
+            if (imageDecision.type === "product" && imageDecision.imageUrl) {
+              // Echtes Produktbild aus der Datenbank verwenden!
+              imageUrl = imageDecision.imageUrl;
+              console.log(`[AutoImage] Echtes Produktbild: ${imageDecision.productName}`);
+              await db.updateContentPost(postId, { 
+                mediaUrl: imageUrl, 
+                mediaType: "image", 
+                imagePrompt: `Echtes Produktbild: ${imageDecision.productName}` 
+              } as any);
             } else {
-              const { generateImage } = await import("./_core/imageGeneration");
-              const fallbackResult = await generateImage({ prompt: imgPrompt });
-              imageUrl = fallbackResult.url || null;
-            }
-            if (imageUrl) {
-              await db.updateContentPost(postId, { mediaUrl: imageUrl, mediaType: "image", imagePrompt: imgPrompt } as any);
+              // Kein Produkt erkannt → KI-Bild generieren
+              const imgPrompt = `${input.topic || input.pillar || "LR Lifestyle"}, premium social media content, cinematic lighting, professional photography, no text, no words, no letters, no watermarks`;
+              if (process.env.FAL_API_KEY) {
+                const premiumResult = await api.generatePremiumImage({ prompt: imgPrompt, aspectRatio: "1:1" });
+                imageUrl = premiumResult.imageUrl;
+              } else {
+                const { generateImage } = await import("./_core/imageGeneration");
+                const fallbackResult = await generateImage({ prompt: imgPrompt });
+                imageUrl = fallbackResult.url || null;
+              }
+              if (imageUrl) {
+                await db.updateContentPost(postId, { mediaUrl: imageUrl, mediaType: "image", imagePrompt: imgPrompt } as any);
+              }
             }
           } catch (err) {
             console.error("[AutoImage] Generation failed:", err);
@@ -723,8 +739,8 @@ export const appRouter = router({
         const systemPrompt = `Du bist der Content-Creator für das ${voice.identity.name} von ${voice.identity.leader}.
 Unternehmen: ${voice.identity.company} (${voice.identity.companyAge}, ${voice.identity.countries} Länder)
 Zertifizierungen: ${voice.identity.certifications.join(", ")} (NICHT ${voice.identity.notCertified.join(", ")}!)
-Einstiegspreis: ${voice.identity.entryPrice} (früher ${voice.identity.previousPrice})
 KI-Assistentin: ${voice.identity.aiAssistant}
+WICHTIG: KEINE PREISE in Posts erwähnen! Weder Einstiegspreis noch Produktpreise!
 
 PLATTFORM: ${input.platform}
 Ton: ${platformVoice?.tone || "professionell, authentisch"}
@@ -748,7 +764,10 @@ REGELN:
 5. NIEMALS "TÜV" erwähnen - nur "Fresenius-geprüft" und "Dermatest-zertifiziert"
 6. Content muss viral-tauglich sein - provokant, emotional, überraschend
 7. Nutze Emojis passend zur Plattform
-8. Ziel: Kontakte generieren, Leads anziehen, Business aufbauen`;
+8. Ziel: Kontakte generieren, Leads anziehen, Business aufbauen
+9. KEINE PREISE im Post! Niemals Euro-Beträge, Einstiegspreise oder Kosten erwähnen!
+10. Maximal 5 Hashtags pro Post (Instagram/TikTok Regel 2026)
+11. Keine konkreten Geldbeträge oder Prozentsätze bei Einkommen/Verdienst`;
 
         const llmResponse = await invokeLLM({
           messages: [
@@ -788,17 +807,31 @@ REGELN:
         let imageUrl: string | null = null;
         if (input.autoGenerateImage) {
           try {
-            const imgPrompt = `${input.topic}, ${input.pillar}, premium social media content, cinematic lighting, professional photography, no text, no words, no letters, no watermarks`;
-            if (process.env.FAL_API_KEY) {
-              const premiumResult = await api.generatePremiumImage({ prompt: imgPrompt, aspectRatio: "1:1" });
-              imageUrl = premiumResult.imageUrl;
+            // ZUERST: Prüfen ob ein echtes LR-Produktbild existiert
+            const { getImageForContent } = await import("./productImageMatcher");
+            const imageDecision = await getImageForContent(input.topic, input.pillar);
+            
+            if (imageDecision.type === "product" && imageDecision.imageUrl) {
+              imageUrl = imageDecision.imageUrl;
+              console.log(`[AutoImage] Brand Voice: Echtes Produktbild: ${imageDecision.productName}`);
+              await db.updateContentPost(postId, { 
+                mediaUrl: imageUrl, 
+                mediaType: "image", 
+                imagePrompt: `Echtes Produktbild: ${imageDecision.productName}` 
+              } as any);
             } else {
-              const { generateImage } = await import("./_core/imageGeneration");
-              const fallbackResult = await generateImage({ prompt: imgPrompt });
-              imageUrl = fallbackResult.url || null;
-            }
-            if (imageUrl) {
-              await db.updateContentPost(postId, { mediaUrl: imageUrl, mediaType: "image", imagePrompt: imgPrompt } as any);
+              const imgPrompt = `${input.topic}, ${input.pillar}, premium social media content, cinematic lighting, professional photography, no text, no words, no letters, no watermarks`;
+              if (process.env.FAL_API_KEY) {
+                const premiumResult = await api.generatePremiumImage({ prompt: imgPrompt, aspectRatio: "1:1" });
+                imageUrl = premiumResult.imageUrl;
+              } else {
+                const { generateImage } = await import("./_core/imageGeneration");
+                const fallbackResult = await generateImage({ prompt: imgPrompt });
+                imageUrl = fallbackResult.url || null;
+              }
+              if (imageUrl) {
+                await db.updateContentPost(postId, { mediaUrl: imageUrl, mediaType: "image", imagePrompt: imgPrompt } as any);
+              }
             }
           } catch (err) {
             console.error("[AutoImage] Brand Voice generation failed:", err);

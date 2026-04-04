@@ -27,8 +27,9 @@ export const LR_BRAND_VOICE = {
     companyAge: "40+ Jahre",
     certifications: ["Fresenius-geprüft", "Dermatest-zertifiziert"],
     notCertified: ["TÜV"], // NICHT TÜV!
-    entryPrice: "99 Euro",
+    entryPrice: "119 Euro",
     previousPrice: "1.200 Euro",
+    // WICHTIG: Keine Preise in Social Media Posts verwenden!
     countries: 32,
     aiAssistant: "Lina",
   },
@@ -55,7 +56,7 @@ export const LR_BRAND_VOICE = {
     { lie: "Network Marketing ist ein Schneeballsystem", destruction: "LR ist seit über 40 Jahren am Markt, in 32 Ländern aktiv, und ein seriös deutsches Unternehmen", pillar: "Business Opportunity" },
     { lie: "Ich habe keine Kontakte für Network Marketing", destruction: "Unsere KI Lina übernimmt Social Media und die Kontaktaufnahme. Du brauchst keine eigenen Kontakte.", pillar: "Lina KI-Demo" },
     { lie: "Ich habe keine Zeit für ein Nebenbusiness", destruction: "Mit Lina und unserer Automatisierung brauchst du nur 30 Min am Tag. Den Rest macht die KI.", pillar: "Lina KI-Demo" },
-    { lie: "99 Euro ist zu viel Risiko", destruction: "Früher hat der Start 1.200 Euro gekostet. 99 Euro ist weniger als ein Abendessen für zwei.", pillar: "Business Opportunity" },
+    { lie: "Der Einstieg ist zu teuer", destruction: "Früher hat der Start deutlich mehr gekostet. Heute ist der Einstieg günstiger als ein Abendessen für zwei.", pillar: "Business Opportunity" },
     { lie: "Die Produkte sind zu teuer", destruction: "Fresenius-geprüfte Qualität zum fairen Preis. Vergleich mit Apothekenpreisen zeigt: LR ist günstiger.", pillar: "Produkt-Highlight" },
     { lie: "Ich kann nicht verkaufen", destruction: "Du musst nicht verkaufen. Teile einfach deine Erfahrung. Lina macht den Rest.", pillar: "Lina KI-Demo" },
   ],
@@ -378,7 +379,17 @@ export function runQualityGate(content: string, platform: string): QualityCheckR
     checks.push({ name: "Hashtags", passed: true, message: `${hashtagCount} Hashtags - OK`, severity: "info" });
   }
 
-  // 8. LR-Branding Check
+  // 8. Keine Preise in Posts (WICHTIG!)
+  const pricePatterns = [/\d+\s*€/, /\d+\s*Euro/, /\d+\s*EUR/, /Einstieg.*\d/, /nur.*\d+/, /ab.*\d+.*€/i];
+  const hasPrice = pricePatterns.some(p => p.test(content));
+  if (hasPrice) {
+    checks.push({ name: "Keine Preise", passed: false, message: "KEINE PREISE in Social Media Posts! Preise ändern sich und wirken unseriös.", severity: "error" });
+    score -= 25;
+  } else {
+    checks.push({ name: "Keine Preise", passed: true, message: "Keine Preise im Text - gut!", severity: "info" });
+  }
+
+  // 9. LR-Branding Check
   const lrTerms = ["LR", "Aloe Vera", "Mind Master", "Zeitgard", "Fresenius", "Dermatest", "Lina", "Autokonzept"];
   const hasLRBranding = lrTerms.some(term => content.includes(term));
   if (hasLRBranding) {
@@ -862,6 +873,63 @@ function buildPlatformTarget(platform: string, text: string): Record<string, any
   }
 }
 
+/**
+ * Enforces max hashtag limit per platform.
+ * Instagram/TikTok/Threads: max 5 hashtags
+ * Other platforms: max 10 hashtags
+ * Keeps the first N hashtags and removes the rest.
+ */
+function enforceHashtagLimit(text: string, platform: string): string {
+  const maxHashtags: Record<string, number> = {
+    instagram: 5, tiktok: 5, threads: 5,
+    facebook: 10, linkedin: 10, youtube: 10,
+    twitter: 5, pinterest: 10, bluesky: 5,
+  };
+  const limit = maxHashtags[platform.toLowerCase()] || 5;
+  const hashtags = text.match(/#\w+/g) || [];
+  if (hashtags.length <= limit) return text;
+  
+  // Keep only the first N hashtags, remove the rest
+  const hashtagsToRemove = hashtags.slice(limit);
+  let result = text;
+  for (const tag of hashtagsToRemove) {
+    // Remove the hashtag and any surrounding whitespace (but keep at least one space)
+    result = result.replace(new RegExp(`\\s*${tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, ''), '');
+  }
+  console.log(`[HashtagLimiter] ${platform}: ${hashtags.length} → ${limit} Hashtags (${hashtagsToRemove.length} entfernt)`);
+  return result.trim();
+}
+
+/**
+ * Removes any price mentions from content text.
+ * Catches patterns like: 99€, 119 Euro, ab 99€, nur 119 EUR, etc.
+ */
+function removePricesFromContent(text: string): string {
+  const pricePatterns = [
+    /\b\d+[.,]?\d*\s*€/g,
+    /\b\d+[.,]?\d*\s*Euro\b/gi,
+    /\b\d+[.,]?\d*\s*EUR\b/g,
+    /\bab\s+\d+[.,]?\d*\s*€/gi,
+    /\bnur\s+\d+[.,]?\d*\s*€/gi,
+    /\bfür\s+\d+[.,]?\d*\s*€/gi,
+    /\bEinstieg.*?\d+[.,]?\d*\s*€/gi,
+  ];
+  let result = text;
+  let removed = false;
+  for (const pattern of pricePatterns) {
+    if (pattern.test(result)) {
+      result = result.replace(pattern, '');
+      removed = true;
+    }
+  }
+  if (removed) {
+    // Clean up double spaces and empty lines
+    result = result.replace(/  +/g, ' ').replace(/\n\s*\n\s*\n/g, '\n\n').trim();
+    console.log(`[PriceRemover] Preise aus Content entfernt`);
+  }
+  return result;
+}
+
 export async function scheduleOnBlotato(
   accountId: number,
   text: string,
@@ -869,17 +937,21 @@ export async function scheduleOnBlotato(
   mediaUrls?: string[],
   scheduledDate?: string,
 ): Promise<{ postSubmissionId: string; scheduleId?: string }> {
+  // WICHTIG: Hashtag-Limit und Preis-Filter IMMER vor dem Posten anwenden
+  let cleanText = removePricesFromContent(text);
+  cleanText = enforceHashtagLimit(cleanText, platform);
+  
   // IMMER konkreten Zeitpunkt verwenden - useNextFreeSlot funktioniert nicht wenn Slots voll sind
   const scheduledTime = scheduledDate || getNextOptimalPostingTime(platform);
   
   // Platform-spezifische Target-Felder (Blotato API Pflichtfelder)
-  const target = buildPlatformTarget(platform, text);
+  const target = buildPlatformTarget(platform, cleanText);
   
   const postData = {
     post: {
       accountId: String(accountId),
       content: {
-        text,
+        text: cleanText,
         mediaUrls: mediaUrls || [],
         platform,
       },
@@ -904,7 +976,7 @@ export async function scheduleOnBlotato(
     // Den neuesten Post für diese Plattform finden
     const match = items.find((item: any) => 
       item.draft?.content?.platform === platform &&
-      item.draft?.content?.text?.substring(0, 50) === text.substring(0, 50)
+      item.draft?.content?.text?.substring(0, 50) === cleanText.substring(0, 50)
     );
     if (match) {
       scheduleId = String(match.id);

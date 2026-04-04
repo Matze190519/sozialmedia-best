@@ -71,7 +71,7 @@ describe("Brand Voice System", () => {
     expect(api.LR_BRAND_VOICE.identity.name).toBe("LR Lifestyle Team");
     expect(api.LR_BRAND_VOICE.identity.leader).toBe("Mathias Vinzing");
     expect(api.LR_BRAND_VOICE.identity.company).toBe("LR Health & Beauty");
-    expect(api.LR_BRAND_VOICE.identity.entryPrice).toBe("99 Euro");
+    expect(api.LR_BRAND_VOICE.identity.entryPrice).toBe("119 Euro");
     expect(api.LR_BRAND_VOICE.identity.aiAssistant).toBe("Lina");
     expect(api.LR_BRAND_VOICE.identity.certifications).toContain("Fresenius-geprüft");
     expect(api.LR_BRAND_VOICE.identity.certifications).toContain("Dermatest-zertifiziert");
@@ -213,7 +213,7 @@ describe("Quality Gate", () => {
 
 Vor 3 Jahren war ich in einem 9-to-5 Job gefangen. Heute fahre ich mein Traumauto - bezahlt von LR Health & Beauty.
 
-Der Einstieg? Nur 99 Euro. Fresenius-geprüft. Dermatest-zertifiziert.
+Der Einstieg ist einfacher als du denkst. Fresenius-geprüft. Dermatest-zertifiziert.
 
 Schreib mir eine DM mit 'STARTEN' für mehr Infos! 💪
 

@@ -442,4 +442,25 @@
 - [x] Blotato: Smart Posting Times gefixed - bevorzugt jetzt heute/morgen statt Tage voraus
 - [x] Claude-Prompt: WhatsApp max 10 Buttons pro Single Choice Node einbauen
 - [x] Claude-Prompt: Blotato-Fehler-Infos einbauen (Platform-Regeln Tabelle + bekannte Fehler)
-- [ ] Alles auf GitHub pushen
+- [x] Alles auf GitHub pushen - gepusht am 04.04.2026
+
+## Batch 2: Vielfältige Posts (04.04.2026)
+- [ ] 3 fehlende Video-Posts über Blotato UI posten (Mind Master, Events, Transformation)
+- [ ] 5 Bild-Posts generieren und posten (keine Preise)
+- [ ] 3 Karussell-Posts generieren und posten
+- [ ] Alle neuen Posts ins Dashboard eintragen
+- [x] Claude-Prompt: keine Preise Regel einbauen
+- [ ] Mind Master Post mit echtem Produktbild neu posten (Instagram + TikTok)
+- [ ] Events Video posten (Instagram + TikTok)
+- [ ] Transformation Video posten (Instagram + TikTok)
+- [ ] TikTok Posts nachholen - alle fehlenden
+- [x] Regel: Produktposts = echte Produktbilder aus DB
+- [x] Claude-Prompt: Produktbilder-Regel einbauen
+
+## Permanente System-Fixes (04.04.2026 - Session 2)
+- [x] Hashtag-Limiter: Automatisch auf max 5 Hashtags kürzen VOR Blotato-Posting
+- [x] Keine Preise: LLM-Prompt-Regel "KEINE PREISE" in Brand Voice Generator
+- [x] Produktbilder: Auto-Erkennung ob Topic ein LR-Produkt ist → echtes Bild aus DB statt AI
+- [x] Produktbilder: Lina /api/lina/generate nutzt echte Produktbilder für Produkt-Topics
+- [x] Claude-Prompt: Alle neuen Regeln dokumentieren
+- [x] GitHub Push: Alle Änderungen committen und pushen
