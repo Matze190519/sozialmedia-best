@@ -686,6 +686,46 @@ export interface GoViralBitchResponse {
   created_at: string;
 }
 
+/**
+ * Bereinigt den rohen API-Text: entfernt Varianten-Formatierung, behält nur echten Post-Text.
+ * Entfernt: "---", "VARIANTE X:", "POST-TEXT:", "REEL X:", "STORY X:", "HOOK:", "SLIDE X:"
+ */
+function cleanApiContent(text: string): string {
+  if (!text) return text;
+  
+  // Versuche POST-TEXT Abschnitt zu extrahieren
+  const postTextMatch = text.match(/POST-TEXT:\s*([\s\S]*?)(?:\n\n(?:VARIANTE|REEL|STORY|CAROUSEL|HOOK|---|\*\*VARIANTE)|$)/i);
+  if (postTextMatch && postTextMatch[1].trim().length > 30) {
+    return postTextMatch[1].trim();
+  }
+  
+  // Zeilen bereinigen: Varianten-Header-Zeilen entfernen
+  const lines = text.split('\n');
+  const cleanLines: string[] = [];
+  let skip = false;
+  
+  for (const line of lines) {
+    const t = line.trim();
+    if (
+      t === '---' ||
+      t.match(/^\*{0,2}(VARIANTE|REEL \d|STORY \d|CAROUSEL|HOOK|SLIDE \d|📝 POST-TEXT|POST-TEXT:)/i)
+    ) {
+      if (t.match(/POST-TEXT:/i)) {
+        skip = false;
+      } else {
+        skip = true;
+      }
+      continue;
+    }
+    if (skip && t === '') { skip = false; continue; }
+    if (!skip) cleanLines.push(line);
+  }
+  
+  const cleaned = cleanLines.join('\n').trim();
+  // Nur zurückgeben wenn sinnvoll, sonst Original
+  return cleaned.length > 30 ? cleaned : text.trim();
+}
+
 async function callGoViralBitch(endpoint: string, body: Record<string, unknown>): Promise<GoViralBitchResponse> {
   const res = await fetch(`${GOVIRALBITCH_URL}/api/content/${endpoint}`, {
     method: "POST",
@@ -696,7 +736,12 @@ async function callGoViralBitch(endpoint: string, body: Record<string, unknown>)
     const errText = await res.text().catch(() => "Unknown error");
     throw new Error(`GoViralBitch API error (${res.status}): ${errText}`);
   }
-  return res.json();
+  const data = await res.json();
+  // Bereinige den Content-Text automatisch
+  if (data.content) {
+    data.content = cleanApiContent(data.content);
+  }
+  return data;
 }
 
 export async function goViralBitchHealthCheck(): Promise<boolean> {
