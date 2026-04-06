@@ -128,6 +128,25 @@ export async function createContentPost(post: InsertContentPost) {
   return result[0].insertId;
 }
 
+export async function deleteContentPost(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(contentPosts).where(eq(contentPosts.id, id));
+}
+
+export async function deletePostsWithoutMedia() {
+  const db = await getDb();
+  if (!db) return 0;
+  // Lösche alle Posts die weder mediaUrl noch videoUrl haben
+  const result = await db.delete(contentPosts).where(
+    and(
+      sql`(${contentPosts.mediaUrl} IS NULL OR ${contentPosts.mediaUrl} = '')`,
+      sql`(${contentPosts.videoUrl} IS NULL OR ${contentPosts.videoUrl} = '')`
+    )
+  );
+  return (result as any)[0]?.affectedRows ?? 0;
+}
+
 export async function getContentPosts(filters?: {
   status?: string;
   createdById?: number;

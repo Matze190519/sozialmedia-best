@@ -300,6 +300,23 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Delete a single post (Admin only)
+    delete: approvedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN', message: 'Nur Admins können Posts löschen.' });
+        await db.deleteContentPost(input.id);
+        return { success: true };
+      }),
+
+    // Bulk delete all posts without image or video (Admin only)
+    deleteWithoutMedia: approvedProcedure
+      .mutation(async ({ ctx }) => {
+        if (ctx.user.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN', message: 'Nur Admins können Posts löschen.' });
+        const deleted = await db.deletePostsWithoutMedia();
+        return { success: true, deleted };
+      }),
+
     // Share post to content library for all team members
     shareToLibrary: approvedProcedure
       .input(z.object({ id: z.number() }))

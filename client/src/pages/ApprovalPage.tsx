@@ -72,6 +72,7 @@ function PostCard({
   onReject,
   onEdit,
   onPublish,
+  onDelete,
   variant,
 }: {
   item: any;
@@ -80,6 +81,7 @@ function PostCard({
   onReject?: (id: number) => void;
   onEdit?: (id: number, content: string) => void;
   onPublish?: (id: number, platforms: string[]) => void;
+  onDelete?: (id: number) => void;
   variant: "pending" | "approved";
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -213,6 +215,18 @@ function PostCard({
                 <Edit3 className="h-4 w-4" />
                 Bearbeiten
               </Button>
+              {isAdmin && onDelete && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="gap-1 text-xs h-8 col-span-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                  onClick={() => {
+                    if (confirm("Diesen Post endgültig löschen?")) onDelete(item.post.id);
+                  }}
+                >
+                  🗑️ Post löschen
+                </Button>
+              )}
             </div>
           )}
 
@@ -261,6 +275,14 @@ export default function ApprovalPage() {
     onSuccess: () => { utils.content.list.invalidate(); toast.success("Content bearbeitet!"); setEditDialog({ id: 0, content: "", open: false }); },
     onError: (err) => toast.error(err.message),
   });
+  const deleteMut = trpc.content.delete.useMutation({
+    onSuccess: () => { utils.content.list.invalidate(); utils.dashboard.stats.invalidate(); toast.success("Post gelöscht!"); },
+    onError: (err) => toast.error(err.message),
+  });
+  const deleteWithoutMediaMut = trpc.content.deleteWithoutMedia.useMutation({
+    onSuccess: (data) => { utils.content.list.invalidate(); utils.dashboard.stats.invalidate(); toast.success(`${data.deleted} Posts ohne Bild/Video gelöscht!`); },
+    onError: (err) => toast.error(err.message),
+  });
 
   const [rejectDialog, setRejectDialog] = useState<{ id: number; open: boolean }>({ id: 0, open: false });
   const [rejectComment, setRejectComment] = useState("");
@@ -298,11 +320,27 @@ export default function ApprovalPage() {
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
       {/* Header */}
-      <div>
-        <h1 className="text-xl md:text-2xl font-bold tracking-tight">Freigabe-Center</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Prüfe und gib deine eigenen Posts frei.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Freigabe-Center</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            {isAdmin ? "Admin: Alle Posts verwalten" : "Prüfe und gib deine eigenen Posts frei."}
+          </p>
+        </div>
+        {isAdmin && (
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              if (confirm("Alle Posts OHNE Bild/Video löschen? Das kann nicht rückgängig gemacht werden!")) {
+                deleteWithoutMediaMut.mutate();
+              }
+            }}
+            disabled={deleteWithoutMediaMut.isPending}
+          >
+            {deleteWithoutMediaMut.isPending ? "Lösche..." : "🗑️ Posts ohne Bild löschen"}
+          </Button>
+        )}
       </div>
 
 
@@ -346,6 +384,7 @@ export default function ApprovalPage() {
                 }}
                 onReject={(id) => { setRejectDialog({ id, open: true }); setRejectComment(""); }}
                 onEdit={(id, content) => setEditDialog({ id, content, open: true })}
+                onDelete={(id) => deleteMut.mutate({ id })}
               />
             ))}
           </div>
