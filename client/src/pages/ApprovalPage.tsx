@@ -138,7 +138,11 @@ function PostCard({
           {/* Header: Type + Pillar + Date */}
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <Badge variant="outline" className="text-[10px]">{item.post.contentType}</Badge>
+              {(item.post.contentType === "reel_script" || item.post.contentType === "youtube_script") ? (
+                <Badge className="text-[10px] bg-amber-500/20 text-amber-400 border-amber-500/40 border">🎬 SKRIPT – nicht posten!</Badge>
+              ) : (
+                <Badge variant="outline" className="text-[10px]">{item.post.contentType}</Badge>
+              )}
               {item.post.pillar && <Badge variant="secondary" className="text-[10px]">{item.post.pillar}</Badge>}
             </div>
             <span className="text-[10px] text-muted-foreground">
@@ -154,6 +158,13 @@ function PostCard({
               </span>
             ))}
           </div>
+
+          {/* Skript-Warnung */}
+          {(item.post.contentType === "reel_script" || item.post.contentType === "youtube_script") && (
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2.5 text-xs text-amber-400">
+              🎬 <strong>Das ist ein Reel-Skript</strong> – kein fertiger Post. Verwende es als Vorlage für dein Video. Nicht direkt veröffentlichen!
+            </div>
+          )}
 
           {/* Content Text - expandable */}
           <div className="relative">

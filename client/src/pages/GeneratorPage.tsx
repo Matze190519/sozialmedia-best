@@ -833,6 +833,17 @@ export default function GeneratorPage() {
                   {generateVideoMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
                   Video generieren ({VIDEO_MODELS.find(m => m.value === videoModel)?.label})
                 </Button>
+
+                {/* Musik-Hinweis */}
+                <div className="bg-violet-500/10 border border-violet-500/30 rounded-lg p-3 text-xs text-violet-300">
+                  <p className="font-semibold mb-1">🎵 Musik hinzufügen (nach dem Download):</p>
+                  <p className="text-muted-foreground">Das KI-Video hat keinen Ton. Füge Musik in CapCut oder Instagram Reels Editor hinzu:</p>
+                  <ul className="mt-1.5 space-y-0.5 text-muted-foreground">
+                    <li>• <strong className="text-violet-300">Team-Videos:</strong> Motivierende Beats, energiegeladen (z.B. Epic/Cinematic)</li>
+                    <li>• <strong className="text-violet-300">Produkt-Videos:</strong> Ruhige, elegante Musik (Lo-Fi, Ambient)</li>
+                    <li>• <strong className="text-violet-300">Lifestyle-Videos:</strong> Trendige Pop/R&B Beats</li>
+                  </ul>
+                </div>
               </CardContent>
             </Card>
 

@@ -639,6 +639,10 @@ export const appRouter = router({
         if (post.post.status !== "approved") {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Nur genehmigte Posts können veröffentlicht werden. Bitte zuerst genehmigen!" });
         }
+        // Skripte können nicht direkt gepostet werden
+        if (post.post.contentType === "reel_script" || post.post.contentType === "youtube_script") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "🎬 Das ist ein Reel-Skript – kein fertiger Post! Verwende es als Vorlage für dein Video und poste das Video manuell." });
+        }
 
         // Determine which Blotato key to use
         let blotatoKey = process.env.BLOTATO_API_KEY;
