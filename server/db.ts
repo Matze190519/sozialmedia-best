@@ -124,6 +124,11 @@ export async function getUserById(userId: number) {
 export async function createContentPost(post: InsertContentPost) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  // Blockiere Posts ohne Bild ODER Video - nur vollständige Posts speichern
+  const hasMedia = (post.mediaUrl && post.mediaUrl.trim() !== '') || (post.videoUrl && post.videoUrl.trim() !== '');
+  if (!hasMedia) {
+    throw new Error("Post muss ein Bild oder Video haben. Bitte zuerst ein Bild generieren.");
+  }
   const result = await db.insert(contentPosts).values(post);
   return result[0].insertId;
 }
