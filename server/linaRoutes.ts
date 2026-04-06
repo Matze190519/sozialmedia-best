@@ -37,7 +37,13 @@ export function registerLinaRoutes(app: Express) {
       const platform = req.query.platform as string | undefined;
       const pillar = req.query.pillar as string | undefined;
 
-      const posts = await db.getContentPosts({ status: "approved", limit });
+      // Zeige approved UND scheduled Posts (beide sind "fertig" und können angezeigt werden)
+      const approvedPosts = await db.getContentPosts({ status: "approved", limit });
+      const scheduledPosts = await db.getContentPosts({ status: "scheduled", limit });
+      const allPosts = [...approvedPosts, ...scheduledPosts]
+        .sort((a, b) => new Date(b.post.createdAt || 0).getTime() - new Date(a.post.createdAt || 0).getTime())
+        .slice(0, limit);
+      const posts = allPosts;
 
       let filtered = posts;
       if (platform) {
