@@ -58,17 +58,28 @@ export function registerLinaRoutes(app: Express) {
         );
       }
 
-      const result = filtered.map(p => ({
-        id: p.post.id,
-        text: p.post.editedContent || p.post.content,
-        type: p.post.contentType,
-        platform: p.post.platforms,
-        imageUrl: p.post.mediaUrl,
-        videoUrl: p.post.videoUrl,
-        topic: p.post.topic,
-        pillar: p.post.pillar,
-        createdAt: p.post.createdAt,
-      }));
+      // Skripte herausfiltern - die sind nicht für WhatsApp geeignet
+      const noScripts = filtered.filter(p =>
+        !['reel_script', 'youtube_script', 'carousel_script'].includes(p.post.contentType)
+      );
+
+      const result = noScripts.map(p => {
+        const fullText = p.post.editedContent || p.post.content;
+        // Text auf 300 Zeichen kürzen für WhatsApp
+        const shortText = fullText.length > 300 ? fullText.substring(0, 297) + '...' : fullText;
+        return {
+          id: p.post.id,
+          text: shortText,
+          fullText: fullText,
+          type: p.post.contentType,
+          platform: p.post.platforms,
+          imageUrl: p.post.mediaUrl,
+          videoUrl: p.post.videoUrl,
+          topic: p.post.topic,
+          pillar: p.post.pillar,
+          createdAt: p.post.createdAt,
+        };
+      });
 
       res.json({ success: true, count: result.length, posts: result });
     } catch (error: any) {
@@ -82,16 +93,21 @@ export function registerLinaRoutes(app: Express) {
       const limit = parseInt(req.query.limit as string) || 10;
       const category = req.query.category as string | undefined;
       const items = await db.getContentLibrary({ category, limit });
-      const result = items.map(i => ({
-        id: i.item.id,
-        title: i.item.title,
-        category: i.item.category,
-        text: i.item.textContent,
-        imageUrl: i.item.imageUrl,
-        videoUrl: i.item.videoUrl,
-        platforms: i.item.platforms,
-        tags: i.item.tags,
-      }));
+      const result = items.map(i => {
+        const fullText = i.item.textContent || '';
+        // Text auf 300 Zeichen kürzen für WhatsApp
+        const shortText = fullText.length > 300 ? fullText.substring(0, 297) + '...' : fullText;
+        return {
+          id: i.item.id,
+          title: i.item.title,
+          category: i.item.category,
+          text: shortText,
+          imageUrl: i.item.imageUrl,
+          videoUrl: i.item.videoUrl,
+          platforms: i.item.platforms,
+          tags: i.item.tags,
+        };
+      });
       res.json({ success: true, count: result.length, items: result });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
