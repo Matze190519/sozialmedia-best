@@ -709,7 +709,7 @@ export async function goViralBitchHealthCheck(): Promise<boolean> {
 }
 
 export async function generatePost(req: GoViralBitchPostRequest) {
-  return callGoViralBitch("post", { ...req, language: "deutsch", max_hashtags: 5 } as Record<string, unknown>);
+  return callGoViralBitch("post", { ...req, language: "deutsch", max_hashtags: 5, max_chars: 2000 } as Record<string, unknown>);
 }
 
 export async function generateReel(req: GoViralBitchReelRequest) {
@@ -717,7 +717,7 @@ export async function generateReel(req: GoViralBitchReelRequest) {
 }
 
 export async function generateStory(req: GoViralBitchPostRequest) {
-  return callGoViralBitch("story", { ...req, language: "deutsch", max_hashtags: 5 } as Record<string, unknown>);
+  return callGoViralBitch("story", { ...req, language: "deutsch", max_hashtags: 5, max_chars: 150 } as Record<string, unknown>);
 }
 
 export async function generateHooks(req: GoViralBitchHookRequest) {

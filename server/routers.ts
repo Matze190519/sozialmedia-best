@@ -46,10 +46,11 @@ export const appRouter = router({
         offset: z.number().optional(),
       }).optional())
       .query(async ({ ctx, input }) => {
-        // Jeder User sieht nur seine eigenen Posts
+        // Admin sieht alle Posts, Partner nur eigene
+        const createdById = ctx.user.role === 'admin' ? undefined : ctx.user.id;
         return db.getContentPosts({
           status: input?.status,
-          createdById: ctx.user.id,
+          createdById,
           limit: input?.limit,
           offset: input?.offset,
         });
@@ -60,8 +61,8 @@ export const appRouter = router({
       .query(async ({ ctx, input }) => {
         const result = await db.getContentPostById(input.id);
         if (!result) throw new TRPCError({ code: "NOT_FOUND" });
-        // Jeder User sieht nur seine eigenen Posts
-        if (result.post.createdById !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Du kannst nur deinen eigenen Content ansehen." });
+        // Admin sieht alle Posts, Partner nur eigene
+        if (ctx.user.role !== 'admin' && result.post.createdById !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Du kannst nur deinen eigenen Content ansehen." });
         return result;
       }),
 
@@ -510,8 +511,8 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const post = await db.getContentPostById(input.id);
         if (!post) throw new TRPCError({ code: "NOT_FOUND" });
-        // Jeder Partner darf nur seinen EIGENEN Content freigeben
-        if (post.post.createdById !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Du kannst nur deinen eigenen Content freigeben." });
+        // Admin darf alle Posts freigeben, Partner nur eigene
+        if (ctx.user.role !== 'admin' && post.post.createdById !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Du kannst nur deinen eigenen Content freigeben." });
         if (post.post.status !== "pending") throw new TRPCError({ code: "BAD_REQUEST", message: "Nur ausstehende Posts können genehmigt werden" });
 
         await db.updateContentPostStatus(input.id, "approved", ctx.user.id, input.comment);
@@ -600,8 +601,8 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const post = await db.getContentPostById(input.id);
         if (!post) throw new TRPCError({ code: "NOT_FOUND" });
-        // Jeder Partner darf nur seinen EIGENEN Content ablehnen
-        if (post.post.createdById !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Du kannst nur deinen eigenen Content ablehnen." });
+        // Admin darf alle Posts ablehnen, Partner nur eigene
+        if (ctx.user.role !== 'admin' && post.post.createdById !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Du kannst nur deinen eigenen Content ablehnen." });
 
         await db.updateContentPostStatus(input.id, "rejected", ctx.user.id, input.comment);
         await db.createApprovalLog({
@@ -634,8 +635,8 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const post = await db.getContentPostById(input.id);
         if (!post) throw new TRPCError({ code: "NOT_FOUND" });
-        // Jeder Partner darf nur seinen EIGENEN Content publishen
-        if (post.post.createdById !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Du kannst nur deinen eigenen Content veröffentlichen." });
+        // Admin darf alle Posts veröffentlichen, Partner nur eigene
+        if (ctx.user.role !== 'admin' && post.post.createdById !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Du kannst nur deinen eigenen Content veröffentlichen." });
         if (post.post.status !== "approved") {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Nur genehmigte Posts können veröffentlicht werden. Bitte zuerst genehmigen!" });
         }
