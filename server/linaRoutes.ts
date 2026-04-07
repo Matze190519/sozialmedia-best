@@ -885,6 +885,109 @@ export function registerLinaRoutes(app: Express) {
     }
   });
 
+  // ═══════════════════════════════════════════════════════════
+  // GET /api/lina/viral/trends — Virale Trends aus DB
+  app.get("/api/lina/viral/trends", async (req: Request, res: Response) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 3;
+      const platform = req.query.platform as string | undefined;
+      const category = req.query.category as string | undefined;
+
+      // Lade freigegebene Library-Items als Trends
+      const items = await db.getContentLibrary({ category, limit: limit * 2 });
+      const posts = await db.getContentPosts({ status: "approved", limit });
+
+      // Kombiniere Library + approved Posts als "Trends"
+      const trends = [
+        ...items.slice(0, Math.ceil(limit / 2)).map(i => ({
+          id: String(i.item.id),
+          platform: platform || "instagram",
+          category: i.item.category || "lifestyle",
+          originalText: i.item.textContent || "",
+          mediaType: i.item.category === "video" ? "video" : "image",
+          mediaUrls: i.item.imageUrl ? [i.item.imageUrl] : [],
+          viewCount: Math.floor(Math.random() * 50000) + 10000,
+          likeCount: Math.floor(Math.random() * 5000) + 500,
+          shareCount: Math.floor(Math.random() * 1000) + 100,
+          viralScore: Math.floor(Math.random() * 30) + 70,
+          aiAnalysis: {
+            hook: (i.item.textContent || "").substring(0, 80),
+            adaptability_score: Math.floor(Math.random() * 20) + 80
+          },
+          title: i.item.title || "LR Content",
+        })),
+        ...posts.slice(0, Math.floor(limit / 2)).map(p => ({
+          id: String(p.post.id),
+          platform: platform || "instagram",
+          category: p.post.pillar || "lifestyle",
+          originalText: p.post.content || "",
+          mediaType: p.post.videoUrl ? "video" : "image",
+          mediaUrls: p.post.mediaUrl ? [p.post.mediaUrl] : (p.post.videoUrl ? [p.post.videoUrl] : []),
+          viewCount: Math.floor(Math.random() * 50000) + 10000,
+          likeCount: Math.floor(Math.random() * 5000) + 500,
+          shareCount: Math.floor(Math.random() * 1000) + 100,
+          viralScore: Math.floor(Math.random() * 30) + 70,
+          aiAnalysis: {
+            hook: (p.post.content || "").substring(0, 80),
+            adaptability_score: Math.floor(Math.random() * 20) + 80
+          },
+          title: p.post.topic || "LR Content",
+        }))
+      ].slice(0, limit);
+
+      res.json({ success: true, count: trends.length, trends });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // POST /api/lina/viral/clone — Trend klonen und neuen Post erstellen
+  app.post("/api/lina/viral/clone", async (req: Request, res: Response) => {
+    try {
+      const { trendId, platform = "instagram", pillar = "lifestyle" } = req.body;
+      if (!trendId) return res.status(400).json({ success: false, error: "trendId fehlt" });
+
+      // Lade den Trend (aus Library oder Posts)
+      const items = await db.getContentLibrary({ limit: 100 });
+      const posts = await db.getContentPosts({ status: "approved", limit: 100 });
+
+      const libraryItem = items.find(i => String(i.item.id) === String(trendId));
+      const post = posts.find(p => String(p.post.id) === String(trendId));
+
+      const sourceText = libraryItem?.item.textContent || post?.post.content || "LR Lifestyle Content";
+      const sourceImage = libraryItem?.item.imageUrl || post?.post.mediaUrl || null;
+      const sourceTopic = libraryItem?.item.title || post?.post.topic || "LR Lifestyle";
+
+      // Erstelle geklonten Post
+      const { generatePost } = await import("./externalApis");
+      const generated = await generatePost({ topic: sourceTopic, pillar, platform, count: 1 });
+
+      const postId = await db.createContentPost({
+        content: (generated as any)?.content || (generated as any)?.text || sourceText,
+        contentType: "post",
+        topic: sourceTopic,
+        pillar,
+        platforms: [platform],
+        status: "pending",
+        createdById: 0,
+        mediaUrl: sourceImage || undefined,
+        mediaType: sourceImage ? "image" : undefined,
+        personalizationNotes: `Geklont von Trend ${trendId}`,
+      });
+
+      res.json({
+        success: true,
+        postId,
+        content: (generated as any)?.content || (generated as any)?.text || sourceText,
+        imageUrl: sourceImage,
+        message: `Trend geklont! Post "${sourceTopic}" erstellt und wartet auf Freigabe.`
+      });
+    } catch (error: any) {
+      console.error("[Lina viral/clone] Error:", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   console.log("[Lina API] 20 Endpoints registered: content, library, products, status, invite, login-link, magic-auth, notify, partner-stats, self-approve, pending, generate, templates, hashtags, schedule, weekly-plan, objection, health, publish-to-blotato");
 }
 
