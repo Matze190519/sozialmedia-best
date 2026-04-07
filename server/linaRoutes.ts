@@ -543,7 +543,43 @@ export function registerLinaRoutes(app: Express) {
           apiResponse = await generatePost({ topic, pillar, platform, count: 1 });
       }
 
-      // Save as draft in DB
+      // AUTO-BILD: Zuerst echtes Produktbild suchen, dann KI-Bild als Fallback
+      // Bild wird VOR dem Speichern generiert - kein Post ohne Bild!
+      let imageUrl: string | null = null;
+      let imagePromptUsed: string = "";
+      let mediaTypeUsed: string = "image";
+
+      // ZUERST: Prüfen ob ein echtes LR-Produktbild existiert
+      const { getImageForContent } = await import("./productImageMatcher");
+      const imageDecision = await getImageForContent(topic, pillar);
+
+      if (imageDecision.type === "product" && imageDecision.imageUrl) {
+        // Echtes Produktbild aus der Datenbank!
+        imageUrl = imageDecision.imageUrl;
+        imagePromptUsed = `Echtes Produktbild: ${imageDecision.productName}`;
+        console.log(`[Lina] Echtes Produktbild gefunden: ${imageDecision.productName}`);
+      } else {
+        // Kein Produkt erkannt → KI-Bild generieren
+        const imgPrompt = `${topic || pillar || "LR Lifestyle"}, premium social media content for ${platform}, cinematic lighting, professional photography, vibrant colors, no text, no words, no letters, no watermarks`;
+        imagePromptUsed = imgPrompt;
+        if (process.env.FAL_API_KEY) {
+          const { generatePremiumImage } = await import("./externalApis");
+          const premiumResult = await generatePremiumImage({ prompt: imgPrompt, aspectRatio: platform === "instagram" ? "1:1" : "9:16" });
+          imageUrl = premiumResult.imageUrl;
+        } else {
+          const { generateImage } = await import("./_core/imageGeneration");
+          const fallbackResult = await generateImage({ prompt: imgPrompt });
+          imageUrl = fallbackResult.url || null;
+        }
+        console.log(`[Lina] KI-Bild generiert: ${imageUrl ? imageUrl.substring(0, 60) + '...' : 'FEHLER'}`);
+      }
+
+      // Bild-Pflicht: Kein Post ohne Bild oder Video!
+      if (!imageUrl) {
+        throw new Error("Bild konnte nicht generiert werden. Bitte erneut versuchen.");
+      }
+
+      // Jetzt erst in DB speichern - mit Bild!
       const postId = await db.createContentPost({
         content: apiResponse?.content || apiResponse?.text || JSON.stringify(apiResponse),
         contentType,
@@ -552,54 +588,20 @@ export function registerLinaRoutes(app: Express) {
         platforms: [platform],
         status: "pending",
         createdById: 0,
+        mediaUrl: imageUrl,
+        mediaType: mediaTypeUsed as any,
+        imagePrompt: imagePromptUsed,
         personalizationNotes: "Erstellt via Lina WhatsApp",
       });
 
-      // AUTO-BILD: Zuerst echtes Produktbild suchen, dann KI-Bild als Fallback
-      let imageUrl: string | null = null;
-      try {
-        // ZUERST: Prüfen ob ein echtes LR-Produktbild existiert
-        const { getImageForContent } = await import("./productImageMatcher");
-        const imageDecision = await getImageForContent(topic, pillar);
-        
-        if (imageDecision.type === "product" && imageDecision.imageUrl) {
-          // Echtes Produktbild aus der Datenbank!
-          imageUrl = imageDecision.imageUrl;
-          console.log(`[Lina] Echtes Produktbild für Post ${postId}: ${imageDecision.productName}`);
-          await db.updateContentPost(postId, { 
-            mediaUrl: imageUrl, 
-            mediaType: "image", 
-            imagePrompt: `Echtes Produktbild: ${imageDecision.productName}` 
-          } as any);
-        } else {
-          // Kein Produkt erkannt → KI-Bild generieren
-          const imgPrompt = `${topic || pillar || "LR Lifestyle"}, premium social media content for ${platform}, cinematic lighting, professional photography, vibrant colors, no text, no words, no letters, no watermarks`;
-          if (process.env.FAL_API_KEY) {
-            const { generatePremiumImage } = await import("./externalApis");
-            const premiumResult = await generatePremiumImage({ prompt: imgPrompt, aspectRatio: platform === "instagram" ? "1:1" : "9:16" });
-            imageUrl = premiumResult.imageUrl;
-          } else {
-            const { generateImage } = await import("./_core/imageGeneration");
-            const fallbackResult = await generateImage({ prompt: imgPrompt });
-            imageUrl = fallbackResult.url || null;
-          }
-          if (imageUrl) {
-            await db.updateContentPost(postId, { mediaUrl: imageUrl, mediaType: "image", imagePrompt: imgPrompt } as any);
-            console.log(`[Lina] KI-Bild generiert für Post ${postId}: ${imageUrl.substring(0, 60)}...`);
-          }
-        }
-      } catch (imgErr: any) {
-        console.error("[Lina] Auto-Bild Fehler (Post trotzdem erstellt):", imgErr.message);
-      }
+      console.log(`[Lina] Post ${postId} mit Bild gespeichert.`);
 
       res.json({
         success: true,
         postId,
         content: apiResponse?.content || apiResponse?.text || apiResponse,
         imageUrl,
-        message: imageUrl
-          ? `Content zum Thema "${topic}" mit Bild erstellt! Jetzt im Dashboard freigeben.`
-          : `Content zum Thema "${topic}" erstellt (Bild konnte nicht generiert werden). Jetzt im Dashboard freigeben.`,
+        message: `Content zum Thema "${topic}" mit Bild erstellt! Jetzt im Dashboard freigeben.`,
       });
     } catch (error: any) {
       console.error("[Lina] Generate failed:", error);
