@@ -39,6 +39,9 @@ import JoinPage from "./pages/JoinPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
 import SuperProfilePage from "./pages/SuperProfilePage";
 import BudgetPage from "./pages/BudgetPage";
+import ViralPredictorPage from "./pages/ViralPredictorPage";
+import ComplianceShieldPage from "./pages/ComplianceShieldPage";
+import ContentRemix7Page from "./pages/ContentRemix7Page";
 
 function JoinRouter() {
   return (
@@ -85,6 +88,9 @@ function Router() {
         <Route path="/onboarding" component={OnboardingPage} />
         <Route path="/instagram-growth" component={SuperProfilePage} />
         <Route path="/budget" component={BudgetPage} />
+        <Route path="/viral-predictor" component={ViralPredictorPage} />
+        <Route path="/compliance" component={ComplianceShieldPage} />
+        <Route path="/remix7" component={ContentRemix7Page} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>

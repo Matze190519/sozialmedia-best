@@ -2625,6 +2625,109 @@ Gib die Bewertung als JSON zurück.`
     }),
   }),
 
+  // ─── Viral Score Predictor ─────────────────────────────────
+  viralPredictor: router({
+    // Quick regelbasierte Analyse (sofort, kein LLM)
+    quick: approvedProcedure
+      .input(z.object({
+        content: z.string(),
+        platform: z.string().default("instagram"),
+      }))
+      .mutation(async ({ input }) => {
+        const { quickViralScore } = await import("./viralPredictor");
+        return quickViralScore(input.content, input.platform);
+      }),
+
+    // Deep KI-basierte Viral-Vorhersage
+    predict: approvedProcedure
+      .input(z.object({
+        content: z.string(),
+        platform: z.string().default("instagram"),
+        contentType: z.string().default("post"),
+        hasMedia: z.boolean().default(false),
+        hasVideo: z.boolean().default(false),
+      }))
+      .mutation(async ({ input }) => {
+        const { predictViralScore } = await import("./viralPredictor");
+        return predictViralScore(input.content, input.platform, input.contentType, input.hasMedia, input.hasVideo);
+      }),
+  }),
+
+  // ─── Smart Compliance Shield ──────────────────────────────
+  complianceShield: router({
+    // Schnelle regelbasierte Prüfung (sofort)
+    check: approvedProcedure
+      .input(z.object({
+        content: z.string(),
+        platform: z.string().default("instagram"),
+      }))
+      .mutation(async ({ input }) => {
+        const { runComplianceCheck } = await import("./complianceShield");
+        return runComplianceCheck(input.content, input.platform);
+      }),
+
+    // Deep KI-basierte Compliance-Analyse
+    deepCheck: approvedProcedure
+      .input(z.object({
+        content: z.string(),
+        platform: z.string().default("instagram"),
+      }))
+      .mutation(async ({ input }) => {
+        const { runComplianceCheck, runDeepComplianceCheck } = await import("./complianceShield");
+        const quickResult = runComplianceCheck(input.content, input.platform);
+        const deepResult = await runDeepComplianceCheck(input.content, input.platform);
+        return { quick: quickResult, deep: deepResult };
+      }),
+  }),
+
+  // ─── Content Remix 1→7 ────────────────────────────────────
+  contentRemix: router({
+    // Verfügbare Formate abrufen
+    formats: approvedProcedure.query(async () => {
+      const { getAvailableFormats } = await import("./contentRemixEngine");
+      return getAvailableFormats();
+    }),
+
+    // Einzelnes Format remixen
+    remix: approvedProcedure
+      .input(z.object({
+        content: z.string(),
+        format: z.enum(["carousel", "reel_script", "linkedin", "youtube_shorts", "twitter_thread", "asmr_script", "hopecore_reel"]),
+        topic: z.string().optional(),
+        pillar: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { remixContent } = await import("./contentRemixEngine");
+        const result = await remixContent(input.content, [input.format], input.topic, input.pillar);
+        return result.remixes[0] || null;
+      }),
+
+    // Alle 7 Formate auf einmal
+    remixAll: approvedProcedure
+      .input(z.object({
+        content: z.string(),
+        topic: z.string().optional(),
+        pillar: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { remixAll } = await import("./contentRemixEngine");
+        return remixAll(input.content, input.topic, input.pillar);
+      }),
+
+    // Ausgewählte Formate remixen
+    remixSelected: approvedProcedure
+      .input(z.object({
+        content: z.string(),
+        formats: z.array(z.enum(["carousel", "reel_script", "linkedin", "youtube_shorts", "twitter_thread", "asmr_script", "hopecore_reel"])),
+        topic: z.string().optional(),
+        pillar: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { remixContent } = await import("./contentRemixEngine");
+        return remixContent(input.content, input.formats, input.topic, input.pillar);
+      }),
+  }),
+
   // ─── API Health ────────────────────────────────────────────
   apiHealth: router({
     goViralBitch: publicProcedure.query(async () => {

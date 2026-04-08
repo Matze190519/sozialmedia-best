@@ -534,3 +534,10 @@
 - [x] Generator: Mobile-optimierte große Buttons und Touch-Targets
 - [x] Generator: Fertig-Schritt mit 1-Tap Copy Mega-Button + Vorschau
 - [x] Generator: Fortschrittsbalken mit Gold-Dots
+
+## Killer-Features Phase 2 - Viral, Compliance, Remix 1→7 (08.04.2026)
+- [x] Viral Score Predictor Seite (Frontend)
+- [x] Compliance Shield Seite (Frontend)
+- [x] Content Remix 1→7 Seite mit ASMR + Hopecore (Frontend Upgrade)
+- [x] Navigation + Routing für alle 3 neuen Seiten
+- [x] Genspark-Vorschläge analysieren und bewerten

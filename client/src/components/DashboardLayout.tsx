@@ -54,6 +54,14 @@ const menuSections = [
     ],
   },
   {
+    title: "KI-Power",
+    items: [
+      { icon: Flame, label: "Viral Predictor", path: "/viral-predictor", desc: "Score vor dem Posten" },
+      { icon: Shield, label: "Compliance Shield", path: "/compliance", desc: "Rechtskonformit\u00e4t" },
+      { icon: Repeat, label: "Remix 1\u21927", path: "/remix7", desc: "ASMR + Hopecore" },
+    ],
+  },
+  {
     title: "Recherche",
     items: [
       { icon: Flame, label: "Trend-Scanner", path: "/trends", desc: "Virale Trends finden" },
