@@ -541,3 +541,11 @@
 - [x] Content Remix 1→7 Seite mit ASMR + Hopecore (Frontend Upgrade)
 - [x] Navigation + Routing für alle 3 neuen Seiten
 - [x] Genspark-Vorschläge analysieren und bewerten
+
+## Live-Launch Optimierungen (08.04.2026)
+- [x] KI-Power Sektion nach oben in Sidebar (direkt nach Erstellen)
+- [x] Dashboard-Layout zentrieren (Mobile + Desktop)
+- [x] Scripts intern verstecken (nicht in normale Content-Queue)
+- [x] Team bekommt nur fertige Inhalte: Texte + Bilder + Videos + Hashtags
+- [x] Mobile-Optimierung: Sidebar, Dashboard, Content-Cards
+- [ ] GitHub Push für Live-Launch

@@ -2726,6 +2726,44 @@ Gib die Bewertung als JSON zurück.`
         const { remixContent } = await import("./contentRemixEngine");
         return remixContent(input.content, input.formats, input.topic, input.pillar);
       }),
+
+    // Remix-Ergebnis als Post in Queue speichern
+    saveAsPost: approvedProcedure
+      .input(z.object({
+        content: z.string(),
+        format: z.string(),
+        platform: z.string(),
+        hashtags: z.array(z.string()).optional(),
+        topic: z.string().optional(),
+        pillar: z.string().optional(),
+        isInternal: z.boolean().optional(), // ASMR/Hopecore Scripts als intern markieren
+        internalCategory: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { createContentPost } = await import("./db");
+        const platforms = input.platform === "LinkedIn" ? ["linkedin"]
+          : input.platform === "TikTok" ? ["tiktok"]
+          : input.platform === "YouTube" ? ["youtube"]
+          : input.platform === "X/Twitter" ? ["twitter"]
+          : ["instagram"];
+
+        const fullContent = input.hashtags?.length
+          ? `${input.content}\n\n${input.hashtags.join(" ")}`
+          : input.content;
+
+        const id = await createContentPost({
+          createdById: ctx.user.id,
+          contentType: input.format,
+          content: fullContent,
+          platforms,
+          status: "pending",
+          topic: input.topic,
+          pillar: input.pillar,
+          isInternal: input.isInternal ?? false,
+          internalCategory: input.internalCategory,
+        });
+        return { id, saved: true };
+      }),
   }),
 
   // ─── API Health ────────────────────────────────────────────

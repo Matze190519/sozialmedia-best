@@ -76,6 +76,10 @@ export const contentPosts = mysqlTable("content_posts", {
   feedbackScore: int("feedbackScore"),
   /** What made this post successful (auto-analyzed) */
   successFactors: json("successFactors").$type<string[]>(),
+  /** Whether this is an internal/script post - not shown in normal approval queue */
+  isInternal: boolean("isInternal").default(false),
+  /** Internal category: 'asmr_script', 'hopecore_script', 'remix_script', etc. */
+  internalCategory: varchar("internalCategory", { length: 64 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

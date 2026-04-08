@@ -70,7 +70,7 @@ export default function Home() {
 
   return (
     <motion.div
-      className="space-y-6 max-w-6xl"
+      className="space-y-6 max-w-6xl mx-auto"
       variants={containerVariants}
       initial="hidden"
       animate="visible"

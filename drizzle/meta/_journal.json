@@ -71,6 +71,13 @@
       "when": 1775302123076,
       "tag": "0009_closed_salo",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1775640984487,
+      "tag": "0010_simple_kylun",
+      "breakpoints": true
     }
   ]
 }

@@ -45,11 +45,7 @@ const menuSections = [
       { icon: LayoutDashboard, label: "Dashboard", path: "/", desc: "Übersicht" },
       { icon: Wand2, label: "Content Wizard", path: "/wizard", desc: "3-Schritt KI-Magie" },
       { icon: Zap, label: "Content erstellen", path: "/generator", desc: "Text + Bild + Video" },
-      { icon: Repeat, label: "Content Remix", path: "/remix", desc: "1 Thema → 5 Formate" },
-      { icon: Sparkles, label: "Lifestyle-Engine", path: "/lifestyle", desc: "Freiheit, Autos, Erfolg" },
-      { icon: Layers, label: "Karussell", path: "/carousel", desc: "Slide-Content erstellen" },
       { icon: CheckCircle, label: "Freigabe", path: "/approval", desc: "Posts prüfen & posten", badge: "pending" as const },
-      { icon: Kanban, label: "Pipeline", path: "/kanban", desc: "Kanban-Board" },
       { icon: Library, label: "Bibliothek", path: "/library", desc: "Fertige Posts kopieren" },
     ],
   },
@@ -57,8 +53,12 @@ const menuSections = [
     title: "KI-Power",
     items: [
       { icon: Flame, label: "Viral Predictor", path: "/viral-predictor", desc: "Score vor dem Posten" },
-      { icon: Shield, label: "Compliance Shield", path: "/compliance", desc: "Rechtskonformit\u00e4t" },
-      { icon: Repeat, label: "Remix 1\u21927", path: "/remix7", desc: "ASMR + Hopecore" },
+      { icon: Shield, label: "Compliance Shield", path: "/compliance", desc: "Rechtskonformität" },
+      { icon: Repeat, label: "Remix 1→7", path: "/remix7", desc: "ASMR + Hopecore" },
+      { icon: Sparkles, label: "Lifestyle-Engine", path: "/lifestyle", desc: "Freiheit, Autos, Erfolg" },
+      { icon: Layers, label: "Karussell", path: "/carousel", desc: "Slide-Content erstellen" },
+      { icon: Kanban, label: "Pipeline", path: "/kanban", desc: "Kanban-Board" },
+      { icon: Repeat, label: "Content Remix", path: "/remix", desc: "1 Thema → 5 Formate" },
     ],
   },
   {
@@ -429,7 +429,7 @@ function DashboardLayoutContent({
       </div>
 
       <SidebarInset>
-        <main className="flex-1 p-3 md:p-6">{children}</main>
+        <main className="flex-1 p-3 md:p-6 max-w-full overflow-x-hidden">{children}</main>
       </SidebarInset>
     </>
   );

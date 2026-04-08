@@ -154,6 +154,7 @@ export async function getContentPosts(filters?: {
   limit?: number;
   offset?: number;
   sharedOnly?: boolean;
+  includeInternal?: boolean;
 }) {
   const db = await getDb();
   if (!db) return [];
@@ -161,6 +162,10 @@ export async function getContentPosts(filters?: {
   if (filters?.status) conditions.push(eq(contentPosts.status, filters.status as any));
   if (filters?.createdById) conditions.push(eq(contentPosts.createdById, filters.createdById));
   if (filters?.sharedOnly) conditions.push(eq(contentPosts.sharedToLibrary, true));
+  // By default, hide internal/script posts from normal queue
+  if (!filters?.includeInternal) {
+    conditions.push(sql`(${contentPosts.isInternal} IS NULL OR ${contentPosts.isInternal} = 0)`);
+  }
 
   const query = db.select({
     post: contentPosts,

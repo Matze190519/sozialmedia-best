@@ -43,6 +43,8 @@ export default function ContentRemix7Page() {
 
   const formatsMutation = trpc.contentRemix.formats.useQuery();
   const remixSelectedMutation = trpc.contentRemix.remixSelected.useMutation();
+  const saveToQueueMutation = trpc.contentRemix.saveAsPost.useMutation();
+  const [savedFormats, setSavedFormats] = useState<string[]>([]);
 
   const isLoading = remixSelectedMutation.isPending;
   const results = remixSelectedMutation.data;
@@ -81,6 +83,30 @@ export default function ContentRemix7Page() {
     setContent("");
     setTopic("");
     remixSelectedMutation.reset();
+    setSavedFormats([]);
+  };
+
+  const handleSaveAsPost = async (remix: any) => {
+    const isScript = remix.format === "asmr_script" || remix.format === "hopecore_reel";
+    const config = FORMAT_CONFIG[remix.format];
+    try {
+      await saveToQueueMutation.mutateAsync({
+        content: remix.content,
+        format: remix.format,
+        platform: config?.platform || "instagram",
+        hashtags: remix.hashtags,
+        topic: topic || undefined,
+        pillar: pillar || undefined,
+        isInternal: isScript, // ASMR & Hopecore Scripts = intern (nicht in normale Queue)
+        internalCategory: isScript ? remix.format : undefined,
+      });
+      setSavedFormats(prev => [...prev, remix.format]);
+      toast.success(isScript
+        ? `${remix.formatLabel} intern gespeichert (nur Admin sichtbar)`
+        : `${remix.formatLabel} in Freigabe-Queue gespeichert!`);
+    } catch (e) {
+      toast.error("Fehler beim Speichern!");
+    }
   };
 
   return (
@@ -278,6 +304,26 @@ export default function ContentRemix7Page() {
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5">
+                          {savedFormats.includes(remix.format) ? (
+                            <span className="text-[10px] text-emerald-400 flex items-center gap-1">
+                              <Check className="h-3 w-3" /> Gespeichert
+                            </span>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={`h-7 text-xs gap-1 ${
+                                remix.format === "asmr_script" || remix.format === "hopecore_reel"
+                                  ? "text-amber-400 hover:text-amber-300"
+                                  : "text-emerald-400 hover:text-emerald-300"
+                              }`}
+                              onClick={() => handleSaveAsPost(remix)}
+                              disabled={saveToQueueMutation.isPending}
+                            >
+                              {saveToQueueMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Zap className="h-3 w-3" />}
+                              {remix.format === "asmr_script" || remix.format === "hopecore_reel" ? "Intern" : "Speichern"}
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"
