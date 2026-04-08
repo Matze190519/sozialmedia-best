@@ -3131,8 +3131,175 @@ Gib die Bewertung als JSON zurück.`
       return { success };
     }),
   }),
+  // ─── Lina Avatar (KI-Sprecherin) ────────────────────────────────
+  linaAvatar: router({
+    // Script für Lina generieren
+    generateScript: approvedProcedure
+      .input(z.object({
+        topic: z.string(),
+        productName: z.string(),
+        style: z.enum(["friendly", "professional", "energetic", "storytelling"]),
+        duration: z.number().min(15).max(120),
+      }))
+      .mutation(async ({ input }) => {
+        const stylePrompts: Record<string, string> = {
+          friendly: "Schreibe in einem freundlichen, persönlichen Ton als wäre es eine Empfehlung einer Freundin.",
+          professional: "Schreibe professionell und kompetent, mit klaren Fakten und Vorteilen.",
+          energetic: "Schreibe energetisch und mitreißend, mit viel Begeisterung und Energie.",
+          storytelling: "Beginne mit einer kurzen persönlichen Geschichte, dann komme zum Produkt.",
+        };
+        const wordCount = Math.round(input.duration * 2.5); // ~150 Wörter/Minute gesprochen
+        const { invokeLLM } = await import("./_core/llm");
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: `Du bist Lina, die KI-Sprecherin für das LR Lifestyle Team. Du sprichst auf Deutsch, natürlich und authentisch. ${stylePrompts[input.style]} Das Script soll ca. ${wordCount} Wörter lang sein (für ${input.duration} Sekunden). Kein Intro wie 'Hallo ich bin Lina' - direkt in den Content einsteigen. Kein Outro. Nur der gesprochene Text, keine Regieanweisungen.`,
+            },
+            {
+              role: "user",
+              content: `Erstelle ein Sprecher-Script für ein ${input.duration}-Sekunden Video über: ${input.topic}\n\nProdukt: ${input.productName}`,
+            },
+          ],
+        });
+        const script = response.choices[0]?.message?.content || "";
+        return { script, wordCount, estimatedDuration: input.duration };
+      }),
 
-  // ─── Admin Nutzer-Übersicht ────────────────────────────────
+    // Video mit fal.ai generieren (Lina spricht das Script)
+    generateVideo: approvedProcedure
+      .input(z.object({
+        script: z.string(),
+        style: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        // fal.ai Kling AI - Text-to-Video mit Avatar
+        const falApiKey = process.env.FAL_API_KEY;
+        if (!falApiKey) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "fal.ai API Key nicht konfiguriert" });
+
+        try {
+          // Nutze fal.ai für Video-Generierung
+          const response = await fetch("https://queue.fal.run/fal-ai/kling-video/v1.6/standard/text-to-video", {
+            method: "POST",
+            headers: {
+              "Authorization": `Key ${falApiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              prompt: `A professional female presenter named Lina speaking directly to camera in a modern, clean studio. She is presenting: ${input.script.substring(0, 200)}. Professional lighting, natural gestures, direct eye contact with camera.`,
+              duration: "5",
+              aspect_ratio: "9:16",
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`fal.ai error: ${response.status}`);
+          }
+
+          const result = await response.json() as { request_id?: string; video?: { url: string }; url?: string };
+
+          // Polling für das Ergebnis
+          if (result.request_id) {
+            let attempts = 0;
+            while (attempts < 30) {
+              await new Promise(r => setTimeout(r, 3000));
+              const pollResponse = await fetch(`https://queue.fal.run/fal-ai/kling-video/v1.6/standard/text-to-video/requests/${result.request_id}`, {
+                headers: { "Authorization": `Key ${falApiKey}` },
+              });
+              const pollResult = await pollResponse.json() as { status?: string; video?: { url: string }; output?: { video?: { url: string } } };
+              if (pollResult.status === "COMPLETED" || pollResult.video || pollResult.output?.video) {
+                const videoUrl = pollResult.video?.url || pollResult.output?.video?.url || "";
+                return { videoUrl, success: true };
+              }
+              attempts++;
+            }
+            throw new Error("Video-Generierung hat zu lange gedauert");
+          }
+
+          return { videoUrl: result.video?.url || result.url || "", success: true };
+        } catch (err) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: `Video-Generierung fehlgeschlagen: ${err instanceof Error ? err.message : "Unbekannter Fehler"}`,
+          });
+        }
+      }),
+  }),
+
+  // ─── Duplicate Check ────────────────────────────────────────────
+  duplicateCheck: router({
+    // Prüft ob ähnlicher Content schon von einem anderen Partner erstellt wurde
+    check: approvedProcedure
+      .input(z.object({
+        content: z.string(),
+        threshold: z.number().min(0).max(1).optional().default(0.75),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        // Hole die letzten 200 Posts des Teams (nicht vom aktuellen User)
+        const recentPosts = await db.getContentPosts({ limit: 200 });
+        const otherPosts = recentPosts.filter(p => p.post.createdById !== ctx.user.id);
+
+         if (otherPosts.length === 0) return { isDuplicate: false, similarity: 0, matches: [] };
+        // Vereinfachter Text-Vergleich: Extrahiere Key-Phrasess
+        const inputWordsArr = input.content.toLowerCase().split(/\s+/).filter(w => w.length > 4);
+        const inputWordsSet = new Set(inputWordsArr);
+
+        const matches: Array<{ postId: number; similarity: number; preview: string; authorName: string }> = [];
+
+        for (const post of otherPosts.slice(0, 50)) {
+          const postContent = post.post.editedContent || post.post.content;
+          const postWordsArr = postContent.toLowerCase().split(/\s+/).filter((w: string) => w.length > 4);
+          const postWordsSet = new Set(postWordsArr);
+
+          // Jaccard-Ähnlichkeit
+          const intersectionArr = inputWordsArr.filter(w => postWordsSet.has(w));
+          const unionSet = new Set(inputWordsArr.concat(postWordsArr));
+          const similarity = unionSet.size > 0 ? intersectionArr.length / unionSet.size : 0;
+
+          if (similarity >= input.threshold) {
+            const author = await db.getUserById(post.post.createdById);
+            matches.push({
+              postId: post.post.id,
+              similarity: Math.round(similarity * 100),
+              preview: postContent.substring(0, 120) + "...",
+              authorName: author?.name || "Unbekannt",
+            });
+          }
+        }
+
+        // Wenn viele Ähnlichkeiten: LLM für bessere Analyse
+        if (matches.length === 0 && otherPosts.length > 0) {
+          // Schneller Check: Erste 200 Zeichen vergleichen
+          const inputStart = input.content.substring(0, 200).toLowerCase();
+          for (const post of otherPosts.slice(0, 20)) {
+            const postStart = (post.post.editedContent || post.post.content).substring(0, 200).toLowerCase();
+            const commonChars = inputStart.split("").filter(c => postStart.includes(c)).length;
+            const similarity = commonChars / Math.max(inputStart.length, postStart.length);
+            if (similarity > 0.6) {
+              const author = await db.getUserById(post.post.createdById);
+              matches.push({
+                postId: post.post.id,
+                similarity: Math.round(similarity * 100),
+                preview: (post.post.editedContent || post.post.content).substring(0, 120) + "...",
+                authorName: author?.name || "Unbekannt",
+              });
+            }
+          }
+        }
+
+        matches.sort((a, b) => b.similarity - a.similarity);
+        const topMatches = matches.slice(0, 3);
+
+        return {
+          isDuplicate: topMatches.length > 0 && topMatches[0].similarity >= 75,
+          similarity: topMatches[0]?.similarity || 0,
+          matches: topMatches,
+          totalChecked: Math.min(otherPosts.length, 50),
+        };
+      }),
+  }),
+
+  // ─── Admin Nutzer-Übersicht ────────────────────────────────────────────
   adminUsers: router({
     // Full user overview with stats
     overview: adminProcedure.query(async () => {

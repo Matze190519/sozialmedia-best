@@ -548,4 +548,13 @@
 - [x] Scripts intern verstecken (nicht in normale Content-Queue)
 - [x] Team bekommt nur fertige Inhalte: Texte + Bilder + Videos + Hashtags
 - [x] Mobile-Optimierung: Sidebar, Dashboard, Content-Cards
-- [ ] GitHub Push für Live-Launch
+- [x] GitHub Push für Live-Launch
+
+## Finaler Live-Launch Push (08.04.2026 - Nachmittag)
+- [x] Tool-Beschreibungen für alle Sidebar-Items (kurz, verständlich für Team)
+- [ ] Dashboard-Onboarding: "So funktioniert's" Karte verbessern
+- [x] Lina Talking Avatar (fal.ai Kling AI) - eigene Seite
+- [x] Duplicate Check vor Queue-Einreichung
+- [ ] Virale Bild/Video-Strategie: Trending Audio Matcher, Hook-Bild-Generator
+- [ ] UX: Bessere Fehlermeldungen, Loading States, Mobile-Optimierung
+- [ ] Tests + GitHub Push

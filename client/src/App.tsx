@@ -42,6 +42,8 @@ import BudgetPage from "./pages/BudgetPage";
 import ViralPredictorPage from "./pages/ViralPredictorPage";
 import ComplianceShieldPage from "./pages/ComplianceShieldPage";
 import ContentRemix7Page from "./pages/ContentRemix7Page";
+import LinaAvatarPage from "./pages/LinaAvatarPage";
+import DuplicateCheckPage from "./pages/DuplicateCheckPage";
 
 function JoinRouter() {
   return (
@@ -91,6 +93,8 @@ function Router() {
         <Route path="/viral-predictor" component={ViralPredictorPage} />
         <Route path="/compliance" component={ComplianceShieldPage} />
         <Route path="/remix7" component={ContentRemix7Page} />
+        <Route path="/lina-avatar" component={LinaAvatarPage} />
+        <Route path="/duplicate-check" component={DuplicateCheckPage} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>
