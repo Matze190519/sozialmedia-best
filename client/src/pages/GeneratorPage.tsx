@@ -6,11 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useState, useMemo, useEffect } from "react";
 import { useSearch } from "wouter";
 import { toast } from "sonner";
@@ -18,48 +18,39 @@ import {
   Zap, Loader2, Sparkles, Package, Image, Video, Wand2, Copy,
   ShieldCheck, AlertTriangle, CheckCircle2, XCircle, Brain,
   Flame, Target, MessageSquare, Film, Mic, FileText, TrendingUp,
+  ArrowRight, ArrowLeft, Download, Eye, Send, ChevronRight,
 } from "lucide-react";
 import { ProductImagePicker } from "@/components/ProductImagePicker";
 import AICopilot from "@/components/AICopilot";
 import PlatformPreview from "@/components/PlatformPreview";
 
 const CONTENT_TYPES = [
-  { value: "post", label: "Social Media Post", icon: FileText },
-  { value: "reel_script", label: "Reel / TikTok Script", icon: Film },
-  { value: "story", label: "Story", icon: Flame },
-  { value: "carousel", label: "Carousel (Instagram/LinkedIn)", icon: Image },
-  { value: "ad_copy", label: "Ad Copy", icon: Target },
-  { value: "linkedin", label: "LinkedIn Artikel", icon: MessageSquare },
-  { value: "youtube_script", label: "YouTube Script", icon: Mic },
-  { value: "follow_up", label: "Follow-Up Nachricht", icon: MessageSquare },
-  { value: "objection", label: "Einwandbehandlung", icon: ShieldCheck },
+  { value: "post", label: "Social Media Post", icon: FileText, desc: "Feed-Post für alle Plattformen" },
+  { value: "reel_script", label: "Reel / TikTok", icon: Film, desc: "Kurzvideo-Script mit Hook" },
+  { value: "story", label: "Story", icon: Flame, desc: "Story für Instagram/Facebook" },
+  { value: "carousel", label: "Carousel", icon: Image, desc: "Mehrere Slides zum Swipen" },
+  { value: "ad_copy", label: "Ad Copy", icon: Target, desc: "Werbeanzeigen-Text" },
+  { value: "linkedin", label: "LinkedIn", icon: MessageSquare, desc: "Professioneller Artikel" },
+  { value: "youtube_script", label: "YouTube Script", icon: Mic, desc: "Langform Video-Script" },
+  { value: "follow_up", label: "Follow-Up", icon: MessageSquare, desc: "Nachfass-Nachricht" },
+  { value: "objection", label: "Einwandbehandlung", icon: ShieldCheck, desc: "Einwände entkräften" },
 ];
 
 const PILLARS = [
-  { value: "Autokonzept", label: "Autokonzept", emoji: "\u{1F697}" },
-  { value: "Business Opportunity", label: "Business Opportunity", emoji: "\u{1F4BC}" },
-  { value: "Produkt-Highlight", label: "Produkt-Highlight", emoji: "\u{1F33F}" },
-  { value: "Lina KI-Demo", label: "Lina KI-Demo", emoji: "\u{1F916}" },
-  { value: "Lifestyle & Erfolg", label: "Lifestyle & Erfolg", emoji: "\u2728" },
-  { value: "Einwandbehandlung", label: "Einwandbehandlung", emoji: "\u{1F6E1}\uFE0F" },
+  { value: "Autokonzept", label: "Autokonzept", emoji: "\u{1F697}", color: "from-amber-500 to-yellow-600" },
+  { value: "Business Opportunity", label: "Business Opportunity", emoji: "\u{1F4BC}", color: "from-amber-400 to-amber-600" },
+  { value: "Produkt-Highlight", label: "Produkt-Highlight", emoji: "\u{1F33F}", color: "from-emerald-500 to-green-600" },
+  { value: "Lina KI-Demo", label: "Lina KI-Demo", emoji: "\u{1F916}", color: "from-purple-500 to-violet-600" },
+  { value: "Lifestyle & Erfolg", label: "Lifestyle & Erfolg", emoji: "\u2728", color: "from-amber-300 to-amber-500" },
+  { value: "Einwandbehandlung", label: "Einwandbehandlung", emoji: "\u{1F6E1}\uFE0F", color: "from-red-500 to-red-600" },
 ];
 
 const HOOK_STYLES = [
-  { value: "curiosity", label: "Neugier-Hook", desc: "Macht neugierig, zwingt zum Weiterlesen" },
-  { value: "story", label: "Story-Hook", desc: "Persönliche Geschichte, emotional" },
-  { value: "value", label: "Value-Hook", desc: "Sofortiger Mehrwert, How-To" },
-  { value: "contrarian", label: "Contrarian-Hook", desc: "Unpopuläre Meinung, provokant" },
-  { value: "socialProof", label: "Social Proof", desc: "Ergebnisse und Beweise" },
-];
-
-const SCRIPT_TEMPLATES = [
-  { value: "reelScript", label: "Reel/TikTok Script" },
-  { value: "storyPost", label: "Story Post (LinkedIn/FB)" },
-  { value: "contrarianTake", label: "Contrarian Take" },
-  { value: "listPost", label: "List Post" },
-  { value: "howTo", label: "How-To Post" },
-  { value: "carouselHook", label: "Carousel" },
-  { value: "youtubeThread", label: "YouTube Longform" },
+  { value: "curiosity", label: "Neugier", desc: "Macht neugierig", icon: "🔍" },
+  { value: "story", label: "Story", desc: "Persönliche Geschichte", icon: "📖" },
+  { value: "value", label: "Value", desc: "Sofortiger Mehrwert", icon: "💎" },
+  { value: "contrarian", label: "Contrarian", desc: "Provokant", icon: "🔥" },
+  { value: "socialProof", label: "Social Proof", desc: "Beweise", icon: "⭐" },
 ];
 
 const VIDEO_MODELS = [
@@ -73,31 +64,27 @@ const ALL_PLATFORMS = [
   "twitter", "threads", "bluesky", "pinterest", "youtube",
 ];
 
+const WIZARD_STEPS = [
+  { id: 1, label: "Was?", desc: "Content-Typ" },
+  { id: 2, label: "Thema", desc: "Pillar & Topic" },
+  { id: 3, label: "Style", desc: "Hook & Plattform" },
+  { id: 4, label: "Generieren", desc: "KI erstellt" },
+  { id: 5, label: "Media", desc: "Bild & Video" },
+  { id: 6, label: "Fertig", desc: "Vorschau & Copy" },
+];
+
 export default function GeneratorPage() {
   const utils = trpc.useUtils();
   const searchString = useSearch();
 
-  // Brand Voice Generator State
+  // Wizard Step
+  const [wizardStep, setWizardStep] = useState(1);
+
+  // Content State
   const [contentType, setContentType] = useState("post");
   const [topic, setTopic] = useState("");
   const [pillar, setPillar] = useState("");
   const [platform, setPlatform] = useState("instagram");
-  const [fromTrend, setFromTrend] = useState(false);
-
-  // Parse URL params from Trend-Scanner clone
-  useEffect(() => {
-    if (!searchString) return;
-    const params = new URLSearchParams(searchString);
-    const t = params.get("topic");
-    const p = params.get("pillar");
-    const src = params.get("source");
-    if (t) setTopic(t);
-    if (p) setPillar(p);
-    if (src === "trend") {
-      setFromTrend(true);
-      toast.info("Trend-Vorlage geladen! Passe den Content an und generiere.", { duration: 5000 });
-    }
-  }, [searchString]);
   const [platforms, setPlatforms] = useState<string[]>(["instagram", "facebook", "tiktok"]);
   const [hookStyle, setHookStyle] = useState("curiosity");
   const [scriptTemplate, setScriptTemplate] = useState("");
@@ -105,6 +92,7 @@ export default function GeneratorPage() {
   const [generatedContent, setGeneratedContent] = useState("");
   const [generatedPostId, setGeneratedPostId] = useState<number | null>(null);
   const [qualityResult, setQualityResult] = useState<any>(null);
+  const [fromTrend, setFromTrend] = useState(false);
 
   // Follow-Up / Objection specific
   const [leadName, setLeadName] = useState("");
@@ -120,14 +108,30 @@ export default function GeneratorPage() {
   const [videoAspect, setVideoAspect] = useState("9:16");
   const [generatedImageUrl, setGeneratedImageUrl] = useState("");
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState("");
+  const [showPreviewDialog, setShowPreviewDialog] = useState(false);
+
+  // Parse URL params from Trend-Scanner clone
+  useEffect(() => {
+    if (!searchString) return;
+    const params = new URLSearchParams(searchString);
+    const t = params.get("topic");
+    const p = params.get("pillar");
+    const src = params.get("source");
+    if (t) setTopic(t);
+    if (p) setPillar(p);
+    if (src === "trend") {
+      setFromTrend(true);
+      setWizardStep(3);
+      toast.info("Trend-Vorlage geladen! Passe den Content an.", { duration: 5000 });
+    }
+  }, [searchString]);
 
   // Brand Voice data
   const brandVoice = trpc.brandVoice.get.useQuery();
   const hookFormulas = trpc.brandVoice.getHooks.useQuery();
-  const scriptTemplates = trpc.brandVoice.getScriptTemplates.useQuery();
   const blockers = trpc.brandVoice.getBlockers.useQuery();
 
-  // Brand Voice Generator (uses LLM with full Brand Voice context)
+  // Brand Voice Generator
   const brandVoiceMut = trpc.brandVoice.generateWithVoice.useMutation({
     onSuccess: (data) => {
       setGeneratedContent(data.content);
@@ -136,11 +140,12 @@ export default function GeneratorPage() {
       utils.content.list.invalidate();
       utils.dashboard.stats.invalidate();
       toast.success(`Content generiert! Quality Score: ${data.qualityGate.score}/100`);
+      setWizardStep(5);
     },
     onError: (err) => toast.error("Fehler: " + err.message),
   });
 
-  // GoViralBitch API Generator (direct API call)
+  // GoViralBitch API Generator
   const goViralMut = trpc.content.generate.useMutation({
     onSuccess: (data) => {
       setGeneratedContent(data.content);
@@ -148,7 +153,8 @@ export default function GeneratorPage() {
       setQualityResult(null);
       utils.content.list.invalidate();
       utils.dashboard.stats.invalidate();
-      toast.success("Content via GoViralBitch generiert!");
+      toast.success("Content generiert!");
+      setWizardStep(5);
     },
     onError: (err) => toast.error("Fehler: " + err.message),
   });
@@ -161,6 +167,7 @@ export default function GeneratorPage() {
       utils.content.list.invalidate();
       utils.dashboard.stats.invalidate();
       toast.success("Wochenplan generiert!");
+      setWizardStep(5);
     },
     onError: (err) => toast.error("Fehler: " + err.message),
   });
@@ -195,8 +202,7 @@ export default function GeneratorPage() {
     setPlatforms(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
   };
 
-  // Brand Voice Generate
-  const handleBrandVoiceGenerate = () => {
+  const handleGenerate = () => {
     if (!topic.trim()) { toast.error("Thema eingeben"); return; }
     if (!pillar) { toast.error("Content Pillar auswählen"); return; }
     brandVoiceMut.mutate({
@@ -210,7 +216,6 @@ export default function GeneratorPage() {
     });
   };
 
-  // GoViralBitch API Generate
   const handleGoViralGenerate = () => {
     if (platforms.length === 0) { toast.error("Mindestens eine Plattform auswählen"); return; }
     goViralMut.mutate({
@@ -229,11 +234,6 @@ export default function GeneratorPage() {
   const handleBatch = () => {
     if (platforms.length === 0) { toast.error("Mindestens eine Plattform auswählen"); return; }
     batchMut.mutate({ platforms });
-  };
-
-  const handleQualityCheck = () => {
-    if (!generatedContent) { toast.error("Erst Content generieren"); return; }
-    qualityMut.mutate({ content: generatedContent, platform });
   };
 
   const handleGenerateImage = () => {
@@ -256,713 +256,638 @@ export default function GeneratorPage() {
 
   const isLoading = brandVoiceMut.isPending || goViralMut.isPending || batchMut.isPending;
 
-  // Memoized hook examples
   const currentHookExamples = useMemo(() => {
     if (!hookFormulas.data) return [];
     const formulas = hookFormulas.data as Record<string, string[]>;
     return formulas[hookStyle] || [];
   }, [hookFormulas.data, hookStyle]);
 
+  const copyAll = () => {
+    const text = generatedContent + (generatedImageUrl ? `\n\n📷 Bild: ${generatedImageUrl}` : "");
+    navigator.clipboard.writeText(text);
+    toast.success("Alles kopiert!");
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-          <Zap className="h-6 w-6 text-primary" />
-          Content-Maschine
-        </h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Brand Voice + KI-Bilder + KI-Videos + Quality Gate. Viraler Content der Kontakte bringt.
-        </p>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight font-[Montserrat] flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/20">
+              <Zap className="h-6 w-6 text-amber-400" />
+            </div>
+            Content-Maschine
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Viraler Content in 60 Sekunden. Text + Bild + Video.
+          </p>
+        </div>
       </div>
 
       {fromTrend && (
-        <Card className="border-amber-500/30 bg-amber-500/5">
-          <CardContent className="p-3 flex items-center gap-3">
-            <TrendingUp className="h-5 w-5 text-amber-400 shrink-0" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-amber-400">Trend-Vorlage geladen</p>
-              <p className="text-xs text-muted-foreground">Thema und Pillar wurden aus dem Trend-Scanner übernommen. Passe an und generiere!</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="p-3 rounded-xl bg-gradient-to-r from-amber-500/10 to-amber-600/5 border border-amber-500/20 flex items-center gap-3">
+          <TrendingUp className="h-5 w-5 text-amber-400 shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-amber-400">Trend-Vorlage geladen</p>
+            <p className="text-xs text-muted-foreground">Thema und Pillar wurden übernommen.</p>
+          </div>
+        </div>
       )}
 
-      <Tabs defaultValue="brandvoice" className="space-y-6">
-        <TabsList className="grid grid-cols-5 w-full max-w-2xl">
-          <TabsTrigger value="brandvoice" className="gap-1.5"><Brain className="h-3.5 w-3.5" /> Brand Voice</TabsTrigger>
-          <TabsTrigger value="goviralbitch" className="gap-1.5"><Sparkles className="h-3.5 w-3.5" /> GoViral</TabsTrigger>
-          <TabsTrigger value="image" className="gap-1.5"><Image className="h-3.5 w-3.5" /> KI-Bild</TabsTrigger>
-          <TabsTrigger value="video" className="gap-1.5"><Video className="h-3.5 w-3.5" /> KI-Video</TabsTrigger>
-          <TabsTrigger value="hooks" className="gap-1.5"><Wand2 className="h-3.5 w-3.5" /> Vorlagen</TabsTrigger>
-        </TabsList>
+      {/* Wizard Progress Bar */}
+      <div className="relative">
+        <div className="flex items-center justify-between mb-2">
+          {WIZARD_STEPS.map((s, i) => (
+            <button
+              key={s.id}
+              onClick={() => {
+                if (s.id <= wizardStep || (s.id === wizardStep + 1)) setWizardStep(s.id);
+              }}
+              className={`flex flex-col items-center gap-1 transition-all ${
+                s.id === wizardStep
+                  ? "scale-110"
+                  : s.id < wizardStep
+                  ? "opacity-70"
+                  : "opacity-40"
+              }`}
+            >
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                s.id === wizardStep
+                  ? "bg-gradient-to-br from-amber-400 to-amber-600 text-black shadow-lg shadow-amber-500/30"
+                  : s.id < wizardStep
+                  ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                  : "bg-white/5 text-muted-foreground border border-white/10"
+              }`}>
+                {s.id < wizardStep ? <CheckCircle2 className="h-5 w-5" /> : s.id}
+              </div>
+              <span className={`text-[10px] font-medium hidden sm:block ${
+                s.id === wizardStep ? "text-amber-400" : "text-muted-foreground"
+              }`}>
+                {s.label}
+              </span>
+            </button>
+          ))}
+        </div>
+        <Progress value={(wizardStep / WIZARD_STEPS.length) * 100} className="h-1 bg-white/5" />
+      </div>
 
-        {/* ═══ BRAND VOICE GENERATOR ═══ */}
-        <TabsContent value="brandvoice">
-          <div className="grid lg:grid-cols-5 gap-6">
-            <div className="lg:col-span-3 space-y-4">
-              <Card className="border-primary/30">
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Brain className="h-4 w-4 text-primary" />
-                    Brand Voice Generator
-                  </CardTitle>
-                  <CardDescription>
-                    Generiert Content mit deiner LR Brand Voice, Hook-Formulas und CTA-Templates. Automatischer Quality Gate Check.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Content-Typ</Label>
-                      <Select value={contentType} onValueChange={setContentType}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {CONTENT_TYPES.map(t => (
-                            <SelectItem key={t.value} value={t.value}>
-                              <span className="flex items-center gap-2">
-                                <t.icon className="h-3.5 w-3.5" /> {t.label}
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+      {/* ═══ STEP 1: Content-Typ wählen ═══ */}
+      {wizardStep === 1 && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold font-[Montserrat]">Was möchtest du erstellen?</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {CONTENT_TYPES.map(t => (
+              <button
+                key={t.value}
+                onClick={() => { setContentType(t.value); setWizardStep(2); }}
+                className={`p-4 rounded-xl border text-left transition-all hover:scale-[1.02] active:scale-[0.98] ${
+                  contentType === t.value
+                    ? "border-amber-500/50 bg-amber-500/10 shadow-lg shadow-amber-500/10"
+                    : "border-white/10 bg-white/[0.02] hover:border-amber-500/30 hover:bg-amber-500/5"
+                }`}
+              >
+                <t.icon className={`h-6 w-6 mb-2 ${contentType === t.value ? "text-amber-400" : "text-muted-foreground"}`} />
+                <p className="font-medium text-sm">{t.label}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">{t.desc}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
-                    <div className="space-y-2">
-                      <Label>Plattform</Label>
-                      <Select value={platform} onValueChange={setPlatform}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {ALL_PLATFORMS.map(p => (
-                            <SelectItem key={p} value={p}><span className="capitalize">{p}</span></SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+      {/* ═══ STEP 2: Thema & Pillar ═══ */}
+      {wizardStep === 2 && (
+        <div className="space-y-6">
+          <h2 className="text-lg font-semibold font-[Montserrat]">Wähle dein Thema</h2>
 
-                  <div className="space-y-2">
-                    <Label>Thema / Topic</Label>
-                    <Input
-                      placeholder="z.B. Warum 99 Euro dein Leben verändern, Autokonzept erklärt, Lina Demo..."
-                      value={topic}
-                      onChange={e => setTopic(e.target.value)}
-                    />
-                  </div>
+          {/* Content Pillars als große Karten */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {PILLARS.map(p => (
+              <button
+                key={p.value}
+                onClick={() => setPillar(p.value)}
+                className={`p-4 rounded-xl border text-left transition-all hover:scale-[1.02] active:scale-[0.98] ${
+                  pillar === p.value
+                    ? "border-amber-500/50 bg-amber-500/10 shadow-lg shadow-amber-500/10"
+                    : "border-white/10 bg-white/[0.02] hover:border-amber-500/30"
+                }`}
+              >
+                <span className="text-2xl">{p.emoji}</span>
+                <p className="font-medium text-sm mt-2">{p.label}</p>
+              </button>
+            ))}
+          </div>
 
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Content Pillar</Label>
-                      <Select value={pillar} onValueChange={setPillar}>
-                        <SelectTrigger><SelectValue placeholder="Pillar wählen..." /></SelectTrigger>
-                        <SelectContent>
-                          {PILLARS.map(p => (
-                            <SelectItem key={p.value} value={p.value}>
-                              {p.emoji} {p.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+          {/* Topic Input */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Dein Thema / Idee</Label>
+            <Input
+              placeholder="z.B. Warum 99 Euro dein Leben verändern, Autokonzept erklärt..."
+              value={topic}
+              onChange={e => setTopic(e.target.value)}
+              className="h-12 text-base bg-white/[0.03] border-white/10 focus:border-amber-500/50"
+            />
+          </div>
 
-                    <div className="space-y-2">
-                      <Label>Hook-Stil</Label>
-                      <Select value={hookStyle} onValueChange={setHookStyle}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {HOOK_STYLES.map(h => (
-                            <SelectItem key={h.value} value={h.value}>
-                              {h.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Script-Template (optional)</Label>
-                    <Select value={scriptTemplate} onValueChange={setScriptTemplate}>
-                      <SelectTrigger><SelectValue placeholder="Kein Template..." /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Kein Template</SelectItem>
-                        {SCRIPT_TEMPLATES.map(t => (
-                          <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 bg-accent/30 rounded-lg">
-                    <Switch checked={includeBlocker} onCheckedChange={setIncludeBlocker} />
-                    <div>
-                      <p className="text-sm font-medium">Einwandbehandlung einbauen</p>
-                      <p className="text-xs text-muted-foreground">Zerstört häufige Einwände direkt im Content</p>
-                    </div>
-                  </div>
-
-                  {contentType === "follow_up" && (
-                    <div className="space-y-3 p-3 bg-accent/30 rounded-lg">
-                      <div className="space-y-2">
-                        <Label>Lead Name</Label>
-                        <Input value={leadName} onChange={e => setLeadName(e.target.value)} placeholder="Name des Leads..." />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Follow-Up Schritt</Label>
-                        <Input type="number" min={1} max={10} value={step} onChange={e => setStep(Number(e.target.value))} />
-                      </div>
-                    </div>
-                  )}
-
-                  {contentType === "objection" && (
-                    <div className="space-y-2 p-3 bg-accent/30 rounded-lg">
-                      <Label>Einwand</Label>
-                      <Textarea value={objection} onChange={e => setObjection(e.target.value)} placeholder="z.B. Ich habe keine Zeit..." rows={2} />
-                    </div>
-                  )}
-
-                  <div className="flex gap-2">
-                    <Button className="flex-1 gap-2" onClick={handleBrandVoiceGenerate} disabled={isLoading}>
-                      {brandVoiceMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Brain className="h-4 w-4" />}
-                      Mit Brand Voice generieren
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+          {/* Hook-Beispiele als Inspiration */}
+          {currentHookExamples.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Inspiration (klicken zum Übernehmen):</Label>
+              <div className="flex flex-wrap gap-2">
+                {currentHookExamples.slice(0, 6).map((hook: string, i: number) => (
+                  <Badge
+                    key={i}
+                    variant="outline"
+                    className="cursor-pointer hover:bg-amber-500/10 hover:border-amber-500/30 text-xs py-1.5 px-3 transition-all"
+                    onClick={() => { setTopic(hook); toast.success("Übernommen!"); }}
+                  >
+                    {hook.length > 50 ? hook.slice(0, 50) + "..." : hook}
+                  </Badge>
+                ))}
+              </div>
             </div>
+          )}
 
-            {/* Right Column: Preview + Quality Gate */}
-            <div className="lg:col-span-2 space-y-4">
-              {/* Hook Examples */}
-              {currentHookExamples.length > 0 && (
-                <Card className="border-amber-500/30">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm flex items-center gap-2 text-amber-400">
-                      <Flame className="h-4 w-4" />
-                      Hook-Beispiele ({HOOK_STYLES.find(h => h.value === hookStyle)?.label})
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-1.5">
-                    {currentHookExamples.slice(0, 4).map((hook: string, i: number) => (
-                      <div
-                        key={i}
-                        className="p-2 bg-accent/30 rounded text-xs cursor-pointer hover:bg-accent/50 transition-colors"
-                        onClick={() => { setTopic(hook); toast.success("Hook als Topic übernommen!"); }}
-                      >
-                        {hook}
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
+          {contentType === "follow_up" && (
+            <div className="space-y-3 p-4 rounded-xl bg-white/[0.02] border border-white/10">
+              <div className="space-y-2">
+                <Label>Lead Name</Label>
+                <Input value={leadName} onChange={e => setLeadName(e.target.value)} placeholder="Name des Leads..." className="bg-white/[0.03]" />
+              </div>
+              <div className="space-y-2">
+                <Label>Follow-Up Schritt</Label>
+                <Input type="number" min={1} max={10} value={step} onChange={e => setStep(Number(e.target.value))} className="bg-white/[0.03]" />
+              </div>
+            </div>
+          )}
 
-              {/* Einwandbehandlung */}
-              {includeBlocker && blockers.data && (
-                <Card className="border-red-500/30">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm flex items-center gap-2 text-red-400">
-                      <ShieldCheck className="h-4 w-4" />
-                      Einwände die zerstört werden
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-1.5">
-                    {(blockers.data as any[]).filter((b: any) => !pillar || b.pillar === pillar).slice(0, 3).map((b: any, i: number) => (
-                      <div key={i} className="p-2 bg-red-500/10 rounded text-xs">
-                        <p className="font-medium text-red-400">"{b.lie}"</p>
-                        <p className="text-muted-foreground mt-1">{b.destruction}</p>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
+          {contentType === "objection" && (
+            <div className="space-y-2 p-4 rounded-xl bg-white/[0.02] border border-white/10">
+              <Label>Welcher Einwand?</Label>
+              <Textarea value={objection} onChange={e => setObjection(e.target.value)} placeholder="z.B. Ich habe keine Zeit..." rows={2} className="bg-white/[0.03]" />
+            </div>
+          )}
 
-              {/* Generated Content Preview */}
-              {generatedContent && (
-                <Card className="border-primary/30">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-primary flex items-center justify-between">
-                      Generierter Content
-                      <div className="flex items-center gap-2">
-                        {generatedPostId && <Badge variant="outline" className="text-[10px]">#{generatedPostId}</Badge>}
-                        <Button size="sm" variant="ghost" className="h-6 px-2" onClick={() => { navigator.clipboard.writeText(generatedContent); toast.success("Kopiert!"); }}>
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Textarea
-                      value={generatedContent}
-                      onChange={(e) => setGeneratedContent(e.target.value)}
-                      className="bg-accent/30 text-xs leading-relaxed min-h-[120px] max-h-60 resize-y"
-                    />
-                    <div className="flex gap-2 mt-3">
-                      <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={handleQualityCheck} disabled={qualityMut.isPending}>
-                        {qualityMut.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <ShieldCheck className="h-3 w-3" />}
-                        Quality Check
-                      </Button>
-                    </div>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => setWizardStep(1)} className="gap-2 border-white/10">
+              <ArrowLeft className="h-4 w-4" /> Zurück
+            </Button>
+            <Button
+              className="flex-1 h-12 gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-semibold text-base"
+              onClick={() => {
+                if (!pillar) { toast.error("Wähle einen Content Pillar"); return; }
+                setWizardStep(3);
+              }}
+            >
+              Weiter <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
-                    {/* AI Copilot */}
-                    <div className="mt-3">
-                      <AICopilot
-                        content={generatedContent}
-                        onApply={(newContent) => setGeneratedContent(newContent)}
-                        platform={platform}
-                        contentType={contentType}
-                      />
-                    </div>
+      {/* ═══ STEP 3: Style & Plattform ═══ */}
+      {wizardStep === 3 && (
+        <div className="space-y-6">
+          <h2 className="text-lg font-semibold font-[Montserrat]">Style & Plattform</h2>
 
-                    {/* Plattform-Vorschau */}
-                    <div className="mt-3">
-                      <PlatformPreview
-                        content={generatedContent}
-                        imageUrl={generatedImageUrl || undefined}
-                        platforms={platforms}
-                        userName="LR Partner"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Quality Gate Results */}
-              {qualityResult && (
-                <Card className={qualityResult.passed ? "border-emerald-500/30" : "border-red-500/30"}>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      {qualityResult.passed ? (
-                        <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                      ) : (
-                        <XCircle className="h-4 w-4 text-red-400" />
-                      )}
-                      Quality Gate: {qualityResult.score}/100
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <Progress value={qualityResult.score} className="h-2" />
-                    <div className="space-y-1">
-                      {qualityResult.checks?.map((check: any, i: number) => (
-                        <div key={i} className="flex items-center gap-2 text-xs">
-                          {check.passed ? (
-                            <CheckCircle2 className="h-3 w-3 text-emerald-400 shrink-0" />
-                          ) : check.severity === "error" ? (
-                            <XCircle className="h-3 w-3 text-red-400 shrink-0" />
-                          ) : (
-                            <AlertTriangle className="h-3 w-3 text-amber-400 shrink-0" />
-                          )}
-                          <span className="text-muted-foreground">{check.name}:</span>
-                          <span>{check.message}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+          {/* Hook Style */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Hook-Stil</Label>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              {HOOK_STYLES.map(h => (
+                <button
+                  key={h.value}
+                  onClick={() => setHookStyle(h.value)}
+                  className={`p-3 rounded-xl border text-center transition-all ${
+                    hookStyle === h.value
+                      ? "border-amber-500/50 bg-amber-500/10"
+                      : "border-white/10 bg-white/[0.02] hover:border-amber-500/30"
+                  }`}
+                >
+                  <span className="text-xl">{h.icon}</span>
+                  <p className="text-xs font-medium mt-1">{h.label}</p>
+                </button>
+              ))}
             </div>
           </div>
-        </TabsContent>
 
-        {/* ═══ GOVIRALBITCH API TAB ═══ */}
-        <TabsContent value="goviralbitch">
-          <div className="grid lg:grid-cols-2 gap-6">
-            <Card className="border-border/50">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  GoViralBitch API
-                </CardTitle>
-                <CardDescription>Direkte Content-Generierung über die GoViralBitch API</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Content-Typ</Label>
-                  <Select value={contentType} onValueChange={setContentType}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {CONTENT_TYPES.map(t => (
-                        <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+          {/* Plattform */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Hauptplattform</Label>
+            <Select value={platform} onValueChange={setPlatform}>
+              <SelectTrigger className="h-12 bg-white/[0.03] border-white/10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ALL_PLATFORMS.map(p => (
+                  <SelectItem key={p} value={p}><span className="capitalize">{p}</span></SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Multi-Plattform */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Auch posten auf:</Label>
+            <div className="flex flex-wrap gap-2">
+              {ALL_PLATFORMS.map(p => (
+                <button
+                  key={p}
+                  onClick={() => togglePlatform(p)}
+                  className={`px-3 py-2 rounded-lg border text-xs font-medium capitalize transition-all ${
+                    platforms.includes(p)
+                      ? "border-amber-500/50 bg-amber-500/10 text-amber-400"
+                      : "border-white/10 bg-white/[0.02] text-muted-foreground hover:border-amber-500/30"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Einwandbehandlung Toggle */}
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-white/[0.02] border border-white/10">
+            <Switch checked={includeBlocker} onCheckedChange={setIncludeBlocker} />
+            <div>
+              <p className="text-sm font-medium">Einwandbehandlung einbauen</p>
+              <p className="text-xs text-muted-foreground">Zerstört häufige Einwände direkt im Content</p>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => setWizardStep(2)} className="gap-2 border-white/10">
+              <ArrowLeft className="h-4 w-4" /> Zurück
+            </Button>
+            <Button
+              className="flex-1 h-12 gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-semibold text-base"
+              onClick={() => setWizardStep(4)}
+            >
+              Weiter <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ STEP 4: Generieren ═══ */}
+      {wizardStep === 4 && (
+        <div className="space-y-6">
+          <h2 className="text-lg font-semibold font-[Montserrat]">Content generieren</h2>
+
+          {/* Zusammenfassung */}
+          <Card className="border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent">
+            <CardContent className="p-4 space-y-3">
+              <h3 className="text-sm font-semibold text-amber-400">Deine Auswahl:</h3>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Typ:</span>
+                  <Badge variant="outline" className="border-amber-500/30">{CONTENT_TYPES.find(t => t.value === contentType)?.label}</Badge>
                 </div>
-
-                <div className="space-y-2">
-                  <Label>Thema</Label>
-                  <Input placeholder="z.B. LR Autokonzept, Aloe Vera..." value={topic} onChange={e => setTopic(e.target.value)} />
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Pillar:</span>
+                  <Badge variant="outline" className="border-amber-500/30">{PILLARS.find(p => p.value === pillar)?.emoji} {pillar}</Badge>
                 </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Hook:</span>
+                  <Badge variant="outline" className="border-amber-500/30">{HOOK_STYLES.find(h => h.value === hookStyle)?.label}</Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Plattform:</span>
+                  <Badge variant="outline" className="border-amber-500/30 capitalize">{platform}</Badge>
+                </div>
+              </div>
+              {topic && (
+                <div className="text-sm">
+                  <span className="text-muted-foreground">Thema: </span>
+                  <span className="text-amber-300">{topic}</span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-                <div className="space-y-2">
-                  <Label>Plattformen</Label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {ALL_PLATFORMS.map(p => (
-                      <label key={p} className="flex items-center gap-2 text-sm cursor-pointer">
-                        <Checkbox checked={platforms.includes(p)} onCheckedChange={() => togglePlatform(p)} />
-                        <span className="capitalize">{p}</span>
-                      </label>
-                    ))}
+          {/* Generator Buttons */}
+          <div className="grid gap-3">
+            <Button
+              className="h-16 gap-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold text-lg shadow-lg shadow-amber-500/20"
+              onClick={handleGenerate}
+              disabled={isLoading}
+            >
+              {brandVoiceMut.isPending ? (
+                <>
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                  KI generiert deinen Content...
+                </>
+              ) : (
+                <>
+                  <Brain className="h-6 w-6" />
+                  Mit Brand Voice generieren
+                </>
+              )}
+            </Button>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                className="h-12 gap-2 border-white/10 hover:border-amber-500/30"
+                onClick={handleGoViralGenerate}
+                disabled={isLoading}
+              >
+                {goViralMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 text-amber-400" />}
+                GoViral API
+              </Button>
+              <Button
+                variant="outline"
+                className="h-12 gap-2 border-white/10 hover:border-amber-500/30"
+                onClick={handleBatch}
+                disabled={isLoading}
+              >
+                {batchMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Package className="h-4 w-4 text-amber-400" />}
+                Wochenplan
+              </Button>
+            </div>
+          </div>
+
+          {isLoading && (
+            <div className="text-center space-y-3 py-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20">
+                <Loader2 className="h-8 w-8 text-amber-400 animate-spin" />
+              </div>
+              <p className="text-sm text-muted-foreground">KI erstellt deinen viralen Content...</p>
+              <Progress value={65} className="h-1 max-w-xs mx-auto bg-white/5" />
+            </div>
+          )}
+
+          <Button variant="outline" onClick={() => setWizardStep(3)} className="gap-2 border-white/10">
+            <ArrowLeft className="h-4 w-4" /> Zurück
+          </Button>
+        </div>
+      )}
+
+      {/* ═══ STEP 5: Media (Bild & Video) ═══ */}
+      {wizardStep === 5 && (
+        <div className="space-y-6">
+          <h2 className="text-lg font-semibold font-[Montserrat]">Bild & Video hinzufügen</h2>
+
+          {/* Generated Content Preview (kompakt) */}
+          {generatedContent && (
+            <Card className="border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-amber-400">Dein Content</span>
+                  <div className="flex items-center gap-2">
+                    {qualityResult && (
+                      <Badge className={qualityResult.passed ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" : "bg-red-500/20 text-red-400 border-red-500/30"}>
+                        Score: {qualityResult.score}/100
+                      </Badge>
+                    )}
+                    <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => { navigator.clipboard.writeText(generatedContent); toast.success("Kopiert!"); }}>
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
                 </div>
-
-                <div className="flex gap-2">
-                  <Button className="flex-1 gap-2" onClick={handleGoViralGenerate} disabled={isLoading}>
-                    {goViralMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                    Generieren
-                  </Button>
-                  <Button variant="outline" className="gap-2" onClick={handleBatch} disabled={isLoading}>
-                    {batchMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Package className="h-4 w-4" />}
-                    Wochenplan
-                  </Button>
+                <div className="bg-black/30 rounded-lg p-3 text-sm leading-relaxed whitespace-pre-wrap max-h-32 overflow-y-auto">
+                  {generatedContent.slice(0, 300)}{generatedContent.length > 300 ? "..." : ""}
                 </div>
               </CardContent>
             </Card>
+          )}
 
-            <div className="space-y-4">
-              {generatedContent && (
-                <Card className="border-primary/30">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base text-primary flex items-center justify-between">
-                      Generierter Content
-                      <Badge variant="outline" className="text-[10px]">#{generatedPostId}</Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="bg-accent/30 rounded-lg p-4 text-sm leading-relaxed whitespace-pre-wrap max-h-80 overflow-y-auto">
-                      {generatedContent}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-3">
-                      In der Approval-Queue. Jetzt KI-Bild oder Video dazu generieren?
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* ═══ KI-BILD TAB ═══ */}
-        <TabsContent value="image">
           <div className="grid lg:grid-cols-2 gap-6">
+            {/* KI-Bild */}
             <div className="space-y-4">
-              {/* Product Image Picker */}
               <ProductImagePicker
                 contentPostId={generatedPostId}
-                onImageSelected={(url: string) => {
-                  setGeneratedImageUrl(url);
-                }}
+                onImageSelected={(url: string) => setGeneratedImageUrl(url)}
               />
 
-              <Card className="border-border/50">
-                <CardHeader>
+              <Card className="border-white/10 bg-white/[0.02]">
+                <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <Image className="h-4 w-4 text-amber-400" />
                     KI-Bild generieren
                   </CardTitle>
-                  <CardDescription>Oder erstelle ein neues Bild mit KI</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Bild-Prompt</Label>
-                    <Textarea
-                      rows={4}
-                      value={imagePrompt}
-                      onChange={e => setImagePrompt(e.target.value)}
-                      placeholder="Beschreibe das Bild... z.B. 'Luxuriöser Porsche vor einer Villa, Sonnenuntergang, cinematic lighting'"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">LR-Schnell-Prompts:</Label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {[
-                        "Luxus-Porsche vor Villa, goldene Stunde, cinematic, social media post",
-                        "Gesunde Person mit grünem Smoothie, strahlend, modern studio, bright lighting",
-                        "Laptop am Strand, Palmen, digitaler Nomad, Freiheit, warm tones",
-                        "Team-Event, Konfetti, Champagner, Erfolg, professionell, celebration",
-                        "Vorher-Nachher Transformation, split screen, clean design, dramatic",
-                        "Mercedes AMG auf Bergstraße, Sonnenuntergang, epic, cinematic drone shot",
-                        "Aloe Vera Pflanze, Wassertropfen, macro, frisch, Gesundheit, premium",
-                      ].map((p, i) => (
-                        <Badge
-                          key={i}
-                          variant="outline"
-                          className="cursor-pointer hover:bg-accent text-[10px]"
-                          onClick={() => setImagePrompt(p)}
-                        >
-                          {p.slice(0, 40)}...
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  <Button className="w-full gap-2" onClick={handleGenerateImage} disabled={generateImageMut.isPending}>
-                    {generateImageMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
-                    Bild generieren
-                  </Button>
-
-                  {generatedPostId && (
-                    <p className="text-xs text-muted-foreground text-center">
-                      Wird automatisch an Post #{generatedPostId} angehängt
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {generatedImageUrl && (
-              <Card className="border-amber-500/30">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base text-amber-400">Generiertes / Ausgewähltes Bild</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <img src={generatedImageUrl} alt="Bild" className="rounded-lg w-full" />
-                  <div className="flex gap-2 mt-3">
-                    <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => window.open(generatedImageUrl, "_blank")}>
-                      Vollbild öffnen
-                    </Button>
-                    <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => { setVideoPrompt(imagePrompt); toast.success("Prompt für Video übernommen!"); }}>
-                      <Video className="h-3 w-3" /> Als Video animieren
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </TabsContent>
-
-        {/* ═══ KI-VIDEO TAB ═══ */}
-        <TabsContent value="video">
-          <div className="grid lg:grid-cols-2 gap-6">
-            <Card className="border-border/50">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Video className="h-4 w-4 text-amber-400" />
-                  KI-Video generieren
-                </CardTitle>
-                <CardDescription>Echte Video-KI: Kling 3.0 Pro oder Minimax</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Video-Prompt</Label>
+                <CardContent className="space-y-3">
                   <Textarea
-                    rows={4}
-                    value={videoPrompt}
-                    onChange={e => setVideoPrompt(e.target.value)}
-                    placeholder="Beschreibe das Video... z.B. 'Kamerafahrt um einen Porsche, goldene Stunde, cinematic slow motion'"
+                    rows={3}
+                    value={imagePrompt}
+                    onChange={e => setImagePrompt(e.target.value)}
+                    placeholder="Beschreibe das Bild..."
+                    className="bg-white/[0.03] border-white/10"
                   />
-                </div>
-
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="space-y-2">
-                    <Label className="text-xs">Video-KI Modell</Label>
-                    <Select value={videoModel} onValueChange={setVideoModel}>
-                      <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {VIDEO_MODELS.map(m => (
-                          <SelectItem key={m.value} value={m.value}>
-                            <div>
-                              <p className="font-medium">{m.label}</p>
-                              <p className="text-xs text-muted-foreground">{m.desc}</p>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-xs">Dauer</Label>
-                    <Select value={videoDuration} onValueChange={setVideoDuration}>
-                      <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="4">4s</SelectItem>
-                        <SelectItem value="5">5s (Standard)</SelectItem>
-                        <SelectItem value="6">6s</SelectItem>
-                        <SelectItem value="8">8s (Veo 3.1 Max)</SelectItem>
-                        <SelectItem value="10">10s (Kling 3.0)</SelectItem>
-                        <SelectItem value="12">12s (Kling 3.0)</SelectItem>
-                        <SelectItem value="15">15s (Kling 3.0 Max)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-xs">Format</Label>
-                    <Select value={videoAspect} onValueChange={setVideoAspect}>
-                      <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="9:16">9:16 (Reels/TikTok)</SelectItem>
-                        <SelectItem value="16:9">16:9 (YouTube)</SelectItem>
-                        <SelectItem value="1:1">1:1 (Feed)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">LR Video-Prompts:</Label>
                   <div className="flex flex-wrap gap-1.5">
                     {[
-                      "Cinematic slow-motion Kamerafahrt um weißen Porsche 911, goldene Stunde, Lens Flare",
-                      "Person trinkt grünen Smoothie, strahlt, Zoom-In auf Gesicht, bright studio",
-                      "Laptop öffnet sich am Strand, Palmen, Wellen, digitaler Nomad Lifestyle",
-                      "Team auf Bühne, Konfetti fällt, Jubel, epic Zeitlupe, Celebration",
-                      "Sonnenaufgang über Skyline, motivierend, Drohnenaufnahme, epic cinematic",
+                      "Luxus-Porsche vor Villa, goldene Stunde, cinematic",
+                      "Gesunde Person mit Smoothie, strahlend, modern studio",
+                      "Laptop am Strand, Palmen, digitaler Nomad",
+                      "Mercedes AMG, Sonnenuntergang, epic drone shot",
                     ].map((p, i) => (
-                      <Badge
-                        key={i}
-                        variant="outline"
-                        className="cursor-pointer hover:bg-accent text-[10px]"
-                        onClick={() => setVideoPrompt(p)}
-                      >
-                        {p.slice(0, 40)}...
+                      <Badge key={i} variant="outline" className="cursor-pointer hover:bg-amber-500/10 text-[10px] border-white/10" onClick={() => setImagePrompt(p)}>
+                        {p.slice(0, 35)}...
                       </Badge>
                     ))}
                   </div>
-                </div>
-
-                {generatedImageUrl && (
-                  <div className="p-3 bg-amber-500/10 rounded-lg">
-                    <p className="text-xs text-muted-foreground mb-2">Basis-Bild (Image-to-Video):</p>
-                    <img src={generatedImageUrl} alt="Basis" className="rounded h-20 object-cover" />
-                    <p className="text-[10px] text-muted-foreground mt-1">Das Bild wird als Startframe für das Video verwendet</p>
-                  </div>
-                )}
-
-                <Button className="w-full gap-2" onClick={handleGenerateVideo} disabled={generateVideoMut.isPending}>
-                  {generateVideoMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
-                  Video generieren ({VIDEO_MODELS.find(m => m.value === videoModel)?.label})
-                </Button>
-
-                {/* Musik-Hinweis */}
-                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 text-xs text-amber-300">
-                  <p className="font-semibold mb-1">🎵 Musik hinzufügen (nach dem Download):</p>
-                  <p className="text-muted-foreground">Das KI-Video hat keinen Ton. Füge Musik in CapCut oder Instagram Reels Editor hinzu:</p>
-                  <ul className="mt-1.5 space-y-0.5 text-muted-foreground">
-                    <li>• <strong className="text-amber-300">Team-Videos:</strong> Motivierende Beats, energiegeladen (z.B. Epic/Cinematic)</li>
-                    <li>• <strong className="text-amber-300">Produkt-Videos:</strong> Ruhige, elegante Musik (Lo-Fi, Ambient)</li>
-                    <li>• <strong className="text-amber-300">Lifestyle-Videos:</strong> Trendige Pop/R&B Beats</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-
-            {generatedVideoUrl && (
-              <Card className="border-amber-500/30">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base text-amber-400">Generiertes KI-Video</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <video src={generatedVideoUrl} controls className="rounded-lg w-full" />
-                  <div className="flex gap-2 mt-3">
-                    <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => window.open(generatedVideoUrl, "_blank")}>
-                      Video herunterladen
-                    </Button>
-                  </div>
+                  <Button className="w-full gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-semibold" onClick={handleGenerateImage} disabled={generateImageMut.isPending}>
+                    {generateImageMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
+                    Bild generieren
+                  </Button>
                 </CardContent>
               </Card>
-            )}
-          </div>
-        </TabsContent>
 
-        {/* ═══ VORLAGEN TAB ═══ */}
-        <TabsContent value="hooks">
-          <div className="space-y-6">
-            {/* Hook Formulas from GitHub Repos */}
+              {generatedImageUrl && (
+                <Card className="border-amber-500/20 overflow-hidden">
+                  <img src={generatedImageUrl} alt="Generiert" className="w-full rounded-t-lg" />
+                  <CardContent className="p-3 flex gap-2">
+                    <Button size="sm" variant="outline" className="flex-1 gap-1.5 text-xs border-white/10" onClick={() => window.open(generatedImageUrl, "_blank")}>
+                      <Download className="h-3 w-3" /> Speichern
+                    </Button>
+                    <Button size="sm" variant="outline" className="flex-1 gap-1.5 text-xs border-white/10" onClick={() => { setVideoPrompt(imagePrompt); toast.success("Prompt für Video übernommen!"); }}>
+                      <Video className="h-3 w-3" /> Als Video
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* KI-Video */}
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Flame className="h-5 w-5 text-amber-400" />
-                Hook-Formulas (aus Agent Brain)
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Getestete Hooks aus dem GoViralBitch Agent Brain und marketingskills Repo. Klicke um als Topic zu übernehmen.
-              </p>
-              {hookFormulas.data && (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {Object.entries(hookFormulas.data as Record<string, string[]>).map(([style, hooks]) => (
-                    <Card key={style} className="border-border/50">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm capitalize">{style.replace(/([A-Z])/g, ' $1')}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-1.5">
-                        {(hooks as string[]).slice(0, 4).map((hook: string, i: number) => (
-                          <div
-                            key={i}
-                            className="flex items-start gap-2 p-2 bg-accent/30 rounded group cursor-pointer hover:bg-accent/50 transition-colors"
-                            onClick={() => { setTopic(hook); toast.success("Hook als Topic übernommen!"); }}
-                          >
-                            <p className="text-[11px] flex-1">{hook}</p>
-                            <Copy className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-0.5" />
-                          </div>
+              <Card className="border-white/10 bg-white/[0.02]">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Video className="h-4 w-4 text-amber-400" />
+                    KI-Video generieren
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Textarea
+                    rows={3}
+                    value={videoPrompt}
+                    onChange={e => setVideoPrompt(e.target.value)}
+                    placeholder="Beschreibe das Video..."
+                    className="bg-white/[0.03] border-white/10"
+                  />
+                  <div className="grid grid-cols-3 gap-2">
+                    <Select value={videoModel} onValueChange={setVideoModel}>
+                      <SelectTrigger className="text-xs bg-white/[0.03] border-white/10"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {VIDEO_MODELS.map(m => (
+                          <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
                         ))}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
+                      </SelectContent>
+                    </Select>
+                    <Select value={videoDuration} onValueChange={setVideoDuration}>
+                      <SelectTrigger className="text-xs bg-white/[0.03] border-white/10"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="5">5s</SelectItem>
+                        <SelectItem value="8">8s</SelectItem>
+                        <SelectItem value="10">10s</SelectItem>
+                        <SelectItem value="15">15s</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={videoAspect} onValueChange={setVideoAspect}>
+                      <SelectTrigger className="text-xs bg-white/[0.03] border-white/10"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="9:16">9:16 Reels</SelectItem>
+                        <SelectItem value="16:9">16:9 YouTube</SelectItem>
+                        <SelectItem value="1:1">1:1 Feed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button className="w-full gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-semibold" onClick={handleGenerateVideo} disabled={generateVideoMut.isPending}>
+                    {generateVideoMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
+                    Video generieren
+                  </Button>
+                </CardContent>
+              </Card>
 
-            <Separator />
-
-            {/* Script Templates */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <FileText className="h-5 w-5 text-amber-400" />
-                Viral Script Templates
-              </h2>
-              {scriptTemplates.data && (
-                <div className="grid md:grid-cols-2 gap-4">
-                  {Object.entries(scriptTemplates.data as Record<string, { name: string; structure: string }>).map(([key, tmpl]) => (
-                    <Card key={key} className="border-border/50">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm">{tmpl.name}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <pre className="text-[10px] text-muted-foreground whitespace-pre-wrap bg-accent/30 rounded p-3 max-h-40 overflow-y-auto">
-                          {tmpl.structure}
-                        </pre>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="mt-2 gap-1.5 text-xs"
-                          onClick={() => { setScriptTemplate(key); toast.success(`Template "${tmpl.name}" ausgewählt!`); }}
-                        >
-                          <Wand2 className="h-3 w-3" /> Als Template verwenden
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <Separator />
-
-            {/* Einwandbehandlung */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-red-400" />
-                Einwandbehandlung (Audience Blockers)
-              </h2>
-              {blockers.data && (
-                <div className="grid md:grid-cols-2 gap-3">
-                  {(blockers.data as any[]).map((b: any, i: number) => (
-                    <Card key={i} className="border-red-500/20">
-                      <CardContent className="pt-4 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-[10px]">{b.pillar}</Badge>
-                        </div>
-                        <p className="text-sm font-medium text-red-400">"{b.lie}"</p>
-                        <p className="text-xs text-muted-foreground">{b.destruction}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+              {generatedVideoUrl && (
+                <Card className="border-amber-500/20 overflow-hidden">
+                  <video src={generatedVideoUrl} controls className="w-full rounded-t-lg" />
+                  <CardContent className="p-3">
+                    <Button size="sm" variant="outline" className="w-full gap-1.5 text-xs border-white/10" onClick={() => window.open(generatedVideoUrl, "_blank")}>
+                      <Download className="h-3 w-3" /> Video herunterladen
+                    </Button>
+                  </CardContent>
+                </Card>
               )}
             </div>
           </div>
-        </TabsContent>
-      </Tabs>
+
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => setWizardStep(4)} className="gap-2 border-white/10">
+              <ArrowLeft className="h-4 w-4" /> Zurück
+            </Button>
+            <Button
+              className="flex-1 h-12 gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-semibold text-base"
+              onClick={() => setWizardStep(6)}
+            >
+              Vorschau & Fertig <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ STEP 6: Fertig — Vorschau & Copy ═══ */}
+      {wizardStep === 6 && (
+        <div className="space-y-6">
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 shadow-lg shadow-amber-500/30">
+              <CheckCircle2 className="h-8 w-8 text-black" />
+            </div>
+            <h2 className="text-xl font-bold font-[Montserrat]">Dein Content ist fertig!</h2>
+            <p className="text-sm text-muted-foreground">Kopiere alles mit einem Tap und poste es.</p>
+          </div>
+
+          {/* Content Card */}
+          <Card className="border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent overflow-hidden">
+            {generatedImageUrl && (
+              <img src={generatedImageUrl} alt="Content Bild" className="w-full max-h-80 object-cover" />
+            )}
+            {generatedVideoUrl && (
+              <video src={generatedVideoUrl} controls className="w-full max-h-80" />
+            )}
+            <CardContent className="p-4 space-y-4">
+              <div className="bg-black/30 rounded-lg p-4 text-sm leading-relaxed whitespace-pre-wrap max-h-60 overflow-y-auto">
+                {generatedContent}
+              </div>
+
+              {qualityResult && (
+                <div className="flex items-center gap-3">
+                  <Progress value={qualityResult.score} className="h-2 flex-1 bg-white/5" />
+                  <Badge className={qualityResult.passed ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}>
+                    {qualityResult.score}/100
+                  </Badge>
+                </div>
+              )}
+
+              {/* AI Copilot */}
+              <AICopilot
+                content={generatedContent}
+                onApply={(newContent) => setGeneratedContent(newContent)}
+                platform={platform}
+                contentType={contentType}
+              />
+
+              {/* Platform Preview */}
+              <PlatformPreview
+                content={generatedContent}
+                imageUrl={generatedImageUrl || undefined}
+                platforms={platforms}
+                userName="LR Partner"
+              />
+            </CardContent>
+          </Card>
+
+          {/* Action Buttons */}
+          <div className="grid gap-3">
+            <Button
+              className="h-14 gap-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold text-lg shadow-lg shadow-amber-500/20"
+              onClick={copyAll}
+            >
+              <Copy className="h-5 w-5" />
+              Alles kopieren
+            </Button>
+
+            <div className="grid grid-cols-3 gap-3">
+              <Button variant="outline" className="h-11 gap-2 border-white/10 text-xs" onClick={() => { navigator.clipboard.writeText(generatedContent); toast.success("Text kopiert!"); }}>
+                <FileText className="h-3.5 w-3.5" /> Text
+              </Button>
+              {generatedImageUrl && (
+                <Button variant="outline" className="h-11 gap-2 border-white/10 text-xs" onClick={() => window.open(generatedImageUrl, "_blank")}>
+                  <Download className="h-3.5 w-3.5" /> Bild
+                </Button>
+              )}
+              {generatedVideoUrl && (
+                <Button variant="outline" className="h-11 gap-2 border-white/10 text-xs" onClick={() => window.open(generatedVideoUrl, "_blank")}>
+                  <Download className="h-3.5 w-3.5" /> Video
+                </Button>
+              )}
+            </div>
+
+            <Separator className="bg-white/5" />
+
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex-1 gap-2 border-white/10" onClick={() => {
+                setWizardStep(1);
+                setGeneratedContent("");
+                setGeneratedImageUrl("");
+                setGeneratedVideoUrl("");
+                setGeneratedPostId(null);
+                setQualityResult(null);
+                setTopic("");
+                setPillar("");
+                toast.success("Bereit für neuen Content!");
+              }}>
+                <Sparkles className="h-4 w-4" /> Neuen Content erstellen
+              </Button>
+              <Button variant="outline" className="flex-1 gap-2 border-white/10" onClick={() => setWizardStep(5)}>
+                <ArrowLeft className="h-4 w-4" /> Bild/Video ändern
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

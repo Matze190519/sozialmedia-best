@@ -526,3 +526,11 @@
 - [x] Freigabe-Flow: Quick-Approve Buttons (Freigeben/Ablehnen)
 - [x] Freigabe-Flow: Vorschau mit Bild vor Freigabe
 - [x] Freigabe-Flow: Batch-Freigabe (alle auf einmal)
+
+## Generator-Seite Redesign (08.04.2026)
+- [x] Generator: 6-Schritt Wizard-Flow (Was → Thema → Style → Generieren → Media → Fertig)
+- [x] Generator: Automatische Bild-Generierung im Flow integriert
+- [x] Generator: Gold-Theme Premium-Look mit Glassmorphism
+- [x] Generator: Mobile-optimierte große Buttons und Touch-Targets
+- [x] Generator: Fertig-Schritt mit 1-Tap Copy Mega-Button + Vorschau
+- [x] Generator: Fortschrittsbalken mit Gold-Dots
