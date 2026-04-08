@@ -8,25 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { ContentCard } from "@/components/ContentCard";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { PostTrackingPanel } from "@/components/PostTrackingPanel";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import {
   CheckCircle, XCircle, Send, Edit3, Clock, AlertTriangle,
-  Image, Video, Rocket, CalendarClock, Zap, TrendingUp, ChevronDown, ChevronUp,
+  Rocket, CalendarClock, Zap, TrendingUp, Sparkles,
 } from "lucide-react";
-
-const PLATFORM_COLORS: Record<string, string> = {
-  instagram: "bg-pink-500/20 text-pink-300 border-pink-500/30",
-  facebook: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-  tiktok: "bg-amber-500/20 text-amber-300 border-amber-500/30",
-  linkedin: "bg-blue-700/20 text-blue-200 border-blue-700/30",
-  twitter: "bg-sky-500/20 text-sky-300 border-sky-500/30",
-  threads: "bg-gray-500/20 text-gray-300 border-gray-500/30",
-  youtube: "bg-red-600/20 text-red-300 border-red-600/30",
-  pinterest: "bg-red-400/20 text-red-200 border-red-400/30",
-};
 
 const PLATFORM_EMOJIS: Record<string, string> = {
   instagram: "📸", facebook: "📘", tiktok: "🎵", linkedin: "💼",
@@ -42,8 +32,8 @@ function SmartTimeRecommendation({ platforms }: { platforms: string[] }) {
   if (!smartTimes || smartTimes.length === 0) return null;
 
   return (
-    <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-      <div className="flex items-center gap-2 text-sm font-medium text-emerald-300 mb-2">
+    <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+      <div className="flex items-center gap-2 text-sm font-medium text-amber-300 mb-2">
         <Zap className="h-4 w-4" />
         Optimale Posting-Zeiten
       </div>
@@ -54,201 +44,13 @@ function SmartTimeRecommendation({ platforms }: { platforms: string[] }) {
               <span>{PLATFORM_EMOJIS[t.platform] || "📱"}</span>
               <span className="capitalize">{t.platform}</span>
             </span>
-            <span className="font-mono font-medium text-emerald-300">
+            <span className="font-mono font-medium text-amber-300">
               {String(t.hour).padStart(2, "0")}:{String(t.minute).padStart(2, "0")} Uhr
             </span>
           </div>
         ))}
       </div>
     </div>
-  );
-}
-
-/** Single post card - mobile-first with expandable content */
-function PostCard({
-  item,
-  isAdmin,
-  onApprove,
-  onReject,
-  onEdit,
-  onPublish,
-  onDelete,
-  variant,
-}: {
-  item: any;
-  isAdmin: boolean;
-  onApprove?: (id: number, platforms: string[]) => void;
-  onReject?: (id: number) => void;
-  onEdit?: (id: number, content: string) => void;
-  onPublish?: (id: number, platforms: string[]) => void;
-  onDelete?: (id: number) => void;
-  variant: "pending" | "approved";
-}) {
-  const [expanded, setExpanded] = useState(false);
-  const content = item.post.editedContent || item.post.content;
-  const isLong = content.length > 200;
-  const platforms = (item.post.platforms as string[]) || [];
-  const hasMedia = !!item.post.mediaUrl || !!item.post.videoUrl;
-
-  return (
-    <Card className={`overflow-hidden ${variant === "pending" ? "border-yellow-500/20" : "border-emerald-500/20"}`}>
-      <CardContent className="p-0">
-        {/* Media Preview - Full width, prominent */}
-        {!hasMedia && (
-          <div className="p-4 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
-            <p className="text-xs text-amber-300">Kein Bild/Video vorhanden. Generiere Medien im Content-Generator.</p>
-          </div>
-        )}
-        {hasMedia && (
-          <div className="relative">
-            {item.post.mediaUrl && (
-              <img
-                src={item.post.mediaUrl}
-                alt="Post Preview"
-                className="w-full max-h-80 object-cover"
-                loading="lazy"
-              />
-            )}
-            {item.post.videoUrl && (
-              <video
-                src={item.post.videoUrl}
-                className="w-full max-h-80 object-cover"
-                controls
-                muted
-                playsInline
-                preload="metadata"
-              />
-            )}
-            {/* Media type badges overlay */}
-            <div className="absolute top-2 right-2 flex gap-1.5">
-              {item.post.mediaUrl && (
-                <Badge className="bg-black/60 text-white border-0 text-[10px] gap-1 backdrop-blur-sm">
-                  <Image className="h-3 w-3" /> Bild
-                </Badge>
-              )}
-              {item.post.videoUrl && (
-                <Badge className="bg-black/60 text-white border-0 text-[10px] gap-1 backdrop-blur-sm">
-                  <Video className="h-3 w-3" /> Video
-                </Badge>
-              )}
-            </div>
-          </div>
-        )}
-
-        <div className="p-4 space-y-3">
-          {/* Header: Type + Pillar + Date */}
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {(item.post.contentType === "reel_script" || item.post.contentType === "youtube_script") ? (
-                <Badge className="text-[10px] bg-amber-500/20 text-amber-400 border-amber-500/40 border">🎬 SKRIPT – nicht posten!</Badge>
-              ) : (
-                <Badge variant="outline" className="text-[10px]">{item.post.contentType}</Badge>
-              )}
-              {item.post.pillar && <Badge variant="secondary" className="text-[10px]">{item.post.pillar}</Badge>}
-            </div>
-            <span className="text-[10px] text-muted-foreground">
-              {item.createdBy?.name} · {new Date(item.post.createdAt).toLocaleDateString("de-DE")}
-            </span>
-          </div>
-
-          {/* Platforms */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {platforms.map(p => (
-              <span key={p} className={`text-xs px-2 py-1 rounded-full border ${PLATFORM_COLORS[p] || "bg-accent text-accent-foreground border-border"}`}>
-                {PLATFORM_EMOJIS[p]} {p}
-              </span>
-            ))}
-          </div>
-
-          {/* Skript-Warnung */}
-          {(item.post.contentType === "reel_script" || item.post.contentType === "youtube_script") && (
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2.5 text-xs text-amber-400">
-              🎬 <strong>Das ist ein Reel-Skript</strong> – kein fertiger Post. Verwende es als Vorlage für dein Video. Nicht direkt veröffentlichen!
-            </div>
-          )}
-
-          {/* Content Text - expandable */}
-          <div className="relative">
-            <div className={`bg-accent/20 rounded-lg p-3 text-sm leading-relaxed whitespace-pre-wrap ${!expanded && isLong ? "max-h-32 overflow-hidden" : ""}`}>
-              {content}
-            </div>
-            {isLong && (
-              <button
-                onClick={() => setExpanded(!expanded)}
-                className="flex items-center gap-1 text-xs text-primary mt-1 hover:underline"
-              >
-                {expanded ? <><ChevronUp className="h-3 w-3" /> Weniger anzeigen</> : <><ChevronDown className="h-3 w-3" /> Mehr anzeigen</>}
-              </button>
-            )}
-          </div>
-
-          {/* Smart Time inline */}
-          <SmartTimeRecommendation platforms={platforms} />
-
-          {/* Action Buttons - large, touch-friendly */}
-          {variant === "pending" && (
-            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/30">
-              <Button
-                size="lg"
-                className="gap-2 text-sm h-12"
-                onClick={() => onApprove?.(item.post.id, platforms)}
-              >
-                <CheckCircle className="h-4 w-4" />
-                Freigeben
-              </Button>
-              <Button
-                size="lg"
-                variant="destructive"
-                className="gap-2 text-sm h-12"
-                onClick={() => onReject?.(item.post.id)}
-              >
-                <XCircle className="h-4 w-4" />
-                Ablehnen
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="gap-2 text-sm h-12 col-span-2"
-                onClick={() => onEdit?.(item.post.id, content)}
-              >
-                <Edit3 className="h-4 w-4" />
-                Bearbeiten
-              </Button>
-              {isAdmin && onDelete && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="gap-1 text-xs h-8 col-span-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                  onClick={() => {
-                    if (confirm("Diesen Post endgültig löschen?")) onDelete(item.post.id);
-                  }}
-                >
-                  🗑️ Post löschen
-                </Button>
-              )}
-            </div>
-          )}
-
-          {variant === "approved" && (
-            <div className="space-y-2">
-              <Button
-                size="lg"
-                className="gap-2 w-full h-12 text-sm"
-                onClick={() => onPublish?.(item.post.id, platforms)}
-              >
-                <Send className="h-4 w-4" />
-                Auf Blotato veröffentlichen
-              </Button>
-              {/* Live Post-Status Tracking */}
-              {(item.post.blotatoPostIds as string[])?.length > 0 && (
-                <PostTrackingPanel contentPostId={item.post.id} />
-              )}
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
   );
 }
 
@@ -317,81 +119,153 @@ export default function ApprovalPage() {
     }
   };
 
+  // Batch approve all pending
+  const handleBatchApprove = () => {
+    if (!pendingPosts || pendingPosts.length === 0) return;
+    if (!confirm(`Alle ${pendingPosts.length} ausstehenden Posts freigeben?`)) return;
+    pendingPosts.forEach((item) => {
+      approveMut.mutate({
+        id: item.post.id,
+        autoPublish: false,
+      });
+    });
+  };
+
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Freigabe-Center</h1>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight font-[Montserrat]">Freigabe-Center</h1>
           <p className="text-muted-foreground text-sm mt-1">
             {isAdmin ? "Admin: Alle Posts verwalten" : "Prüfe und gib deine eigenen Posts frei."}
           </p>
         </div>
-        {isAdmin && (
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => {
-              if (confirm("Alle Posts OHNE Bild/Video löschen? Das kann nicht rückgängig gemacht werden!")) {
-                deleteWithoutMediaMut.mutate();
-              }
-            }}
-            disabled={deleteWithoutMediaMut.isPending}
-          >
-            {deleteWithoutMediaMut.isPending ? "Lösche..." : "🗑️ Posts ohne Bild löschen"}
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {isAdmin && pendingPosts && pendingPosts.length > 1 && (
+            <Button
+              size="sm"
+              className="gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold shadow-lg shadow-amber-500/20"
+              onClick={handleBatchApprove}
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Alle freigeben
+            </Button>
+          )}
+          {isAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+              onClick={() => {
+                if (confirm("Alle Posts OHNE Bild/Video löschen?")) {
+                  deleteWithoutMediaMut.mutate();
+                }
+              }}
+              disabled={deleteWithoutMediaMut.isPending}
+            >
+              {deleteWithoutMediaMut.isPending ? "..." : "🗑️ Ohne Bild"}
+            </Button>
+          )}
+        </div>
       </div>
 
-
-
-      {/* Pipeline Status - compact for mobile */}
-      {(
-        <div className="flex gap-3">
-          <div className="flex-1 text-center p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/20">
-            <Clock className="h-5 w-5 text-yellow-400 mx-auto mb-1" />
-            <p className="text-xl font-bold">{pendingPosts?.length || 0}</p>
-            <p className="text-[10px] text-muted-foreground">Ausstehend</p>
-          </div>
-          <div className="flex-1 text-center p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
-            <CheckCircle className="h-5 w-5 text-emerald-400 mx-auto mb-1" />
-            <p className="text-xl font-bold">{approvedPosts?.length || 0}</p>
-            <p className="text-[10px] text-muted-foreground">Genehmigt</p>
-          </div>
+      {/* Pipeline Status */}
+      <div className="flex gap-3">
+        <div className="flex-1 text-center p-4 rounded-xl bg-gradient-to-br from-yellow-500/5 to-yellow-600/10 border border-yellow-500/20">
+          <Clock className="h-6 w-6 text-yellow-400 mx-auto mb-1" />
+          <p className="text-2xl font-bold text-yellow-400">{pendingPosts?.length || 0}</p>
+          <p className="text-xs text-muted-foreground">Ausstehend</p>
         </div>
-      )}
+        <div className="flex-1 text-center p-4 rounded-xl bg-gradient-to-br from-emerald-500/5 to-emerald-600/10 border border-emerald-500/20">
+          <CheckCircle className="h-6 w-6 text-emerald-400 mx-auto mb-1" />
+          <p className="text-2xl font-bold text-emerald-400">{approvedPosts?.length || 0}</p>
+          <p className="text-xs text-muted-foreground">Genehmigt</p>
+        </div>
+      </div>
 
       {/* Pending Posts */}
       <div>
-        <h2 className="text-base font-semibold mb-3 flex items-center gap-2">
+        <h2 className="text-base font-semibold mb-3 flex items-center gap-2 font-[Montserrat]">
           <Clock className="h-4 w-4 text-yellow-400" />
           Ausstehend ({pendingPosts?.length || 0})
         </h2>
         {isLoading ? (
-          <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-48 w-full rounded-xl" />)}</div>
+          <div className="space-y-4">{[1, 2, 3].map(i => <Skeleton key={i} className="h-96 w-full rounded-xl" />)}</div>
         ) : pendingPosts && pendingPosts.length > 0 ? (
           <div className="space-y-4">
             {pendingPosts.map((item) => (
-              <PostCard
+              <ContentCard
                 key={item.post.id}
-                item={item}
-                isAdmin={isAdmin}
-                variant="pending"
-                onApprove={(id, platforms) => {
-                  setApproveDialog({ id, open: true, platforms });
-                  setApproveAutoPublish(false);
-                  setApproveScheduledAt("");
+                post={{
+                  ...item.post,
+                  platforms: item.post.platforms as string[],
                 }}
-                onReject={(id) => { setRejectDialog({ id, open: true }); setRejectComment(""); }}
-                onEdit={(id, content) => setEditDialog({ id, content, open: true })}
-                onDelete={(id) => deleteMut.mutate({ id })}
-              />
+                createdBy={item.createdBy}
+                showCopyButtons={false}
+              >
+                {/* Skript-Warnung */}
+                {(item.post.contentType === "reel_script" || item.post.contentType === "youtube_script") && (
+                  <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2.5 text-xs text-amber-400">
+                    🎬 <strong>Reel-Skript</strong> — kein fertiger Post. Als Vorlage für dein Video nutzen.
+                  </div>
+                )}
+
+                {/* Smart Time */}
+                <SmartTimeRecommendation platforms={(item.post.platforms as string[]) || []} />
+
+                {/* Action Buttons */}
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-amber-500/10">
+                  <Button
+                    size="lg"
+                    className="gap-2 text-sm h-12 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold shadow-lg shadow-emerald-500/20"
+                    onClick={() => {
+                      setApproveDialog({ id: item.post.id, open: true, platforms: (item.post.platforms as string[]) || [] });
+                      setApproveAutoPublish(false);
+                      setApproveScheduledAt("");
+                    }}
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    Freigeben
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="gap-2 text-sm h-12 border-red-500/30 text-red-400 hover:bg-red-500/10"
+                    onClick={() => { setRejectDialog({ id: item.post.id, open: true }); setRejectComment(""); }}
+                  >
+                    <XCircle className="h-4 w-4" />
+                    Ablehnen
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="gap-2 text-sm h-12 col-span-2 border-amber-500/20 hover:bg-amber-500/10"
+                    onClick={() => setEditDialog({ id: item.post.id, content: item.post.editedContent || item.post.content, open: true })}
+                  >
+                    <Edit3 className="h-4 w-4" />
+                    Bearbeiten
+                  </Button>
+                  {isAdmin && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="gap-1 text-xs h-8 col-span-2 text-red-400/60 hover:text-red-300 hover:bg-red-500/10"
+                      onClick={() => {
+                        if (confirm("Diesen Post endgültig löschen?")) deleteMut.mutate({ id: item.post.id });
+                      }}
+                    >
+                      🗑️ Löschen
+                    </Button>
+                  )}
+                </div>
+              </ContentCard>
             ))}
           </div>
         ) : (
-          <Card className="border-border/30">
+          <Card className="border-amber-500/10 bg-gradient-to-br from-card to-emerald-500/5">
             <CardContent className="py-12 text-center">
-              <CheckCircle className="h-8 w-8 text-emerald-400 mx-auto mb-2" />
+              <CheckCircle className="h-10 w-10 text-emerald-400 mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">Alles erledigt! Keine ausstehenden Posts.</p>
             </CardContent>
           </Card>
@@ -401,28 +275,43 @@ export default function ApprovalPage() {
       {/* Approved Posts */}
       {approvedPosts && approvedPosts.length > 0 && (
         <div>
-          <h2 className="text-base font-semibold mb-3 flex items-center gap-2">
+          <h2 className="text-base font-semibold mb-3 flex items-center gap-2 font-[Montserrat]">
             <CheckCircle className="h-4 w-4 text-emerald-400" />
             Bereit zum Posten ({approvedPosts.length})
           </h2>
           <div className="space-y-4">
             {approvedPosts.map((item) => (
-              <PostCard
+              <ContentCard
                 key={item.post.id}
-                item={item}
-                isAdmin={isAdmin}
-                variant="approved"
-                onPublish={(id, platforms) => {
-                  setPublishDialog({ id, open: true, platforms });
-                  setPublishScheduledDate("");
+                post={{
+                  ...item.post,
+                  platforms: item.post.platforms as string[],
                 }}
-              />
+                createdBy={item.createdBy}
+              >
+                <div className="space-y-2 pt-2 border-t border-amber-500/10">
+                  <Button
+                    size="lg"
+                    className="gap-2 w-full h-12 text-sm bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold shadow-lg shadow-amber-500/20"
+                    onClick={() => {
+                      setPublishDialog({ id: item.post.id, open: true, platforms: (item.post.platforms as string[]) || [] });
+                      setPublishScheduledDate("");
+                    }}
+                  >
+                    <Send className="h-4 w-4" />
+                    Auf Blotato veröffentlichen
+                  </Button>
+                  {(item.post.blotatoPostIds as string[])?.length > 0 && (
+                    <PostTrackingPanel contentPostId={item.post.id} />
+                  )}
+                </div>
+              </ContentCard>
             ))}
           </div>
         </div>
       )}
 
-      {/* Approve Dialog - mobile optimized */}
+      {/* Approve Dialog */}
       <Dialog open={approveDialog.open} onOpenChange={(open) => setApproveDialog(prev => ({ ...prev, open }))}>
         <DialogContent className="max-w-md mx-4">
           <DialogHeader>
@@ -432,18 +321,16 @@ export default function ApprovalPage() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {/* Info: Auto-save to library */}
             <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
               <p className="text-xs text-amber-300 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
-                Post wird automatisch in der Bibliothek gespeichert. Dein Team kann ihn dort kopieren und selbst posten.
+                📚 Post wird automatisch in der Bibliothek gespeichert. Dein Team kann ihn dort kopieren.
               </p>
             </div>
 
             <div className="flex items-center justify-between p-3 rounded-lg bg-accent/30">
               <div>
                 <p className="text-sm font-medium">Auch via Blotato posten?</p>
-                <p className="text-xs text-muted-foreground">Optional: Automatisch auf Plattformen veröffentlichen</p>
+                <p className="text-xs text-muted-foreground">Optional: Automatisch veröffentlichen</p>
               </div>
               <Switch checked={approveAutoPublish} onCheckedChange={setApproveAutoPublish} />
             </div>
@@ -451,19 +338,19 @@ export default function ApprovalPage() {
             {approveAutoPublish && (
               <div className="space-y-3">
                 {dialogSmartTimes && dialogSmartTimes.length > 0 && (
-                  <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 space-y-2">
+                  <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-emerald-300 flex items-center gap-1.5">
+                      <span className="text-sm font-medium text-amber-300 flex items-center gap-1.5">
                         <TrendingUp className="h-4 w-4" /> Beste Zeiten
                       </span>
-                      <Button size="sm" variant="outline" className="h-8 text-xs gap-1 border-emerald-500/30 text-emerald-300" onClick={handleUseSmartTime}>
+                      <Button size="sm" variant="outline" className="h-8 text-xs gap-1 border-amber-500/30 text-amber-300" onClick={handleUseSmartTime}>
                         <Zap className="h-3 w-3" /> Übernehmen
                       </Button>
                     </div>
                     {dialogSmartTimes.map((t: any) => (
                       <div key={t.platform} className="flex items-center justify-between text-xs">
                         <span>{PLATFORM_EMOJIS[t.platform]} {t.platform}</span>
-                        <span className="font-mono text-emerald-300">{String(t.hour).padStart(2, "0")}:{String(t.minute).padStart(2, "0")}</span>
+                        <span className="font-mono text-amber-300">{String(t.hour).padStart(2, "0")}:{String(t.minute).padStart(2, "0")}</span>
                       </div>
                     ))}
                   </div>
@@ -481,12 +368,12 @@ export default function ApprovalPage() {
           <DialogFooter className="flex-col gap-2 sm:flex-col">
             <Button
               size="lg"
-              className="w-full h-12 gap-2"
+              className="w-full h-12 gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold"
               onClick={() => approveMut.mutate({ id: approveDialog.id, autoPublish: approveAutoPublish, scheduledAt: approveScheduledAt || undefined })}
               disabled={approveMut.isPending}
             >
               {approveMut.isPending ? <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" /> : <Rocket className="h-4 w-4" />}
-              {approveAutoPublish ? (approveScheduledAt ? "Freigeben & Planen" : "Freigeben & Posten") : "Freigeben & In Bibliothek speichern"}
+              {approveAutoPublish ? (approveScheduledAt ? "Freigeben & Planen" : "Freigeben & Posten") : "Freigeben & In Bibliothek"}
             </Button>
             <Button variant="outline" size="lg" className="w-full h-12" onClick={() => setApproveDialog({ id: 0, open: false, platforms: [] })}>
               Abbrechen
@@ -495,7 +382,7 @@ export default function ApprovalPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Publish Dialog - mobile optimized */}
+      {/* Publish Dialog */}
       <Dialog open={publishDialog.open} onOpenChange={(open) => setPublishDialog(prev => ({ ...prev, open }))}>
         <DialogContent className="max-w-md mx-4">
           <DialogHeader>
@@ -505,19 +392,19 @@ export default function ApprovalPage() {
           </DialogHeader>
           <div className="space-y-4">
             {dialogSmartTimes && dialogSmartTimes.length > 0 && (
-              <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 space-y-2">
+              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-emerald-300 flex items-center gap-1.5">
+                  <span className="text-sm font-medium text-amber-300 flex items-center gap-1.5">
                     <TrendingUp className="h-4 w-4" /> Beste Zeiten
                   </span>
-                  <Button size="sm" variant="outline" className="h-8 text-xs gap-1 border-emerald-500/30 text-emerald-300" onClick={handleUseSmartTime}>
+                  <Button size="sm" variant="outline" className="h-8 text-xs gap-1 border-amber-500/30 text-amber-300" onClick={handleUseSmartTime}>
                     <Zap className="h-3 w-3" /> Übernehmen
                   </Button>
                 </div>
                 {dialogSmartTimes.map((t: any) => (
                   <div key={t.platform} className="flex items-center justify-between text-xs">
                     <span>{PLATFORM_EMOJIS[t.platform]} {t.platform}</span>
-                    <span className="font-mono text-emerald-300">{String(t.hour).padStart(2, "0")}:{String(t.minute).padStart(2, "0")}</span>
+                    <span className="font-mono text-amber-300">{String(t.hour).padStart(2, "0")}:{String(t.minute).padStart(2, "0")}</span>
                   </div>
                 ))}
               </div>
@@ -533,7 +420,7 @@ export default function ApprovalPage() {
           <DialogFooter className="flex-col gap-2 sm:flex-col">
             <Button
               size="lg"
-              className="w-full h-12 gap-2"
+              className="w-full h-12 gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold"
               onClick={() => publishMut.mutate({ id: publishDialog.id, scheduledDate: publishScheduledDate || undefined })}
               disabled={publishMut.isPending}
             >
@@ -595,7 +482,7 @@ export default function ApprovalPage() {
           <DialogFooter className="flex-col gap-2 sm:flex-col">
             <Button
               size="lg"
-              className="w-full h-12"
+              className="w-full h-12 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold"
               onClick={() => editMut.mutate({ id: editDialog.id, editedContent: editDialog.content })}
               disabled={editMut.isPending}
             >

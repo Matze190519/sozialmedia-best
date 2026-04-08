@@ -516,3 +516,13 @@
 - [x] Alle 26 Seiten auf Gold-Akzente konvertiert (emerald/violet/cyan/blue → amber/gold)
 - [x] NotFound-Seite auf Gold-Theme umgestellt (deutsch)
 - [x] JoinPage (Magic Login) Premium-Design mit Gold-Partikeln
+
+## Content-Karten Redesign & Freigabe-Flow (08.04.2026)
+- [x] Content-Karten: größere Bilder (volle Breite)
+- [x] Content-Karten: 1-Tap Copy Buttons (Text, Hashtags, Bild einzeln)
+- [x] Content-Karten: "Alles kopieren" Mega-Button
+- [x] Content-Karten: Bild-Download Button
+- [x] Content-Karten: Gold-Glassmorphism Styling
+- [x] Freigabe-Flow: Quick-Approve Buttons (Freigeben/Ablehnen)
+- [x] Freigabe-Flow: Vorschau mit Bild vor Freigabe
+- [x] Freigabe-Flow: Batch-Freigabe (alle auf einmal)
