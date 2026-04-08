@@ -1,5 +1,5 @@
 /**
- * Lina REST API Routes für Botpress Integration
+ * Lina REST API Routes fÃ¼r Botpress Integration
  * 
  * REST-Endpoints die Botpress/Lina direkt aufrufen kann.
  * 
@@ -7,13 +7,13 @@
  * GET  /api/lina/content                  - Freigegebene Posts abrufen
  * GET  /api/lina/library                  - Bibliothek-Inhalte abrufen
  * GET  /api/lina/products                 - LR-Produkte abrufen
- * GET  /api/lina/status                   - System-Status prüfen
+ * GET  /api/lina/status                   - System-Status prÃ¼fen
  * POST /api/lina/invite                   - Einladungs-Token erstellen
  * GET  /api/lina/invite/:token            - Token verifizieren
  * POST /api/lina/login-link               - Magic Login-Link generieren
- * GET  /api/auth/magic/:token             - Magic Link einlösen → Session → Redirect
- * POST /api/lina/notify                   - Benachrichtigungen für Partner abrufen
- * GET  /api/lina/partner-stats/:number    - Partner-Stats für Lina
+ * GET  /api/auth/magic/:token             - Magic Link einlÃ¶sen â Session â Redirect
+ * POST /api/lina/notify                   - Benachrichtigungen fÃ¼r Partner abrufen
+ * GET  /api/lina/partner-stats/:number    - Partner-Stats fÃ¼r Lina
  * POST /api/lina/self-approve             - Partner gibt eigenen Content frei
  */
 
@@ -26,18 +26,18 @@ import { getSessionCookieOptions } from "./_core/cookies";
 
 export function registerLinaRoutes(app: Express) {
 
-  // ═══════════════════════════════════════════════════════════
-  // ─── CONTENT ENDPOINTS (für Lina WhatsApp Menü) ───────────
-  // ═══════════════════════════════════════════════════════════
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // âââ CONTENT ENDPOINTS (fÃ¼r Lina WhatsApp MenÃ¼) âââââââââââ
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
-  // "Fertiger Content abrufen" → GET /api/lina/content
+  // "Fertiger Content abrufen" â GET /api/lina/content
   app.get("/api/lina/content", async (req: Request, res: Response) => {
     try {
       const limit = parseInt(req.query.limit as string) || 5;
       const platform = req.query.platform as string | undefined;
       const pillar = req.query.pillar as string | undefined;
 
-      // Zeige approved UND scheduled Posts (beide sind "fertig" und können angezeigt werden)
+      // Zeige approved UND scheduled Posts (beide sind "fertig" und kÃ¶nnen angezeigt werden)
       const approvedPosts = await db.getContentPosts({ status: "approved", limit });
       const scheduledPosts = await db.getContentPosts({ status: "scheduled", limit });
       const allPosts = [...approvedPosts, ...scheduledPosts]
@@ -58,14 +58,14 @@ export function registerLinaRoutes(app: Express) {
         );
       }
 
-      // Skripte herausfiltern - die sind nicht für WhatsApp geeignet
+      // Skripte herausfiltern - die sind nicht fÃ¼r WhatsApp geeignet
       const noScripts = filtered.filter(p =>
         !['reel_script', 'youtube_script', 'carousel_script'].includes(p.post.contentType)
       );
 
       const result = noScripts.map(p => {
         const fullText = p.post.editedContent || p.post.content;
-        // Text auf 300 Zeichen kürzen für WhatsApp
+        // Text auf 300 Zeichen kÃ¼rzen fÃ¼r WhatsApp
         const shortText = fullText.length > 300 ? fullText.substring(0, 297) + '...' : fullText;
         return {
           id: p.post.id,
@@ -95,7 +95,7 @@ export function registerLinaRoutes(app: Express) {
       const items = await db.getContentLibrary({ category, limit });
       const result = items.map(i => {
         const fullText = i.item.textContent || '';
-        // Text auf 300 Zeichen kürzen für WhatsApp
+        // Text auf 300 Zeichen kÃ¼rzen fÃ¼r WhatsApp
         const shortText = fullText.length > 300 ? fullText.substring(0, 297) + '...' : fullText;
         return {
           id: i.item.id,
@@ -147,9 +147,9 @@ export function registerLinaRoutes(app: Express) {
     }
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // ─── EINLADUNGS-TOKEN (für Lina/Botpress) ─────────────────
-  // ═══════════════════════════════════════════════════════════
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // âââ EINLADUNGS-TOKEN (fÃ¼r Lina/Botpress) âââââââââââââââââ
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
   app.post("/api/lina/invite", async (req: Request, res: Response) => {
     try {
@@ -174,7 +174,7 @@ export function registerLinaRoutes(app: Express) {
         token: tokenStr,
         joinUrl,
         expiresAt: expiresAt.toISOString(),
-        message: `Einladungs-Link für ${name} erstellt.`,
+        message: `Einladungs-Link fÃ¼r ${name} erstellt.`,
       });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
@@ -195,16 +195,16 @@ export function registerLinaRoutes(app: Express) {
     }
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // ─── MAGIC LINK LOGIN ─────────────────────────────────────
-  // Partner bekommt Link von Lina → klickt → sofort eingeloggt
-  // Kein Manus-Konto, kein Passwort, kein E-Mail nötig
-  // ═══════════════════════════════════════════════════════════
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // âââ MAGIC LINK LOGIN âââââââââââââââââââââââââââââââââââââ
+  // Partner bekommt Link von Lina â klickt â sofort eingeloggt
+  // Kein Manus-Konto, kein Passwort, kein E-Mail nÃ¶tig
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
   /**
    * POST /api/lina/login-link
    * Lina ruft auf: { partnerNumber, name, whatsappNumber? }
-   * Gibt zurück: { loginUrl } - Partner klickt → eingeloggt
+   * Gibt zurÃ¼ck: { loginUrl } - Partner klickt â eingeloggt
    */
   app.post("/api/lina/login-link", async (req: Request, res: Response) => {
     try {
@@ -249,7 +249,7 @@ export function registerLinaRoutes(app: Express) {
         success: true,
         loginUrl,
         expiresIn: "24h",
-        message: `Login-Link für ${name} (${partnerNumber}) erstellt. 24h gültig.`,
+        message: `Login-Link fÃ¼r ${name} (${partnerNumber}) erstellt. 24h gÃ¼ltig.`,
       });
     } catch (error: any) {
       console.error("[Lina] Magic link creation failed:", error);
@@ -259,7 +259,7 @@ export function registerLinaRoutes(app: Express) {
 
   /**
    * GET /api/auth/magic/:token
-   * Partner klickt diesen Link → Token prüfen → JWT Cookie → Redirect zum Dashboard
+   * Partner klickt diesen Link â Token prÃ¼fen â JWT Cookie â Redirect zum Dashboard
    */
   app.get("/api/auth/magic/:token", async (req: Request, res: Response) => {
     try {
@@ -270,8 +270,8 @@ export function registerLinaRoutes(app: Express) {
 
       if (!tokenData) {
         return res.status(404).send(renderErrorPage(
-          "Link ungültig",
-          "Dieser Login-Link ist ungültig. Bitte fordere einen neuen Link bei Lina an."
+          "Link ungÃ¼ltig",
+          "Dieser Login-Link ist ungÃ¼ltig. Bitte fordere einen neuen Link bei Lina an."
         ));
       }
 
@@ -314,15 +314,15 @@ export function registerLinaRoutes(app: Express) {
     }
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // ─── BENACHRICHTIGUNGEN FÜR PARTNER ───────────────────────
-  // Lina fragt: "Gibt es Updates für Partner X?"
-  // ═══════════════════════════════════════════════════════════
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // âââ BENACHRICHTIGUNGEN FÃR PARTNER âââââââââââââââââââââââ
+  // Lina fragt: "Gibt es Updates fÃ¼r Partner X?"
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
   /**
    * POST /api/lina/notify
    * Body: { partnerNumber }
-   * Returns: Ungelesene Content-Updates für den Partner
+   * Returns: Ungelesene Content-Updates fÃ¼r den Partner
    */
   app.post("/api/lina/notify", async (req: Request, res: Response) => {
     try {
@@ -366,9 +366,9 @@ export function registerLinaRoutes(app: Express) {
     }
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // ─── PARTNER-STATS (für Lina personalisierte Nachrichten) ─
-  // ═══════════════════════════════════════════════════════════
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // âââ PARTNER-STATS (fÃ¼r Lina personalisierte Nachrichten) â
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
   app.get("/api/lina/partner-stats/:partnerNumber", async (req: Request, res: Response) => {
     try {
@@ -403,10 +403,10 @@ export function registerLinaRoutes(app: Express) {
     }
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // ─── SELBSTFREIGABE (Partner gibt eigenen Content frei) ───
-  // "Content freigeben" im Lina-Menü
-  // ═══════════════════════════════════════════════════════════
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // âââ SELBSTFREIGABE (Partner gibt eigenen Content frei) âââ
+  // "Content freigeben" im Lina-MenÃ¼
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
   /**
    * POST /api/lina/self-approve
@@ -431,7 +431,7 @@ export function registerLinaRoutes(app: Express) {
       const post = posts.find(p => p.post.id === Number(postId));
 
       if (!post) {
-        return res.status(404).json({ success: false, error: "Post nicht gefunden oder gehört nicht zu diesem Partner" });
+        return res.status(404).json({ success: false, error: "Post nicht gefunden oder gehÃ¶rt nicht zu diesem Partner" });
       }
 
       if (post.post.status !== "pending") {
@@ -470,7 +470,7 @@ export function registerLinaRoutes(app: Express) {
         success: true,
         message: published
           ? `Post "${post.post.topic || "Ohne Titel"}" freigegeben und auf Blotato geplant!`
-          : `Post "${post.post.topic || "Ohne Titel"}" freigegeben! (Blotato nicht verfügbar)`,
+          : `Post "${post.post.topic || "Ohne Titel"}" freigegeben! (Blotato nicht verfÃ¼gbar)`,
         postId: Number(postId),
         published,
       });
@@ -479,13 +479,13 @@ export function registerLinaRoutes(app: Express) {
     }
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // ─── PARTNER PENDING POSTS (für "Content freigeben" Menü) ─
-  // ═══════════════════════════════════════════════════════════
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // âââ PARTNER PENDING POSTS (fÃ¼r "Content freigeben" MenÃ¼) â
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
   /**
    * GET /api/lina/pending/:partnerNumber
-   * Gibt alle Posts zurück die auf Freigabe warten
+   * Gibt alle Posts zurÃ¼ck die auf Freigabe warten
    */
   app.get("/api/lina/pending/:partnerNumber", async (req: Request, res: Response) => {
     try {
@@ -513,14 +513,14 @@ export function registerLinaRoutes(app: Express) {
     }
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // ─── CONTENT GENERIERUNG (WhatsApp → Lina → Content) ──────
-  // ═══════════════════════════════════════════════════════════
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // âââ CONTENT GENERIERUNG (WhatsApp â Lina â Content) ââââââ
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
   /**
    * POST /api/lina/generate
    * Body: { topic, platform?, contentType?, pillar? }
-   * Lina generiert Content für Partner über WhatsApp
+   * Lina generiert Content fÃ¼r Partner Ã¼ber WhatsApp
    */
   app.post("/api/lina/generate", async (req: Request, res: Response) => {
     try {
@@ -534,7 +534,7 @@ export function registerLinaRoutes(app: Express) {
       let apiResponse: any;
       switch (contentType) {
         case "reel":
-          apiResponse = await generateReel({ topic, pillar, duration: 30, count: 1 });
+          apiResponse = await generateReel({ topic, pillar, duration: "30", count: 1 });
           break;
         case "story":
           apiResponse = await generateStory({ topic, pillar, platform, count: 1 });
@@ -549,7 +549,7 @@ export function registerLinaRoutes(app: Express) {
       let imagePromptUsed: string = "";
       let mediaTypeUsed: string = "image";
 
-      // ZUERST: Prüfen ob ein echtes LR-Produktbild existiert
+      // ZUERST: PrÃ¼fen ob ein echtes LR-Produktbild existiert
       const { getImageForContent } = await import("./productImageMatcher");
       const imageDecision = await getImageForContent(topic, pillar);
 
@@ -559,7 +559,7 @@ export function registerLinaRoutes(app: Express) {
         imagePromptUsed = `Echtes Produktbild: ${imageDecision.productName}`;
         console.log(`[Lina] Echtes Produktbild gefunden: ${imageDecision.productName}`);
       } else {
-        // Kein Produkt erkannt → KI-Bild generieren
+        // Kein Produkt erkannt â KI-Bild generieren
         const imgPrompt = `${topic || pillar || "LR Lifestyle"}, premium social media content for ${platform}, cinematic lighting, professional photography, vibrant colors, no text, no words, no letters, no watermarks`;
         imagePromptUsed = imgPrompt;
         if (process.env.FAL_API_KEY) {
@@ -609,13 +609,13 @@ export function registerLinaRoutes(app: Express) {
     }
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // ─── TEMPLATES (Content-Vorlagen über WhatsApp abrufen) ────
-  // ═══════════════════════════════════════════════════════════
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // âââ TEMPLATES (Content-Vorlagen Ã¼ber WhatsApp abrufen) ââââ
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
   /**
    * GET /api/lina/templates?category=lifestyle&limit=5
-   * Gibt Content-Vorlagen zurück die Partner nutzen können
+   * Gibt Content-Vorlagen zurÃ¼ck die Partner nutzen kÃ¶nnen
    */
   app.get("/api/lina/templates", async (req: Request, res: Response) => {
     try {
@@ -636,14 +636,14 @@ export function registerLinaRoutes(app: Express) {
     }
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // ─── HASHTAGS (Smart Hashtags über WhatsApp generieren) ────
-  // ═══════════════════════════════════════════════════════════
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // âââ HASHTAGS (Smart Hashtags Ã¼ber WhatsApp generieren) ââââ
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
   /**
    * POST /api/lina/hashtags
    * Body: { topic, platform?, pillar? }
-   * Generiert optimale Hashtags für ein Thema
+   * Generiert optimale Hashtags fÃ¼r ein Thema
    */
   app.post("/api/lina/hashtags", async (req: Request, res: Response) => {
     try {
@@ -669,14 +669,14 @@ export function registerLinaRoutes(app: Express) {
     }
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // ─── SCHEDULE (Posts über WhatsApp planen) ─────────────────
-  // ═══════════════════════════════════════════════════════════
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // âââ SCHEDULE (Posts Ã¼ber WhatsApp planen) âââââââââââââââââ
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
   /**
    * POST /api/lina/schedule
    * Body: { postId, scheduledTime, partnerNumber? }
-   * Plant einen Post für einen bestimmten Zeitpunkt
+   * Plant einen Post fÃ¼r einen bestimmten Zeitpunkt
    */
   app.post("/api/lina/schedule", async (req: Request, res: Response) => {
     try {
@@ -699,20 +699,20 @@ export function registerLinaRoutes(app: Express) {
         success: true,
         postId: Number(postId),
         scheduledTime,
-        message: `Post #${postId} geplant für ${new Date(scheduledTime).toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`,
+        message: `Post #${postId} geplant fÃ¼r ${new Date(scheduledTime).toLocaleString("de-DE", { timeZone: "Europe/Berlin" })}`,
       });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
     }
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // ─── WEEKLY PLAN (Wochenplan über WhatsApp abrufen) ────────
-  // ═══════════════════════════════════════════════════════════
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // âââ WEEKLY PLAN (Wochenplan Ã¼ber WhatsApp abrufen) ââââââââ
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
   /**
    * GET /api/lina/weekly-plan?platform=instagram
-   * Gibt den optimalen Posting-Wochenplan zurück
+   * Gibt den optimalen Posting-Wochenplan zurÃ¼ck
    */
   app.get("/api/lina/weekly-plan", async (req: Request, res: Response) => {
     try {
@@ -726,7 +726,7 @@ export function registerLinaRoutes(app: Express) {
 
       const schedule = getWeeklySchedule(platform);
       if (!schedule) {
-        return res.json({ success: false, error: `Keine Daten für Plattform: ${platform}` });
+        return res.json({ success: false, error: `Keine Daten fÃ¼r Plattform: ${platform}` });
       }
 
       // Format for WhatsApp readability
@@ -748,16 +748,16 @@ export function registerLinaRoutes(app: Express) {
         topTage: schedule.peakDays,
         tage: formattedDays,
         hinweise: schedule.algorithmNotes,
-        tipp: `Poste an den Top-Tagen (${schedule.peakDays.join(", ")}) auf ${schedule.displayName} für maximale Reichweite.`,
+        tipp: `Poste an den Top-Tagen (${schedule.peakDays.join(", ")}) auf ${schedule.displayName} fÃ¼r maximale Reichweite.`,
       });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
     }
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // ─── OBJECTION (Einwandbehandlung über WhatsApp) ───────────
-  // ═══════════════════════════════════════════════════════════
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // âââ OBJECTION (Einwandbehandlung Ã¼ber WhatsApp) âââââââââââ
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
   /**
    * POST /api/lina/objection
@@ -790,13 +790,13 @@ export function registerLinaRoutes(app: Express) {
     }
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // ─── HEALTH CHECK ─────────────────────────────────────────
-  // ═══════════════════════════════════════════════════════════
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // âââ HEALTH CHECK âââââââââââââââââââââââââââââââââââââââââ
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
   /**
    * GET /api/lina/health
-   * Schneller Health-Check für Monitoring
+   * Schneller Health-Check fÃ¼r Monitoring
    */
   app.get("/api/lina/health", async (_req: Request, res: Response) => {
     try {
@@ -820,9 +820,9 @@ export function registerLinaRoutes(app: Express) {
     }
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // ─── PUBLISH TO BLOTATO (Admin: direkt an Blotato senden) ─────
-  // ═══════════════════════════════════════════════════════════
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // âââ PUBLISH TO BLOTATO (Admin: direkt an Blotato senden) âââââ
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
   /**
    * POST /api/lina/publish-to-blotato
@@ -887,8 +887,8 @@ export function registerLinaRoutes(app: Express) {
     }
   });
 
-  // ═══════════════════════════════════════════════════════════
-  // GET /api/lina/viral/trends — Virale Trends aus DB
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // GET /api/lina/viral/trends â Virale Trends aus DB
   app.get("/api/lina/viral/trends", async (req: Request, res: Response) => {
     try {
       const limit = parseInt(req.query.limit as string) || 3;
@@ -943,7 +943,7 @@ export function registerLinaRoutes(app: Express) {
     }
   });
 
-  // POST /api/lina/viral/clone — Trend klonen und neuen Post erstellen
+  // POST /api/lina/viral/clone â Trend klonen und neuen Post erstellen
   app.post("/api/lina/viral/clone", async (req: Request, res: Response) => {
     try {
       const { trendId, platform = "instagram", pillar = "lifestyle" } = req.body;
@@ -993,14 +993,14 @@ export function registerLinaRoutes(app: Express) {
   console.log("[Lina API] 20 Endpoints registered: content, library, products, status, invite, login-link, magic-auth, notify, partner-stats, self-approve, pending, generate, templates, hashtags, schedule, weekly-plan, objection, health, publish-to-blotato");
 }
 
-// ─── Helpers ────────────────────────────────────────────────
+// âââ Helpers ââââââââââââââââââââââââââââââââââââââââââââââââ
 
 function getStatusText(status: string): string {
   const map: Record<string, string> = {
     draft: "Entwurf erstellt",
     pending: "Wartet auf Freigabe",
     approved: "Freigegeben! Bereit zum Posten.",
-    rejected: "Abgelehnt - bitte überarbeiten",
+    rejected: "Abgelehnt - bitte Ã¼berarbeiten",
     scheduled: "Geplant zum Posten",
     published: "Erfolgreich gepostet!",
   };
