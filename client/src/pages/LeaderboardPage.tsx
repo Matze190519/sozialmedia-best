@@ -8,11 +8,11 @@ import {
 } from "lucide-react";
 
 const BADGE_CONFIG: Record<string, { label: string; icon: typeof Trophy; color: string; bg: string }> = {
-  diamond: { label: "Diamant", icon: Crown, color: "text-cyan-300", bg: "bg-gradient-to-br from-cyan-500/20 to-blue-500/20" },
+  diamond: { label: "Diamant", icon: Crown, color: "text-amber-300", bg: "bg-gradient-to-br from-amber-500/20 to-amber-500/20" },
   gold: { label: "Gold", icon: Trophy, color: "text-amber-400", bg: "bg-gradient-to-br from-amber-500/20 to-yellow-500/20" },
   silver: { label: "Silber", icon: Medal, color: "text-gray-300", bg: "bg-gradient-to-br from-gray-400/20 to-gray-500/20" },
   bronze: { label: "Bronze", icon: Award, color: "text-orange-400", bg: "bg-gradient-to-br from-orange-500/20 to-amber-500/20" },
-  starter: { label: "Starter", icon: Star, color: "text-blue-400", bg: "bg-gradient-to-br from-blue-500/20 to-indigo-500/20" },
+  starter: { label: "Starter", icon: Star, color: "text-amber-400", bg: "bg-gradient-to-br from-amber-500/20 to-indigo-500/20" },
 };
 
 const RANK_STYLES = [
@@ -212,7 +212,7 @@ export default function LeaderboardPage() {
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 text-[10px] text-muted-foreground">
             <div className="flex items-center gap-1.5">
-              <Zap className="h-3 w-3 text-blue-400" />
+              <Zap className="h-3 w-3 text-amber-400" />
               <span>Post erstellt: +10 Punkte</span>
             </div>
             <div className="flex items-center gap-1.5">

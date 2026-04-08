@@ -9,13 +9,13 @@ import {
 } from "lucide-react";
 
 const ACTION_CONFIG: Record<string, { icon: typeof Activity; label: string; color: string }> = {
-  content_created: { icon: FileText, label: "Content erstellt", color: "text-blue-400" },
+  content_created: { icon: FileText, label: "Content erstellt", color: "text-amber-400" },
   content_approved: { icon: CheckCircle, label: "Content genehmigt", color: "text-emerald-400" },
   content_rejected: { icon: XCircle, label: "Content abgelehnt", color: "text-red-400" },
-  content_published: { icon: Send, label: "Content veröffentlicht", color: "text-violet-400" },
+  content_published: { icon: Send, label: "Content veröffentlicht", color: "text-amber-400" },
   content_edited: { icon: FileText, label: "Content bearbeitet", color: "text-amber-400" },
   image_generated: { icon: Image, label: "Bild generiert", color: "text-pink-400" },
-  video_generated: { icon: Video, label: "Video generiert", color: "text-cyan-400" },
+  video_generated: { icon: Video, label: "Video generiert", color: "text-amber-400" },
   template_created: { icon: BookOpen, label: "Vorlage erstellt", color: "text-orange-400" },
   library_shared: { icon: Layers, label: "In Bibliothek geteilt", color: "text-indigo-400" },
   trend_scanned: { icon: TrendingUp, label: "Trend gescannt", color: "text-lime-400" },

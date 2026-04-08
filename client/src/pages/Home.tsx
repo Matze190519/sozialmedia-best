@@ -23,7 +23,7 @@ import { useMemo } from "react";
 const PLATFORM_COLORS: Record<string, string> = {
   instagram: "bg-pink-500/20 text-pink-300",
   facebook: "bg-blue-500/20 text-blue-300",
-  tiktok: "bg-cyan-500/20 text-cyan-300",
+  tiktok: "bg-amber-500/20 text-amber-300",
   linkedin: "bg-blue-700/20 text-blue-200",
   twitter: "bg-sky-500/20 text-sky-300",
   threads: "bg-gray-500/20 text-gray-300",
@@ -160,7 +160,7 @@ export default function Home() {
         {[
           { label: "Ausstehend", value: stats?.pending ?? 0, icon: Clock, color: "text-yellow-400", bg: "bg-yellow-400/10", glow: "rgba(234, 179, 8, 0.1)" },
           { label: "Genehmigt", value: stats?.approved ?? 0, icon: CheckCircle, color: "text-emerald-400", bg: "bg-emerald-400/10", glow: "rgba(16, 185, 129, 0.1)" },
-          { label: "Geplant", value: stats?.scheduled ?? 0, icon: Send, color: "text-blue-400", bg: "bg-blue-400/10", glow: "rgba(59, 130, 246, 0.1)" },
+          { label: "Geplant", value: stats?.scheduled ?? 0, icon: Send, color: "text-amber-400", bg: "bg-amber-400/10", glow: "rgba(245, 158, 11, 0.1)" },
           { label: "Live", value: stats?.published ?? 0, icon: TrendingUp, color: "text-purple-400", bg: "bg-purple-400/10", glow: "rgba(168, 85, 247, 0.1)" },
           { label: "Abgelehnt", value: stats?.rejected ?? 0, icon: XCircle, color: "text-red-400", bg: "bg-red-400/10", glow: "rgba(239, 68, 68, 0.1)" },
           { label: "Gesamt", value: stats?.total ?? 0, icon: FileText, color: "text-foreground", bg: "bg-foreground/10", glow: "rgba(255, 255, 255, 0.05)" },
@@ -235,7 +235,7 @@ export default function Home() {
                               <div className="flex items-center gap-1.5 mb-1">
                                 <Badge variant="outline" className="text-[9px] h-4">{item.post.contentType}</Badge>
                                 {item.post.mediaUrl && <Image className="h-3 w-3 text-emerald-400" />}
-                                {item.post.videoUrl && <Video className="h-3 w-3 text-violet-400" />}
+                                {item.post.videoUrl && <Video className="h-3 w-3 text-amber-400" />}
                                 {!item.post.mediaUrl && !item.post.videoUrl && (
                                   <span className="text-[9px] text-amber-400">Kein Bild/Video</span>
                                 )}
@@ -287,7 +287,7 @@ export default function Home() {
                                 </span>
                               ))}
                               {item.post.mediaUrl && <Image className="h-3 w-3 text-emerald-400" />}
-                              {item.post.videoUrl && <Video className="h-3 w-3 text-violet-400" />}
+                              {item.post.videoUrl && <Video className="h-3 w-3 text-amber-400" />}
                             </div>
                           </div>
                         </div>
@@ -347,9 +347,9 @@ export default function Home() {
                 <div className="grid grid-cols-2 gap-2">
                   {[
                     { icon: Flame, label: "Trend-Scanner", path: "/trends", color: "text-amber-400", glow: "hover:shadow-amber-500/20" },
-                    { icon: Eye, label: "Creator Spy", path: "/creator-spy", color: "text-violet-400", glow: "hover:shadow-violet-500/20" },
-                    { icon: Sparkles, label: "Lifestyle-Engine", path: "/lifestyle", color: "text-cyan-400", glow: "hover:shadow-cyan-500/20" },
-                    { icon: CalendarDays, label: "Monatsplan", path: "/monthly-plan", color: "text-blue-400", glow: "hover:shadow-blue-500/20" },
+                    { icon: Eye, label: "Creator Spy", path: "/creator-spy", color: "text-amber-400", glow: "hover:shadow-amber-500/20" },
+                    { icon: Sparkles, label: "Lifestyle-Engine", path: "/lifestyle", color: "text-amber-400", glow: "hover:shadow-cyan-500/20" },
+                    { icon: CalendarDays, label: "Monatsplan", path: "/monthly-plan", color: "text-amber-400", glow: "hover:shadow-amber-500/20" },
                     { icon: Hash, label: "Hashtag-Engine", path: "/hashtags", color: "text-pink-400", glow: "hover:shadow-pink-500/20" },
                     { icon: BarChart3, label: "Analytics+", path: "/analytics-plus", color: "text-emerald-400", glow: "hover:shadow-emerald-500/20" },
                   ].map((item, idx) => (

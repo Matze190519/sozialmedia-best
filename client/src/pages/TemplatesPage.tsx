@@ -30,10 +30,10 @@ const PILLAR_LABELS: Record<string, string> = {
 };
 
 const PILLAR_COLORS: Record<string, string> = {
-  autokonzept: "text-blue-400 bg-blue-500/10",
+  autokonzept: "text-amber-400 bg-amber-500/10",
   business_opportunity: "text-emerald-400 bg-emerald-500/10",
   produkt_highlight: "text-pink-400 bg-pink-500/10",
-  lina_demo: "text-violet-400 bg-violet-500/10",
+  lina_demo: "text-amber-400 bg-amber-500/10",
   lifestyle: "text-amber-400 bg-amber-500/10",
 };
 
@@ -76,7 +76,7 @@ export default function TemplatesPage() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-violet-400" />
+            <BookOpen className="h-6 w-6 text-amber-400" />
             Content-Vorlagen
           </h1>
           <p className="text-muted-foreground text-sm mt-1">

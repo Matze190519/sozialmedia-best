@@ -25,12 +25,12 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
 
 const CATEGORY_COLORS: Record<string, string> = {
   "Aloe Vera": "bg-green-500/10 text-green-400 border-green-500/20",
-  "Körperpflege": "bg-blue-500/10 text-blue-400 border-blue-500/20",
+  "Körperpflege": "bg-amber-500/10 text-amber-400 border-amber-500/20",
   "Nahrungsergänzung": "bg-orange-500/10 text-orange-400 border-orange-500/20",
   "ZEITGARD": "bg-purple-500/10 text-purple-400 border-purple-500/20",
   "Parfum": "bg-pink-500/10 text-pink-400 border-pink-500/20",
   "LR LIFETAKT": "bg-red-500/10 text-red-400 border-red-500/20",
-  "Body Mission": "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+  "Body Mission": "bg-amber-500/10 text-amber-400 border-amber-500/20",
   "Health Mission": "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
 };
 

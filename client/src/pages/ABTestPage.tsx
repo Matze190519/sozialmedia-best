@@ -92,7 +92,7 @@ export default function ABTestPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <div className="h-6 w-6 rounded bg-blue-500/20 flex items-center justify-center text-xs font-bold text-blue-400">A</div>
+                    <div className="h-6 w-6 rounded bg-amber-500/20 flex items-center justify-center text-xs font-bold text-amber-400">A</div>
                     <Label>Variante A</Label>
                   </div>
                   <Textarea placeholder="Ersten Post-Text hier einf&uuml;gen..." value={variantA} onChange={e => setVariantA(e.target.value)} rows={8} />
@@ -175,7 +175,7 @@ export default function ABTestPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className={`rounded-lg p-3 border ${t.winner === "A" ? "border-green-500/40 bg-green-500/5" : "border-border/50 bg-muted/30"}`}>
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="h-5 w-5 rounded bg-blue-500/20 flex items-center justify-center text-[10px] font-bold text-blue-400">A</div>
+                        <div className="h-5 w-5 rounded bg-amber-500/20 flex items-center justify-center text-[10px] font-bold text-amber-400">A</div>
                         <span className="text-xs font-medium">Variante A</span>
                         {t.winner === "A" && <Badge className="bg-green-500/20 text-green-500 border-0 text-[10px]"><Trophy className="h-2.5 w-2.5 mr-0.5" /> Gewinner</Badge>}
                       </div>
@@ -200,7 +200,7 @@ export default function ABTestPage() {
                   {/* Complete test */}
                   {isActive && (
                     <div className="flex gap-2 mt-4 pt-3 border-t border-border/50">
-                      <Button size="sm" variant="outline" className="text-blue-400" onClick={() => {
+                      <Button size="sm" variant="outline" className="text-amber-400" onClick={() => {
                         const reason = prompt("Warum hat Variante A gewonnen?");
                         if (reason) completeMutation.mutate({ id: t.id, winner: "A", reason });
                       }}>

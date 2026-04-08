@@ -655,7 +655,7 @@ export default function GeneratorPage() {
               <Card className="border-border/50">
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
-                    <Image className="h-4 w-4 text-blue-400" />
+                    <Image className="h-4 w-4 text-amber-400" />
                     KI-Bild generieren
                   </CardTitle>
                   <CardDescription>Oder erstelle ein neues Bild mit KI</CardDescription>
@@ -710,9 +710,9 @@ export default function GeneratorPage() {
             </div>
 
             {generatedImageUrl && (
-              <Card className="border-blue-500/30">
+              <Card className="border-amber-500/30">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base text-blue-400">Generiertes / Ausgewähltes Bild</CardTitle>
+                  <CardTitle className="text-base text-amber-400">Generiertes / Ausgewähltes Bild</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <img src={generatedImageUrl} alt="Bild" className="rounded-lg w-full" />
@@ -736,7 +736,7 @@ export default function GeneratorPage() {
             <Card className="border-border/50">
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Video className="h-4 w-4 text-violet-400" />
+                  <Video className="h-4 w-4 text-amber-400" />
                   KI-Video generieren
                 </CardTitle>
                 <CardDescription>Echte Video-KI: Kling 3.0 Pro oder Minimax</CardDescription>
@@ -822,7 +822,7 @@ export default function GeneratorPage() {
                 </div>
 
                 {generatedImageUrl && (
-                  <div className="p-3 bg-violet-500/10 rounded-lg">
+                  <div className="p-3 bg-amber-500/10 rounded-lg">
                     <p className="text-xs text-muted-foreground mb-2">Basis-Bild (Image-to-Video):</p>
                     <img src={generatedImageUrl} alt="Basis" className="rounded h-20 object-cover" />
                     <p className="text-[10px] text-muted-foreground mt-1">Das Bild wird als Startframe für das Video verwendet</p>
@@ -835,22 +835,22 @@ export default function GeneratorPage() {
                 </Button>
 
                 {/* Musik-Hinweis */}
-                <div className="bg-violet-500/10 border border-violet-500/30 rounded-lg p-3 text-xs text-violet-300">
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 text-xs text-amber-300">
                   <p className="font-semibold mb-1">🎵 Musik hinzufügen (nach dem Download):</p>
                   <p className="text-muted-foreground">Das KI-Video hat keinen Ton. Füge Musik in CapCut oder Instagram Reels Editor hinzu:</p>
                   <ul className="mt-1.5 space-y-0.5 text-muted-foreground">
-                    <li>• <strong className="text-violet-300">Team-Videos:</strong> Motivierende Beats, energiegeladen (z.B. Epic/Cinematic)</li>
-                    <li>• <strong className="text-violet-300">Produkt-Videos:</strong> Ruhige, elegante Musik (Lo-Fi, Ambient)</li>
-                    <li>• <strong className="text-violet-300">Lifestyle-Videos:</strong> Trendige Pop/R&B Beats</li>
+                    <li>• <strong className="text-amber-300">Team-Videos:</strong> Motivierende Beats, energiegeladen (z.B. Epic/Cinematic)</li>
+                    <li>• <strong className="text-amber-300">Produkt-Videos:</strong> Ruhige, elegante Musik (Lo-Fi, Ambient)</li>
+                    <li>• <strong className="text-amber-300">Lifestyle-Videos:</strong> Trendige Pop/R&B Beats</li>
                   </ul>
                 </div>
               </CardContent>
             </Card>
 
             {generatedVideoUrl && (
-              <Card className="border-violet-500/30">
+              <Card className="border-amber-500/30">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base text-violet-400">Generiertes KI-Video</CardTitle>
+                  <CardTitle className="text-base text-amber-400">Generiertes KI-Video</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <video src={generatedVideoUrl} controls className="rounded-lg w-full" />
@@ -907,7 +907,7 @@ export default function GeneratorPage() {
             {/* Script Templates */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold flex items-center gap-2">
-                <FileText className="h-5 w-5 text-blue-400" />
+                <FileText className="h-5 w-5 text-amber-400" />
                 Viral Script Templates
               </h2>
               {scriptTemplates.data && (

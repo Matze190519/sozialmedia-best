@@ -160,7 +160,7 @@ export default function InviteTokensPage() {
         </Card>
         <Card>
           <CardContent className="py-4 text-center">
-            <p className="text-2xl font-bold text-blue-400">{usedTokens.length}</p>
+            <p className="text-2xl font-bold text-amber-400">{usedTokens.length}</p>
             <p className="text-xs text-muted-foreground">Eingelöst</p>
           </CardContent>
         </Card>
@@ -191,7 +191,7 @@ export default function InviteTokensPage() {
                   <Card className="hover:border-primary/30 transition-colors">
                     <CardContent className="py-3 px-4">
                         <div className="flex items-start sm:items-center gap-2 sm:gap-3">
-                        <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                        <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-amber-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
                           <Link className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -236,15 +236,15 @@ export default function InviteTokensPage() {
       {usedTokens.length > 0 && (
         <div>
           <h2 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-blue-400" /> Eingelöste Einladungen
+            <CheckCircle className="h-4 w-4 text-amber-400" /> Eingelöste Einladungen
           </h2>
           <div className="space-y-2">
             {usedTokens.map(token => (
               <Card key={token.id} className="opacity-60">
                 <CardContent className="py-3 px-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
-                      <CheckCircle className="h-4 w-4 text-blue-400" />
+                    <div className="h-10 w-10 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                      <CheckCircle className="h-4 w-4 text-amber-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <span className="text-sm font-medium">{token.name || "Unbenannt"}</span>

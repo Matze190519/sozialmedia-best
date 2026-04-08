@@ -26,7 +26,7 @@ const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-500/20 border-l-yellow-500 text-yellow-300",
   approved: "bg-emerald-500/20 border-l-emerald-500 text-emerald-300",
   rejected: "bg-red-500/20 border-l-red-500 text-red-300",
-  scheduled: "bg-blue-500/20 border-l-blue-500 text-blue-300",
+  scheduled: "bg-amber-500/20 border-l-amber-500 text-amber-300",
   published: "bg-purple-500/20 border-l-purple-500 text-purple-300",
 };
 

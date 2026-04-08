@@ -207,8 +207,8 @@ export default function SettingsPage() {
           </div>
 
           {!settings?.hasBlotatoKey && (
-            <div className="bg-blue-500/5 border border-blue-500/20 rounded-lg p-3">
-              <p className="text-xs text-blue-400">
+            <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
+              <p className="text-xs text-amber-400">
                 <strong>Kein Blotato?</strong> Kein Problem! Du kannst trotzdem alle Texte, Bilder und Videos aus der Bibliothek kopieren und manuell auf deinen Kanälen posten.
               </p>
             </div>

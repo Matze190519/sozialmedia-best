@@ -21,9 +21,9 @@ const REMIX_FORMATS = [
     label: "Feed Post",
     icon: FileText,
     desc: "Klassischer Social Media Post",
-    color: "text-blue-400",
-    bgColor: "bg-blue-500/10",
-    borderColor: "border-blue-500/20",
+    color: "text-amber-400",
+    bgColor: "bg-amber-500/10",
+    borderColor: "border-amber-500/20",
   },
   {
     id: "reel",

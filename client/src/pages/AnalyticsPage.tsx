@@ -37,11 +37,11 @@ export default function AnalyticsPage() {
       ) : totals ? (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="border-blue-500/20">
+            <Card className="border-amber-500/20">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                    <ThumbsUp className="h-5 w-5 text-blue-400" />
+                  <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                    <ThumbsUp className="h-5 w-5 text-amber-400" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{totals.likes.toLocaleString("de-DE")}</p>
@@ -63,11 +63,11 @@ export default function AnalyticsPage() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="border-violet-500/20">
+            <Card className="border-amber-500/20">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-violet-500/10 flex items-center justify-center">
-                    <Share2 className="h-5 w-5 text-violet-400" />
+                  <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                    <Share2 className="h-5 w-5 text-amber-400" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{totals.shares.toLocaleString("de-DE")}</p>

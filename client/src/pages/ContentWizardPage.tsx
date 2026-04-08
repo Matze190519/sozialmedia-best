@@ -341,7 +341,7 @@ export default function ContentWizardPage() {
             <GlowCard glowColor="rgba(168, 85, 247, 0.1)">
               <div className="p-4">
                 <Label className="text-sm font-semibold mb-3 block">
-                  <Globe className="h-4 w-4 inline mr-1.5 text-violet-400" />
+                  <Globe className="h-4 w-4 inline mr-1.5 text-amber-400" />
                   Plattformen ({selectedPlatforms.length}/9)
                 </Label>
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2">
@@ -530,7 +530,7 @@ export default function ContentWizardPage() {
                 <GlowCard glowColor="rgba(168, 85, 247, 0.1)">
                   <div className="p-4">
                     <h3 className="text-sm font-semibold flex items-center gap-2 mb-2">
-                      <Video className="h-4 w-4 text-violet-400" />
+                      <Video className="h-4 w-4 text-amber-400" />
                       KI-Video
                     </h3>
                     <div className="rounded-lg overflow-hidden border border-border/30">
@@ -601,7 +601,7 @@ export default function ContentWizardPage() {
                             {generatedContent.length}/{limit} Zeichen
                           </span>
                           {generatedImageUrl && <Image className="h-3 w-3 text-emerald-400" />}
-                          {generatedVideoUrl && <Video className="h-3 w-3 text-violet-400" />}
+                          {generatedVideoUrl && <Video className="h-3 w-3 text-amber-400" />}
                         </div>
                       </motion.div>
                     );

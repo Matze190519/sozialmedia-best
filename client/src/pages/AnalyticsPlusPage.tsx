@@ -121,7 +121,7 @@ export default function AnalyticsPlusPage() {
         <Card className="border-border/30">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Target className="h-4 w-4 text-cyan-400" />
+              <Target className="h-4 w-4 text-amber-400" />
               Content-Mix nach Format
             </CardTitle>
             <CardDescription>Posts, Reels, Stories, Hooks...</CardDescription>

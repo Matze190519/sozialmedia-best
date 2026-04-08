@@ -15,7 +15,7 @@ const COLUMNS = [
   { id: "draft", label: "Entwurf", icon: Edit3, color: "text-gray-400", bg: "bg-gray-500/10", border: "border-gray-500/20" },
   { id: "pending", label: "Zur Freigabe", icon: Clock, color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" },
   { id: "approved", label: "Freigegeben", icon: CheckCircle, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
-  { id: "published", label: "Veröffentlicht", icon: Send, color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20" },
+  { id: "published", label: "Veröffentlicht", icon: Send, color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" },
   { id: "rejected", label: "Abgelehnt", icon: XCircle, color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20" },
 ] as const;
 
@@ -75,7 +75,7 @@ function KanbanCard({
             </div>
             <div className="flex items-center gap-1">
               {hasMedia && <ImageIcon className="h-3.5 w-3.5 text-purple-400" />}
-              {hasVideo && <Video className="h-3.5 w-3.5 text-blue-400" />}
+              {hasVideo && <Video className="h-3.5 w-3.5 text-amber-400" />}
             </div>
           </div>
 

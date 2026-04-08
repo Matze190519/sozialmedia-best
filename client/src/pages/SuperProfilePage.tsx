@@ -258,8 +258,8 @@ Falls du Fragen hast, schreib mir einfach!`}
               </div>
             </div>
             <div className="flex gap-3 items-start">
-              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
-                <Users className="h-4 w-4 text-blue-500" />
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                <Users className="h-4 w-4 text-amber-500" />
               </div>
               <div>
                 <p className="font-medium text-sm">Brevo (bei Lead Magnets)</p>

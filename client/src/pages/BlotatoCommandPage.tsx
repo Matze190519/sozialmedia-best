@@ -20,7 +20,7 @@ import { AnimatedCounter } from "@/components/AnimatedCounter";
 const PLATFORM_META: Record<string, { icon: string; label: string; color: string; gradient: string }> = {
   instagram: { icon: "📸", label: "Instagram", color: "text-pink-400", gradient: "from-pink-500/20 to-purple-500/20" },
   facebook: { icon: "📘", label: "Facebook", color: "text-blue-400", gradient: "from-blue-600/20 to-blue-400/20" },
-  tiktok: { icon: "🎵", label: "TikTok", color: "text-cyan-400", gradient: "from-cyan-500/20 to-pink-500/20" },
+  tiktok: { icon: "🎵", label: "TikTok", color: "text-amber-400", gradient: "from-amber-500/20 to-pink-500/20" },
   linkedin: { icon: "💼", label: "LinkedIn", color: "text-blue-300", gradient: "from-blue-700/20 to-blue-500/20" },
   twitter: { icon: "🐦", label: "X / Twitter", color: "text-sky-400", gradient: "from-sky-500/20 to-sky-300/20" },
   threads: { icon: "🧵", label: "Threads", color: "text-gray-300", gradient: "from-gray-600/20 to-gray-400/20" },
@@ -162,10 +162,10 @@ export default function BlotatoCommandPage() {
         <GlowCard glowColor="rgba(168, 85, 247, 0.1)">
           <div className="p-4 text-center">
             <div className="flex items-center justify-center gap-1.5 mb-1">
-              <TrendingUp className="h-4 w-4 text-violet-400" />
+              <TrendingUp className="h-4 w-4 text-amber-400" />
               <span className="text-xs text-muted-foreground">Heute</span>
             </div>
-            <p className="text-2xl font-bold text-violet-400">
+            <p className="text-2xl font-bold text-amber-400">
               <AnimatedCounter value={stats?.publishedToday || 0} />
             </p>
             <p className="text-[10px] text-muted-foreground">Posts veröffentlicht</p>
@@ -336,7 +336,7 @@ export default function BlotatoCommandPage() {
                       )}
                     </p>
                   </div>
-                  <Badge variant="outline" className="text-[8px] h-4 text-blue-400 border-blue-500/30">
+                  <Badge variant="outline" className="text-[8px] h-4 text-amber-400 border-amber-500/30">
                     Geplant
                   </Badge>
                 </motion.div>

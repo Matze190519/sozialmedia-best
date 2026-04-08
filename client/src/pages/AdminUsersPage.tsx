@@ -95,9 +95,9 @@ export default function AdminUsersPage() {
             <div className="text-xs text-muted-foreground">Admins</div>
           </CardContent>
         </Card>
-        <Card className="border-blue-500/30 bg-blue-500/5">
+        <Card className="border-amber-500/30 bg-amber-500/5">
           <CardContent className="p-3 text-center">
-            <div className="text-2xl font-bold text-blue-400">{withBlotato}</div>
+            <div className="text-2xl font-bold text-amber-400">{withBlotato}</div>
             <div className="text-xs text-muted-foreground">Mit Blotato</div>
           </CardContent>
         </Card>
@@ -165,7 +165,7 @@ export default function AdminUsersPage() {
                           </Badge>
                         )}
                         {u.hasBlotatoKey && (
-                          <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30 text-[10px]">
+                          <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/30 text-[10px]">
                             <Key className="h-2.5 w-2.5 mr-0.5" /> Blotato
                           </Badge>
                         )}

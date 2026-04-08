@@ -150,10 +150,10 @@ export default function OnboardingPage() {
       {/* ============================================ */}
       {/* BLOTATO KOMPLETT-ANLEITUNG */}
       {/* ============================================ */}
-      <Card className="border-blue-500/30 bg-blue-500/5">
+      <Card className="border-amber-500/30 bg-amber-500/5">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Send className="h-5 w-5 text-blue-400" />
+            <Send className="h-5 w-5 text-amber-400" />
             Blotato einrichten - Komplette Anleitung
           </CardTitle>
           <CardDescription>
@@ -165,12 +165,12 @@ export default function OnboardingPage() {
           {/* Schritt 1: Account erstellen */}
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full bg-blue-500/20 flex items-center justify-center text-sm font-bold text-blue-400">1</div>
+              <div className="h-8 w-8 rounded-full bg-amber-500/20 flex items-center justify-center text-sm font-bold text-amber-400">1</div>
               <h3 className="font-semibold">Account erstellen</h3>
             </div>
             <div className="ml-11 space-y-2">
               <p className="text-sm text-muted-foreground">
-                Gehe zu <a href="https://my.blotato.com" target="_blank" rel="noreferrer" className="text-blue-400 hover:underline inline-flex items-center gap-1 font-medium">my.blotato.com <ExternalLink className="h-3 w-3" /></a> und erstelle einen Account.
+                Gehe zu <a href="https://my.blotato.com" target="_blank" rel="noreferrer" className="text-amber-400 hover:underline inline-flex items-center gap-1 font-medium">my.blotato.com <ExternalLink className="h-3 w-3" /></a> und erstelle einen Account.
               </p>
               <div className="bg-background/50 rounded-lg p-3 text-sm space-y-1">
                 <p className="flex items-center gap-2"><LogIn className="h-4 w-4 text-muted-foreground" /> E-Mail eingeben und registrieren</p>
@@ -183,12 +183,12 @@ export default function OnboardingPage() {
           {/* Schritt 2: Social Media Kanäle verbinden */}
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full bg-blue-500/20 flex items-center justify-center text-sm font-bold text-blue-400">2</div>
+              <div className="h-8 w-8 rounded-full bg-amber-500/20 flex items-center justify-center text-sm font-bold text-amber-400">2</div>
               <h3 className="font-semibold">Deine Social-Media-Kanäle verbinden</h3>
             </div>
             <div className="ml-11 space-y-3">
               <p className="text-sm text-muted-foreground">
-                Gehe in Blotato zu <a href="https://my.blotato.com/settings" target="_blank" rel="noreferrer" className="text-blue-400 hover:underline inline-flex items-center gap-1 font-medium">Settings <ExternalLink className="h-3 w-3" /></a> und verbinde deine Accounts:
+                Gehe in Blotato zu <a href="https://my.blotato.com/settings" target="_blank" rel="noreferrer" className="text-amber-400 hover:underline inline-flex items-center gap-1 font-medium">Settings <ExternalLink className="h-3 w-3" /></a> und verbinde deine Accounts:
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
@@ -222,12 +222,12 @@ export default function OnboardingPage() {
           {/* Schritt 3: API Key kopieren */}
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full bg-blue-500/20 flex items-center justify-center text-sm font-bold text-blue-400">3</div>
+              <div className="h-8 w-8 rounded-full bg-amber-500/20 flex items-center justify-center text-sm font-bold text-amber-400">3</div>
               <h3 className="font-semibold">API Key kopieren</h3>
             </div>
             <div className="ml-11 space-y-2">
               <p className="text-sm text-muted-foreground">
-                In Blotato: Gehe zu <a href="https://my.blotato.com/settings" target="_blank" rel="noreferrer" className="text-blue-400 hover:underline inline-flex items-center gap-1 font-medium">Settings <ExternalLink className="h-3 w-3" /></a> und scrolle runter zu <strong>"API Access"</strong>.
+                In Blotato: Gehe zu <a href="https://my.blotato.com/settings" target="_blank" rel="noreferrer" className="text-amber-400 hover:underline inline-flex items-center gap-1 font-medium">Settings <ExternalLink className="h-3 w-3" /></a> und scrolle runter zu <strong>"API Access"</strong>.
               </p>
               <div className="bg-background/50 rounded-lg p-3 text-sm space-y-2">
                 <p className="flex items-center gap-2"><Eye className="h-4 w-4 text-muted-foreground" /> Scrolle in den Blotato Settings nach unten bis "API Access"</p>
@@ -339,8 +339,8 @@ export default function OnboardingPage() {
               </p>
             </div>
             <div className="text-center space-y-3">
-              <div className="h-14 w-14 rounded-2xl bg-blue-500/10 flex items-center justify-center mx-auto">
-                <Send className="h-7 w-7 text-blue-400" />
+              <div className="h-14 w-14 rounded-2xl bg-amber-500/10 flex items-center justify-center mx-auto">
+                <Send className="h-7 w-7 text-amber-400" />
               </div>
               <h3 className="font-semibold">3. Automatisch posten</h3>
               <p className="text-sm text-muted-foreground">

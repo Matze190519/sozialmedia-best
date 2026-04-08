@@ -29,7 +29,7 @@ export default function CreatorSpyPage() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Eye className="h-6 w-6 text-blue-400" />
+            <Eye className="h-6 w-6 text-amber-400" />
             Creator Spy
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
@@ -49,11 +49,11 @@ export default function CreatorSpyPage() {
       {/* Quick Stats from latest report */}
       {latestReport && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="border-blue-500/20">
+          <Card className="border-amber-500/20">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                  <TrendingUp className="h-5 w-5 text-blue-400" />
+                <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                  <TrendingUp className="h-5 w-5 text-amber-400" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{(latestReport.topHooks as string[])?.length || 0}</p>

@@ -2,24 +2,15 @@ import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
-import { CheckCircle, XCircle, Clock, Sparkles, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Sparkles, Loader2, Rocket, Zap, Image } from "lucide-react";
 
 /**
- * JoinPage - Magic Link Landing
- * 
- * Flow:
- * 1. Partner bekommt Link von Lina: sozialmedia.best/join/TOKEN
- * 2. Diese Seite prüft den Token via REST API
- * 3. Wenn gültig → zeigt Willkommens-Nachricht → Auto-Redirect zum Magic Login
- * 4. Magic Login setzt JWT Cookie → Partner ist eingeloggt
- * 
- * Kein Manus-Konto nötig! Kein Passwort! Kein E-Mail!
+ * JoinPage - Magic Link Landing (Premium Gold Design)
  */
 export default function JoinPage() {
   const [status, setStatus] = useState<"loading" | "valid" | "invalid" | "expired" | "redirecting">("loading");
   const [tokenInfo, setTokenInfo] = useState<{ name?: string; partnerNumber?: string; reason?: string }>({});
 
-  // Extract token from URL path: /join/:token
   const token = useMemo(() => {
     const path = window.location.pathname;
     const parts = path.split("/");
@@ -34,18 +25,14 @@ export default function JoinPage() {
       return;
     }
 
-    // Verify token via REST API
     fetch(`/api/lina/invite/${token}`)
       .then(r => r.json())
       .then(data => {
         if (data.valid) {
           setTokenInfo({ name: data.name, partnerNumber: data.partnerNumber });
           setStatus("valid");
-
-          // Auto-redirect to magic login after 2 seconds
           setTimeout(() => {
             setStatus("redirecting");
-            // The magic login endpoint creates a JWT session and redirects to /
             window.location.href = `/api/auth/magic/${token}`;
           }, 2500);
         } else {
@@ -59,14 +46,45 @@ export default function JoinPage() {
       });
   }, [token]);
 
+  // Animated gold particles background
+  const GoldParticles = () => (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {Array.from({ length: 20 }).map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-1 h-1 rounded-full"
+          style={{
+            background: `radial-gradient(circle, rgba(245,158,11,${0.3 + Math.random() * 0.4}) 0%, transparent 70%)`,
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            width: `${2 + Math.random() * 4}px`,
+            height: `${2 + Math.random() * 4}px`,
+          }}
+          animate={{
+            y: [0, -30 - Math.random() * 50, 0],
+            opacity: [0.2, 0.8, 0.2],
+            scale: [1, 1.5, 1],
+          }}
+          transition={{
+            duration: 3 + Math.random() * 4,
+            repeat: Infinity,
+            delay: Math.random() * 3,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </div>
+  );
+
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="max-w-md w-full">
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] p-4 relative">
+        <GoldParticles />
+        <Card className="max-w-md w-full bg-black/60 border-amber-500/20 backdrop-blur-xl">
           <CardContent className="py-12 text-center">
-            <Skeleton className="h-12 w-12 rounded-full mx-auto mb-4" />
-            <Skeleton className="h-6 w-48 mx-auto mb-2" />
-            <Skeleton className="h-4 w-64 mx-auto" />
+            <Skeleton className="h-12 w-12 rounded-full mx-auto mb-4 bg-amber-500/10" />
+            <Skeleton className="h-6 w-48 mx-auto mb-2 bg-amber-500/10" />
+            <Skeleton className="h-4 w-64 mx-auto bg-amber-500/10" />
           </CardContent>
         </Card>
       </div>
@@ -75,29 +93,34 @@ export default function JoinPage() {
 
   if (status === "invalid" || status === "expired") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] p-4 relative">
+        <GoldParticles />
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-md w-full"
         >
-          <Card className="border-destructive/30">
+          <Card className="bg-black/60 border-amber-500/20 backdrop-blur-xl">
             <CardContent className="py-12 text-center">
               {status === "expired" ? (
-                <Clock className="h-12 w-12 text-amber-400 mx-auto mb-4" />
+                <div className="h-16 w-16 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
+                  <Clock className="h-8 w-8 text-amber-400" />
+                </div>
               ) : (
-                <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+                <div className="h-16 w-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+                  <XCircle className="h-8 w-8 text-red-400" />
+                </div>
               )}
-              <h1 className="text-xl font-bold mb-2">
+              <h1 className="text-xl font-bold text-white mb-2 font-[Montserrat]">
                 {status === "expired" ? "Link abgelaufen" : "Link ungültig"}
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-white/60">
                 {tokenInfo.reason || "Dieser Einladungs-Link ist nicht mehr gültig."}
               </p>
-              <div className="mt-6 p-4 rounded-lg bg-muted/30 border border-border/30">
-                <p className="text-sm font-medium mb-1">Neuen Link anfordern?</p>
-                <p className="text-xs text-muted-foreground">
-                  Schreibe einfach <strong>"Content Hub öffnen"</strong> an Lina auf WhatsApp.
+              <div className="mt-6 p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
+                <p className="text-sm font-medium text-amber-400 mb-1">Neuen Link anfordern?</p>
+                <p className="text-xs text-white/50">
+                  Schreibe einfach <strong className="text-amber-300">"Content Hub öffnen"</strong> an Lina auf WhatsApp.
                   Sie schickt dir sofort einen neuen Link.
                 </p>
               </div>
@@ -110,77 +133,91 @@ export default function JoinPage() {
 
   // Valid token → Show welcome + auto-redirect
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] p-4 relative">
+      <GoldParticles />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full"
+        className="max-w-md w-full relative z-10"
       >
-        <Card className="border-primary/30 overflow-hidden">
-          {/* Gradient Header */}
-          <div className="h-32 bg-gradient-to-br from-violet-600 via-purple-600 to-pink-500 flex items-center justify-center relative">
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyem0wLTMwVjBoLTEydjRoMTJ6TTI0IDI0aDEydi0ySDE0djJoMTB6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
+        <Card className="bg-black/60 border-amber-500/20 backdrop-blur-xl overflow-hidden">
+          {/* Premium Gold Gradient Header */}
+          <div className="h-36 bg-gradient-to-br from-amber-600/30 via-yellow-500/20 to-amber-700/30 flex items-center justify-center relative">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
             <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", delay: 0.2 }}
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", delay: 0.2, damping: 12 }}
+              className="relative z-10"
             >
-              <Sparkles className="h-16 w-16 text-white" />
+              <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
+                <Rocket className="h-10 w-10 text-black" />
+              </div>
             </motion.div>
           </div>
 
-          <CardContent className="py-8 text-center">
-            <h1 className="text-2xl font-bold mb-2">
+          <CardContent className="py-8 text-center -mt-4 relative z-10">
+            <motion.h1
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-2xl font-bold text-white mb-1 font-[Montserrat]"
+            >
               Willkommen{tokenInfo.name ? `, ${tokenInfo.name}` : ""}!
-            </h1>
-            <p className="text-sm text-muted-foreground mb-6">
-              Du wurdest zum LR Content System eingeladen.
+            </motion.h1>
+            <p className="text-sm text-white/50 mb-6">
+              Du wurdest zum <span className="text-amber-400 font-medium">LR Content System</span> eingeladen.
               {tokenInfo.partnerNumber && (
-                <span className="block mt-1 text-xs">
-                  Partnernummer: <strong>{tokenInfo.partnerNumber}</strong>
+                <span className="block mt-1 text-xs text-white/40">
+                  Partnernummer: <strong className="text-amber-300">{tokenInfo.partnerNumber}</strong>
                 </span>
               )}
             </p>
 
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-left p-3 rounded-lg bg-card border border-border/30">
-                <CheckCircle className="h-5 w-5 text-emerald-400 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium">KI-Content Generator</p>
-                  <p className="text-[10px] text-muted-foreground">Erstelle Posts, Reels, Karussells mit KI</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 text-left p-3 rounded-lg bg-card border border-border/30">
-                <CheckCircle className="h-5 w-5 text-emerald-400 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium">Content-Bibliothek</p>
-                  <p className="text-[10px] text-muted-foreground">Fertige Vorlagen kopieren & personalisieren</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 text-left p-3 rounded-lg bg-card border border-border/30">
-                <CheckCircle className="h-5 w-5 text-emerald-400 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium">One-Click Publishing</p>
-                  <p className="text-[10px] text-muted-foreground">Direkt auf Instagram, TikTok, LinkedIn posten</p>
-                </div>
-              </div>
+            <div className="space-y-2.5">
+              {[
+                { icon: Zap, title: "KI-Content Generator", desc: "Erstelle Posts, Reels, Karussells mit KI" },
+                { icon: Image, title: "Content-Bibliothek", desc: "Fertige Vorlagen kopieren & personalisieren" },
+                { icon: Sparkles, title: "One-Click Publishing", desc: "Direkt auf Instagram, TikTok, LinkedIn posten" },
+              ].map((item, i) => (
+                <motion.div
+                  key={item.title}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 + i * 0.1 }}
+                  className="flex items-center gap-3 text-left p-3 rounded-xl bg-amber-500/5 border border-amber-500/10 hover:border-amber-500/20 transition-colors"
+                >
+                  <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-600/10 flex items-center justify-center shrink-0">
+                    <item.icon className="h-4 w-4 text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">{item.title}</p>
+                    <p className="text-[10px] text-white/40">{item.desc}</p>
+                  </div>
+                  <CheckCircle className="h-4 w-4 text-amber-400/60 ml-auto shrink-0" />
+                </motion.div>
+              ))}
             </div>
 
             {status === "redirecting" ? (
-              <div className="mt-6 flex items-center justify-center gap-2 text-primary">
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span className="text-sm font-medium">Du wirst eingeloggt...</span>
-              </div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mt-6 flex items-center justify-center gap-2"
+              >
+                <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
+                <span className="text-sm font-medium text-amber-400">Du wirst eingeloggt...</span>
+              </motion.div>
             ) : (
               <div className="mt-6">
-                <div className="flex items-center justify-center gap-2 text-emerald-400">
+                <div className="flex items-center justify-center gap-2 text-amber-400/80">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <span className="text-sm">Wird vorbereitet...</span>
                 </div>
               </div>
             )}
 
-            <p className="text-[10px] text-muted-foreground mt-4">
+            <p className="text-[10px] text-white/30 mt-4">
               Du wirst automatisch eingeloggt. Kein Passwort nötig.
             </p>
           </CardContent>

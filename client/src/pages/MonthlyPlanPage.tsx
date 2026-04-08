@@ -10,11 +10,11 @@ import { useLocation } from "wouter";
 
 const MONTHS = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
 const PILLAR_COLORS: Record<string, string> = {
-  autokonzept: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+  autokonzept: "bg-amber-500/10 text-amber-500 border-amber-500/20",
   business: "bg-amber-500/10 text-amber-500 border-amber-500/20",
   gesundheit: "bg-green-500/10 text-green-500 border-green-500/20",
   lifestyle: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-  lina_ki: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",
+  lina_ki: "bg-amber-500/10 text-amber-500 border-amber-500/20",
 };
 
 export default function MonthlyPlanPage() {

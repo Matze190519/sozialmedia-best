@@ -26,7 +26,7 @@ const STATUS_CONFIG: Record<string, { label: string; icon: React.ElementType; co
   pending: { label: "Ausstehend", icon: Clock, color: "text-yellow-400", variant: "outline", nextAction: "Zur Freigabe" },
   approved: { label: "Genehmigt", icon: CheckCircle, color: "text-emerald-400", variant: "default", nextAction: "Veröffentlichen" },
   rejected: { label: "Abgelehnt", icon: XCircle, color: "text-red-400", variant: "destructive" },
-  scheduled: { label: "Geplant", icon: Send, color: "text-blue-400", variant: "secondary" },
+  scheduled: { label: "Geplant", icon: Send, color: "text-amber-400", variant: "secondary" },
   published: { label: "Live", icon: TrendingUp, color: "text-purple-400", variant: "default" },
 };
 
@@ -40,7 +40,7 @@ const CONTENT_TYPE_LABELS: Record<string, string> = {
 const PLATFORM_COLORS: Record<string, string> = {
   instagram: "bg-pink-500/20 text-pink-300",
   facebook: "bg-blue-500/20 text-blue-300",
-  tiktok: "bg-cyan-500/20 text-cyan-300",
+  tiktok: "bg-amber-500/20 text-amber-300",
   linkedin: "bg-blue-700/20 text-blue-200",
   twitter: "bg-sky-500/20 text-sky-300",
   threads: "bg-gray-500/20 text-gray-300",
@@ -92,7 +92,7 @@ export default function ContentQueue() {
           { key: "all", label: "Alle", count: stats?.total ?? 0 },
           { key: "pending", label: "Ausstehend", count: stats?.pending ?? 0, color: "text-yellow-400" },
           { key: "approved", label: "Genehmigt", count: stats?.approved ?? 0, color: "text-emerald-400" },
-          { key: "scheduled", label: "Geplant", count: stats?.scheduled ?? 0, color: "text-blue-400" },
+          { key: "scheduled", label: "Geplant", count: stats?.scheduled ?? 0, color: "text-amber-400" },
           { key: "published", label: "Live", count: stats?.published ?? 0, color: "text-purple-400" },
           { key: "rejected", label: "Abgelehnt", count: stats?.rejected ?? 0, color: "text-red-400" },
         ].map(s => (
@@ -169,7 +169,7 @@ export default function ContentQueue() {
                         </div>
                       </div>
                       {item.post.scheduledAt && (
-                        <div className="text-xs text-blue-400 flex items-center gap-1">
+                        <div className="text-xs text-amber-400 flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           Geplant: {new Date(item.post.scheduledAt).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
                         </div>

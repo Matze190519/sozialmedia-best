@@ -208,15 +208,15 @@ export default function PostingTimesPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-blue-500/20 bg-blue-500/5">
+                <Card className="border-amber-500/20 bg-amber-500/5">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-blue-400" />
+                      <Calendar className="h-4 w-4 text-amber-400" />
                       Algorithmus-Tipp
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-xs text-blue-200/80 leading-relaxed">{schedule.algorithmNotes}</p>
+                    <p className="text-xs text-amber-200/80 leading-relaxed">{schedule.algorithmNotes}</p>
                   </CardContent>
                 </Card>
               </div>

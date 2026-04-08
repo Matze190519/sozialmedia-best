@@ -79,8 +79,8 @@ export default function BudgetPage() {
         <Card>
           <CardContent className="p-5">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-blue-500/10">
-                <TrendingUp className="h-5 w-5 text-blue-500" />
+              <div className="p-2 rounded-lg bg-amber-500/10">
+                <TrendingUp className="h-5 w-5 text-amber-500" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Budget-Limit</p>

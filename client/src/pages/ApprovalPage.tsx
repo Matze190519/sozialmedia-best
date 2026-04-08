@@ -20,7 +20,7 @@ import {
 const PLATFORM_COLORS: Record<string, string> = {
   instagram: "bg-pink-500/20 text-pink-300 border-pink-500/30",
   facebook: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-  tiktok: "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
+  tiktok: "bg-amber-500/20 text-amber-300 border-amber-500/30",
   linkedin: "bg-blue-700/20 text-blue-200 border-blue-700/30",
   twitter: "bg-sky-500/20 text-sky-300 border-sky-500/30",
   threads: "bg-gray-500/20 text-gray-300 border-gray-500/30",
@@ -433,8 +433,8 @@ export default function ApprovalPage() {
           </DialogHeader>
           <div className="space-y-4">
             {/* Info: Auto-save to library */}
-            <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-              <p className="text-xs text-blue-300 flex items-center gap-2">
+            <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <p className="text-xs text-amber-300 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
                 Post wird automatisch in der Bibliothek gespeichert. Dein Team kann ihn dort kopieren und selbst posten.
               </p>
@@ -500,7 +500,7 @@ export default function ApprovalPage() {
         <DialogContent className="max-w-md mx-4">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
-              <Send className="h-5 w-5 text-blue-400" /> Post veröffentlichen
+              <Send className="h-5 w-5 text-amber-400" /> Post veröffentlichen
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
