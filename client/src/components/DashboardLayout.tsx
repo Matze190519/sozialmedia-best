@@ -29,6 +29,7 @@ import {
   FileText, FlaskConical, TrendingUp, BookTemplate,
   HelpCircle, Hash, CalendarDays, Recycle, Sparkles,
   Wand2, Globe, Repeat, Layers, Kanban, Trophy, Activity, UserPlus, DollarSign,
+  MoreHorizontal,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -100,6 +101,15 @@ const menuSections = [
 
 const menuItems = menuSections.flatMap(s => s.items);
 
+// Bottom tab bar items for mobile — 4 main tabs + More
+const bottomTabs = [
+  { icon: LayoutDashboard, label: "Home", path: "/" },
+  { icon: Zap, label: "Erstellen", path: "/generator" },
+  { icon: CheckCircle, label: "Freigabe", path: "/approval", badge: true },
+  { icon: Library, label: "Bibliothek", path: "/library" },
+  { icon: MoreHorizontal, label: "Mehr", path: "__more__" },
+];
+
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
 const DEFAULT_WIDTH = 260;
 const MIN_WIDTH = 200;
@@ -126,12 +136,12 @@ export default function DashboardLayout({
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="flex items-center justify-center min-h-screen bg-background bg-grid">
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-5">
             <div className="flex items-center gap-3">
               <Rocket className="h-10 w-10 text-primary" />
-              <h1 className="text-3xl font-bold tracking-tight">LR Content Hub</h1>
+              <h1 className="text-3xl font-bold tracking-tight gold-shimmer" style={{ fontFamily: 'var(--font-heading)' }}>LR Content Hub</h1>
             </div>
             <p className="text-sm text-muted-foreground text-center max-w-sm">
               Die Content-Maschine für das LR Lifestyle Team. Erstelle viralen Content, lass ihn freigeben und poste automatisch auf allen Plattformen.
@@ -140,7 +150,7 @@ export default function DashboardLayout({
           <Button
             onClick={() => { window.location.href = getLoginUrl(); }}
             size="lg"
-            className="w-full shadow-lg hover:shadow-xl transition-all"
+            className="w-full btn-gold text-base h-12 rounded-xl shadow-lg hover:shadow-xl transition-all"
           >
             Anmelden
           </Button>
@@ -152,18 +162,18 @@ export default function DashboardLayout({
   // Gate: Non-approved users see a waiting page
   if (user.role !== 'admin' && !user.isApproved) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="flex items-center justify-center min-h-screen bg-background bg-grid">
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
           <div className="flex flex-col items-center gap-4">
             <div className="flex items-center gap-3">
-              <Shield className="h-10 w-10 text-amber-500" />
-              <h1 className="text-3xl font-bold tracking-tight">Zugang ausstehend</h1>
+              <Shield className="h-10 w-10 text-primary" />
+              <h1 className="text-3xl font-bold tracking-tight gradient-text-gold" style={{ fontFamily: 'var(--font-heading)' }}>Zugang ausstehend</h1>
             </div>
             <p className="text-sm text-muted-foreground text-center max-w-sm">
               Hallo <span className="font-semibold text-foreground">{user.name || 'Partner'}</span>! Dein Account wurde erstellt, aber noch nicht freigeschaltet. Dein Teamleiter wird dich in Kürze freischalten.
             </p>
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 w-full">
-              <p className="text-xs text-amber-200 text-center">
+            <div className="bg-primary/10 border border-primary/30 rounded-xl p-4 w-full">
+              <p className="text-xs text-primary/80 text-center">
                 Sobald du freigeschaltet bist, hast du Zugriff auf alle Tools: Content erstellen, Trend-Scanner, KI-Coach, Bibliothek und vieles mehr.
               </p>
             </div>
@@ -172,7 +182,7 @@ export default function DashboardLayout({
             onClick={() => { window.location.reload(); }}
             variant="outline"
             size="lg"
-            className="w-full"
+            className="w-full border-primary/30 hover:bg-primary/10"
           >
             Seite neu laden
           </Button>
@@ -240,6 +250,80 @@ function DashboardLayoutContent({
     };
   }, [isResizing, setSidebarWidth]);
 
+  // Mobile: Bottom Tab Bar
+  if (isMobile) {
+    return (
+      <>
+        {/* Mobile Header */}
+        <div className="fixed top-0 left-0 right-0 z-40 flex h-14 items-center justify-between bg-background/95 px-4 backdrop-blur border-b border-border">
+          <div className="flex items-center gap-2.5">
+            <Rocket className="h-5 w-5 text-primary" />
+            <span className="font-bold tracking-tight text-sm gradient-text-gold" style={{ fontFamily: 'var(--font-heading)' }}>LR Content Hub</span>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center focus:outline-none">
+                <Avatar className="h-8 w-8 border border-primary/30">
+                  <AvatarFallback className="text-xs font-semibold bg-primary/20 text-primary">
+                    {user?.name?.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem className="text-muted-foreground text-xs cursor-default">
+                {user?.name || "-"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={logout} className="cursor-pointer text-destructive focus:text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Abmelden</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Main Content */}
+        <main className="pt-14 pb-20 px-3 min-h-screen">{children}</main>
+
+        {/* Bottom Tab Bar */}
+        <div className="bottom-tab-bar">
+          <div className="flex items-stretch">
+            {bottomTabs.map((tab) => {
+              const isMore = tab.path === "__more__";
+              const isActive = isMore ? false : location === tab.path;
+              return (
+                <button
+                  key={tab.path}
+                  className={`bottom-tab-item relative ${isActive ? "active" : ""}`}
+                  onClick={() => {
+                    if (isMore) {
+                      toggleSidebar();
+                    } else {
+                      setLocation(tab.path);
+                    }
+                  }}
+                >
+                  <div className="tab-indicator" />
+                  <tab.icon className="h-5 w-5" />
+                  <span className="text-[10px] font-medium">{tab.label}</span>
+                  {tab.badge && pendingCount > 0 && (
+                    <span className="absolute top-1 right-1/4 h-4 min-w-4 flex items-center justify-center rounded-full bg-destructive text-[9px] text-white font-bold px-1">
+                      {pendingCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Slide-out sidebar for "Mehr" on mobile */}
+        <SidebarMobileDrawer />
+      </>
+    );
+  }
+
+  // Desktop: Standard Sidebar Layout
   return (
     <>
       <div className="relative" ref={sidebarRef}>
@@ -256,7 +340,7 @@ function DashboardLayoutContent({
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0 cursor-pointer" onClick={() => setLocation("/")}>
                   <Rocket className="h-5 w-5 text-primary shrink-0" />
-                  <span className="font-bold tracking-tight truncate text-sm">LR Content Hub</span>
+                  <span className="font-bold tracking-tight truncate text-sm gradient-text-gold" style={{ fontFamily: 'var(--font-heading)' }}>LR Content Hub</span>
                 </div>
               ) : null}
             </div>
@@ -267,20 +351,20 @@ function DashboardLayoutContent({
               <div key={section.title} className="mb-1">
                 {!isCollapsed && (
                   <div className="px-4 pt-4 pb-1">
-                    <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">{section.title}</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-widest text-primary/50" style={{ fontFamily: 'var(--font-heading)' }}>{section.title}</span>
                   </div>
                 )}
                 <SidebarMenu className="px-2">
                   {section.items.map(item => {
                     const isActive = location === item.path;
-                    const showBadge = 'badge' in item && item.badge === "pending" && pendingCount > 0;
+                    const showBadge = 'badge' in item && item.badge === 'pending' && pendingCount > 0;
                     return (
                       <SidebarMenuItem key={item.path}>
                         <SidebarMenuButton
                           isActive={isActive}
-                          onClick={() => { setLocation(item.path); if (isMobile) toggleSidebar(); }}
+                          onClick={() => { setLocation(item.path); }}
                           tooltip={item.label}
-                          className="h-10 md:h-9 transition-all font-normal"
+                          className={`h-10 md:h-9 transition-all font-normal ${isActive ? "bg-primary/10 border-l-2 border-primary" : ""}`}
                         >
                           <item.icon className={`h-4 w-4 ${isActive ? "text-primary" : ""}`} />
                           <span className="flex items-center gap-2">
@@ -303,9 +387,9 @@ function DashboardLayoutContent({
           <SidebarFooter className="p-3">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-accent/50 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  <Avatar className="h-9 w-9 border shrink-0">
-                    <AvatarFallback className="text-xs font-medium bg-primary/20 text-primary">
+                <button className="flex items-center gap-3 rounded-xl px-1 py-1 hover:bg-accent/50 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  <Avatar className="h-9 w-9 border border-primary/30 shrink-0">
+                    <AvatarFallback className="text-xs font-semibold bg-primary/20 text-primary">
                       {user?.name?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -337,16 +421,60 @@ function DashboardLayoutContent({
       </div>
 
       <SidebarInset>
-        {isMobile && (
-          <div className="flex border-b h-14 items-center justify-between bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger className="h-9 w-9 rounded-lg bg-background" />
-              <span className="tracking-tight text-foreground">{activeMenuItem?.label ?? "Menu"}</span>
-            </div>
-          </div>
-        )}
-        <main className="flex-1 p-3 md:p-6 pb-20 md:pb-6">{children}</main>
+        <main className="flex-1 p-3 md:p-6">{children}</main>
       </SidebarInset>
+    </>
+  );
+}
+
+function SidebarMobileDrawer() {
+  const [location, setLocation] = useLocation();
+  const { state, toggleSidebar } = useSidebar();
+  const isOpen = state === "expanded";
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+        onClick={toggleSidebar}
+      />
+      {/* Drawer */}
+      <div className="fixed inset-y-0 right-0 z-50 w-72 bg-background border-l border-border overflow-y-auto">
+        <div className="p-4 border-b border-border flex items-center justify-between">
+          <span className="font-bold text-sm gradient-text-gold" style={{ fontFamily: 'var(--font-heading)' }}>Alle Tools</span>
+          <button onClick={toggleSidebar} className="text-muted-foreground hover:text-foreground p-1">
+            <PanelLeft className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="py-2">
+          {menuSections.map((section) => (
+            <div key={section.title} className="mb-2">
+              <div className="px-4 pt-3 pb-1">
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-primary/50" style={{ fontFamily: 'var(--font-heading)' }}>{section.title}</span>
+              </div>
+              {section.items.map(item => {
+                const isActive = location === item.path;
+                return (
+                  <button
+                    key={item.path}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${isActive ? "bg-primary/10 text-primary" : "text-foreground/70 hover:bg-accent/50"}`}
+                    onClick={() => { setLocation(item.path); toggleSidebar(); }}
+                  >
+                    <item.icon className={`h-4 w-4 shrink-0 ${isActive ? "text-primary" : ""}`} />
+                    <div className="min-w-0">
+                      <span className="text-sm font-medium">{item.label}</span>
+                      <span className="text-[10px] text-muted-foreground block">{item.desc}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
     </>
   );
 }

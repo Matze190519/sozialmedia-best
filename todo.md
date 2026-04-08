@@ -481,3 +481,29 @@
 - [ ] FIX: E-Mail-Benachrichtigung wenn Post erfolgreich gepostet wurde
 - [x] FIX: Automatische Bildgenerierung bei JEDEM Post erzwingen - kein Post ohne Bild
 - [ ] FIX: Posts ohne Bilder nachträglich mit Bildern versehen (6 von 11 Posts betroffen)
+
+## Design-Upgrade: Schwarz + Gold, Mobile-First (08.04.2026)
+- [ ] Schwarz + Gold Theme (LR-Marke, glänzender Gold-Gradient, kein Gelb)
+- [ ] Google Font: Montserrat für Headlines, Inter für Body
+- [ ] Mobile-First Bottom-Tab-Bar Navigation (4 Tabs: Home, Content, Freigabe, Mehr)
+- [ ] Desktop: Sidebar bleibt, Mobile: Bottom-Tab-Bar
+- [ ] Große Content-Karten mit Bild-Vorschau
+- [ ] 1-Tap Content Copy (Bild + Caption + Hashtags mit einem Button kopieren)
+- [ ] Copy-Button für Caption direkt an jeder Content-Karte
+- [ ] Weißer Glow-Effekt bei wichtigen Elementen
+- [ ] Skripte aus API-Ausgabe entfernen (nur fertige Posts zeigen)
+
+## Design-Upgrade: Schwarz + Gold Premium (08.04.2026)
+- [x] Schwarz + Gold Farbschema (Deep Black Background, Gold Primary oklch)
+- [x] Montserrat Headlines + Inter Body Font
+- [x] Gold Glow Effects (glow-primary, glow-gold, gold-shimmer)
+- [x] Glass Card Styling (glassmorphism)
+- [x] Mobile Bottom Tab Bar (5 Hauptnavigation)
+- [x] Gold Gradient Text (.gold-text, .gradient-text-gold)
+- [x] Home Quick Actions auf Gold-Theme umgestellt
+- [x] 1-Tap Copy in Bibliothek (Text + Hashtags kopieren, Bild speichern)
+- [x] GlowCard Default-Farbe auf Gold
+- [x] Custom Scrollbar in Gold
+- [x] Mobile Drawer Navigation (von rechts, alle Tools)
+- [x] Sidebar mit Gold-Akzenten und Montserrat Section Headers
+- [x] Tests: 12/12 Design-Upgrade Tests bestanden

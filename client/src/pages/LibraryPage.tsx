@@ -87,8 +87,41 @@ export default function LibraryPage() {
       const id = item.item?.id || item.id;
       copyMutation.mutate({ id });
       setCopiedId(id);
-      toast.success("In die Zwischenablage kopiert! Jetzt einfach einfügen.");
+      toast.success("Text kopiert! Jetzt einfach einfuegen.");
       setTimeout(() => setCopiedId(null), 2000);
+    }
+  };
+
+  const handleCopyAll = async (item: any) => {
+    const raw = item.item || item;
+    const parts: string[] = [];
+    if (raw.textContent) parts.push(raw.textContent);
+    if (raw.tags && (raw.tags as string[]).length > 0) {
+      parts.push("\n" + (raw.tags as string[]).map((t: string) => `#${t}`).join(" "));
+    }
+    const fullText = parts.join("\n");
+    if (fullText) {
+      await navigator.clipboard.writeText(fullText);
+      const id = raw.id;
+      copyMutation.mutate({ id });
+      setCopiedId(id);
+      toast.success("Text + Hashtags kopiert!");
+      setTimeout(() => setCopiedId(null), 2000);
+    }
+  };
+
+  const handleDownloadImage = async (url: string, title: string) => {
+    try {
+      const resp = await fetch(url);
+      const blob = await resp.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `${title || "content"}.jpg`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast.success("Bild heruntergeladen!");
+    } catch {
+      window.open(url, "_blank");
     }
   };
 
@@ -329,35 +362,47 @@ export default function LibraryPage() {
                             </div>
                           )}
 
-                          {/* Actions */}
-                          <div className="flex items-center gap-1.5 pt-2 border-t border-border/30 mt-auto">
+                          {/* 1-Tap Actions */}
+                          <div className="flex flex-col gap-1.5 pt-3 border-t border-border/30 mt-auto">
                             <Button
                               variant={isCopied ? "default" : "outline"}
                               size="sm"
-                              className="flex-1 h-7 text-[10px] gap-1"
-                              onClick={() => handleCopy(entry)}
+                              className={`w-full h-9 text-xs gap-1.5 font-semibold ${isCopied ? 'btn-gold' : 'border-primary/30 hover:bg-primary/10 hover:border-primary/50'}`}
+                              onClick={() => handleCopyAll(entry)}
                             >
-                              {isCopied ? <CheckCircle className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                              {isCopied ? "Kopiert!" : "Kopieren"}
+                              {isCopied ? <CheckCircle className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                              {isCopied ? "Kopiert!" : "Text + Hashtags kopieren"}
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 px-2 text-[10px]"
-                              onClick={() => setPreviewItem(item)}
-                            >
-                              <Eye className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 px-2 text-[10px] text-destructive/70 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => {
-                                if (confirm("Wirklich löschen?")) deleteMutation.mutate({ id: item.id });
-                              }}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
+                            <div className="flex items-center gap-1.5">
+                              {item.imageUrl && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex-1 h-8 text-[10px] gap-1 border-primary/20 hover:bg-primary/10"
+                                  onClick={() => handleDownloadImage(item.imageUrl, item.title)}
+                                >
+                                  <Download className="h-3 w-3" /> Bild speichern
+                                </Button>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2 text-[10px]"
+                                onClick={() => setPreviewItem(item)}
+                              >
+                                <Eye className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2 text-[10px] text-destructive/70 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => {
+                                  if (confirm("Wirklich löschen?")) deleteMutation.mutate({ id: item.id });
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>

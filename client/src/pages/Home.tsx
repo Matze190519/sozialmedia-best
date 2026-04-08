@@ -103,29 +103,29 @@ export default function Home() {
       {/* Quick Actions - 3 Big Buttons with Glow */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <GlowCard
-          glowColor="rgba(16, 185, 129, 0.2)"
+          glowColor="rgba(212, 175, 55, 0.2)"
           delay={0}
           onClick={() => setLocation("/generator")}
           className="group"
         >
-          <div className="p-4 flex flex-col items-center gap-1.5 text-center">
+          <div className="p-5 flex flex-col items-center gap-2 text-center">
             <motion.div whileHover={{ rotate: [0, -10, 10, 0] }} transition={{ duration: 0.4 }}>
-              <Zap className="h-6 w-6 text-primary group-hover:text-emerald-300 transition-colors" />
+              <Zap className="h-7 w-7 text-primary group-hover:text-amber-300 transition-colors" />
             </motion.div>
-            <span className="font-semibold text-sm">Content erstellen</span>
+            <span className="font-semibold text-sm gold-text">Content erstellen</span>
             <span className="text-[10px] text-muted-foreground">Text + Bild + Video</span>
           </div>
         </GlowCard>
 
         <GlowCard
-          glowColor="rgba(234, 179, 8, 0.2)"
+          glowColor="rgba(212, 175, 55, 0.2)"
           delay={0.1}
           onClick={() => setLocation("/approval")}
           className="group relative"
         >
-          <div className="p-4 flex flex-col items-center gap-1.5 text-center">
-            <CheckCircle className="h-6 w-6 text-yellow-400 group-hover:text-yellow-300 transition-colors" />
-            <span className="font-semibold text-sm">Freigeben</span>
+          <div className="p-5 flex flex-col items-center gap-2 text-center">
+            <CheckCircle className="h-7 w-7 text-primary group-hover:text-amber-300 transition-colors" />
+            <span className="font-semibold text-sm gold-text">Freigeben</span>
             <span className="text-[10px] text-muted-foreground">Prüfen & genehmigen</span>
             {(stats?.pending ?? 0) > 0 && (
               <motion.div
@@ -142,14 +142,14 @@ export default function Home() {
         </GlowCard>
 
         <GlowCard
-          glowColor="rgba(16, 185, 129, 0.15)"
+          glowColor="rgba(212, 175, 55, 0.2)"
           delay={0.2}
           onClick={() => setLocation("/library")}
           className="group"
         >
-          <div className="p-4 flex flex-col items-center gap-1.5 text-center">
-            <Library className="h-6 w-6 text-emerald-400 group-hover:text-emerald-300 transition-colors" />
-            <span className="font-semibold text-sm">Bibliothek</span>
+          <div className="p-5 flex flex-col items-center gap-2 text-center">
+            <Library className="h-7 w-7 text-primary group-hover:text-amber-300 transition-colors" />
+            <span className="font-semibold text-sm gold-text">Bibliothek</span>
             <span className="text-[10px] text-muted-foreground">Fertige Posts kopieren</span>
           </div>
         </GlowCard>

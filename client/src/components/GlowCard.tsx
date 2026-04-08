@@ -13,7 +13,7 @@ interface GlowCardProps {
 export function GlowCard({
   children,
   className,
-  glowColor = "rgba(16, 185, 129, 0.15)",
+  glowColor = "rgba(212, 175, 55, 0.12)",
   delay = 0,
   onClick,
 }: GlowCardProps) {
@@ -50,7 +50,7 @@ export function GlowBadge({
   color?: "emerald" | "amber" | "blue" | "violet" | "red" | "cyan";
 }) {
   const colorMap = {
-    emerald: "bg-emerald-500/10 text-emerald-400 shadow-emerald-500/20",
+    emerald: "bg-amber-500/10 text-amber-400 shadow-amber-500/20",
     amber: "bg-amber-500/10 text-amber-400 shadow-amber-500/20",
     blue: "bg-blue-500/10 text-blue-400 shadow-blue-500/20",
     violet: "bg-violet-500/10 text-violet-400 shadow-violet-500/20",
