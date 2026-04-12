@@ -285,17 +285,22 @@ export function registerLinaRoutes(app: Express) {
       // Build openId from partnerNumber
       const openId = `partner_${(tokenData.partnerNumber || "").replace(/[^a-zA-Z0-9]/g, "_")}`;
 
+      // ?name=Mathias Query-Parameter hat Priorität über gespeicherten Token-Namen
+      // Botpress hängt den Namen als Query-Parameter an die Magic-Link-URL an
+      const nameFromQuery = req.query.name as string | undefined;
+      const resolvedName = (nameFromQuery && nameFromQuery.trim()) ? nameFromQuery.trim() : (tokenData.name || "");
+
       // Ensure user exists
       await db.upsertUser({
         openId,
-        name: tokenData.name,
+        name: resolvedName,
         loginMethod: "magic_link",
         lastSignedIn: new Date(),
       });
 
       // Create JWT session (same as Manus OAuth)
       const sessionToken = await sdk.createSessionToken(openId, {
-        name: tokenData.name || "",
+        name: resolvedName,
         expiresInMs: ONE_YEAR_MS,
       });
 
@@ -303,8 +308,12 @@ export function registerLinaRoutes(app: Express) {
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
-      // Redirect to dashboard
-      res.redirect(302, "/");
+      console.log(`[Auth] Magic link login: ${openId} → name="${resolvedName}" (source: ${nameFromQuery ? 'query-param' : 'token-data'})`);
+
+      // ?redirect= Parameter für Deep-Links (z.B. /clone-reel)
+      const redirectTo = req.query.redirect as string | undefined;
+      const safeRedirect = (redirectTo && /^\/[^/]/.test(redirectTo)) ? redirectTo : "/";
+      res.redirect(302, safeRedirect);
     } catch (error: any) {
       console.error("[Auth] Magic link login failed:", error);
       res.status(500).send(renderErrorPage(
