@@ -15,7 +15,7 @@ import {
   Library, Copy, Image, Video, FileText, Plus,
   Search, Download, Eye, Sparkles, Tag, Send,
   Flame, Star, Clock, Filter, Grid3X3, List,
-  Trash2, ExternalLink, CheckCircle, Loader2,
+  Trash2, ExternalLink, CheckCircle, Loader2, Rocket,
 } from "lucide-react";
 import PlatformPreview from "@/components/PlatformPreview";
 
@@ -46,6 +46,7 @@ export default function LibraryPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("newest");
   const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [publishingId, setPublishingId] = useState<number | null>(null);
 
   // Form state
   const [newTitle, setNewTitle] = useState("");
@@ -80,6 +81,17 @@ export default function LibraryPage() {
     onError: (err) => toast.error(err.message),
   });
 
+  const publishToBlotato = trpc.library.publishToBlotato.useMutation({
+    onSuccess: (result) => {
+      toast.success(`Auf ${result.platformCount} Plattformen gepostet! 🚀`);
+      setPublishingId(null);
+    },
+    onError: (err) => {
+      toast.error(err.message);
+      setPublishingId(null);
+    },
+  });
+
   const handleCopy = async (item: any) => {
     const textToCopy = item.item?.textContent || item.textContent || "";
     if (textToCopy) {
@@ -108,6 +120,12 @@ export default function LibraryPage() {
       toast.success("Text + Hashtags kopiert!");
       setTimeout(() => setCopiedId(null), 2000);
     }
+  };
+
+  const handlePublishToBlotato = async (item: any) => {
+    const id = item.id || item.item?.id;
+    setPublishingId(id);
+    publishToBlotato.mutate({ id });
   };
 
   const handleDownloadImage = async (url: string, title: string) => {
@@ -284,6 +302,7 @@ export default function LibraryPage() {
                 {filteredItems.map((entry: any, idx: number) => {
                   const item = entry.item || entry;
                   const isCopied = copiedId === item.id;
+                  const isPublishing = publishingId === item.id;
                   return (
                     <motion.div
                       key={item.id}
@@ -364,6 +383,19 @@ export default function LibraryPage() {
 
                           {/* 1-Tap Actions */}
                           <div className="flex flex-col gap-1.5 pt-3 border-t border-border/30 mt-auto">
+                            {/* Blotato Post Button - NEU */}
+                            <Button
+                              size="sm"
+                              className="w-full h-9 text-xs gap-1.5 font-semibold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
+                              onClick={() => handlePublishToBlotato(item)}
+                              disabled={isPublishing}
+                            >
+                              {isPublishing ? (
+                                <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Wird gepostet...</>
+                              ) : (
+                                <><Rocket className="h-3.5 w-3.5" /> Auf Blotato posten</>
+                              )}
+                            </Button>
                             <Button
                               variant={isCopied ? "default" : "outline"}
                               size="sm"
@@ -418,6 +450,7 @@ export default function LibraryPage() {
                 {filteredItems.map((entry: any, idx: number) => {
                   const item = entry.item || entry;
                   const isCopied = copiedId === item.id;
+                  const isPublishing = publishingId === item.id;
                   return (
                     <motion.div
                       key={item.id}
@@ -455,11 +488,21 @@ export default function LibraryPage() {
                           {/* Stats */}
                           <div className="text-center shrink-0">
                             <p className="text-sm font-bold">{item.copyCount || 0}</p>
-                            <p className="text-[8px] text-muted-foreground">Kopien</p>
+                            <p className="text-[8px] text-muted-foreground">genutzt</p>
                           </div>
 
                           {/* Actions */}
                           <div className="flex items-center gap-1 shrink-0">
+                            {/* Blotato Post Button - NEU */}
+                            <Button
+                              size="sm"
+                              className="h-7 px-2 text-[10px] gap-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
+                              onClick={() => handlePublishToBlotato(item)}
+                              disabled={isPublishing}
+                            >
+                              {isPublishing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Rocket className="h-3 w-3" />}
+                              {isPublishing ? "..." : "Blotato"}
+                            </Button>
                             <Button
                               variant={isCopied ? "default" : "outline"}
                               size="sm"
@@ -547,7 +590,19 @@ export default function LibraryPage() {
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-2">
-                  <Button className="flex-1 gap-2" onClick={() => { handleCopy({ item: previewItem }); }}>
+                  {/* Blotato Post Button im Preview Dialog - NEU */}
+                  <Button
+                    className="flex-1 gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
+                    onClick={() => {
+                      handlePublishToBlotato(previewItem);
+                      setPreviewItem(null);
+                    }}
+                    disabled={publishingId === previewItem.id}
+                  >
+                    <Rocket className="h-4 w-4" />
+                    Auf Blotato posten
+                  </Button>
+                  <Button variant="outline" className="flex-1 gap-2" onClick={() => { handleCopy({ item: previewItem }); }}>
                     <Copy className="h-4 w-4" /> Text kopieren
                   </Button>
                   {previewItem.imageUrl && (

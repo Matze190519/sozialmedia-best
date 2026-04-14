@@ -1062,6 +1062,54 @@ WICHTIG: LR ist Fresenius-geprüft und Dermatest-zertifiziert (NICHT TÜV!). Ein
         await db.deleteFromContentLibrary(input.id);
         return { success: true };
       }),
+    // Direkt aus der Bibliothek auf Blotato posten
+    publishToBlotato: approvedProcedure
+      .input(z.object({
+        id: z.number(),
+        platforms: z.array(z.string()).optional(),
+        scheduledDate: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Bibliotheks-Item laden
+        const items = await db.getContentLibrary({ limit: 1000 });
+        const entry = items.find((e: any) => (e.item?.id ?? e.id) === input.id);
+        if (!entry) throw new TRPCError({ code: "NOT_FOUND", message: "Bibliotheks-Item nicht gefunden" });
+        const item = (entry as any).item || entry;
+        // Blotato Key des Nutzers holen
+        const creator = await db.getUserById(ctx.user.id);
+        const blotatoKey = creator?.blotatoApiKey || process.env.BLOTATO_API_KEY;
+        if (!blotatoKey) throw new TRPCError({ code: "BAD_REQUEST", message: "Kein Blotato API Key vorhanden. Bitte in den Einstellungen hinterlegen." });
+        // Accounts laden
+        let accounts = await api.getBlotatoAccounts(blotatoKey);
+        if (accounts.length === 0) accounts = api.LR_BLOTATO_ACCOUNTS;
+        // Plattformen bestimmen
+        const platforms = (input.platforms && input.platforms.length > 0)
+          ? input.platforms
+          : ((item.platforms as string[] | null) || accounts.map((a: any) => a.platform.toLowerCase()));
+        // Text und Medien
+        const content = item.textContent || item.title || "";
+        const mediaUrls: string[] = [];
+        if (item.imageUrl) mediaUrls.push(item.imageUrl);
+        if (item.videoUrl) mediaUrls.push(item.videoUrl);
+        // Auf Blotato veroeffentlichen
+        const postIds = await api.publishToAllPlatforms(
+          content,
+          platforms,
+          accounts,
+          mediaUrls.length > 0 ? mediaUrls : undefined,
+          input.scheduledDate,
+          blotatoKey,
+        );
+        // Copy-Count erhoehen
+        await db.incrementLibraryCopyCount(input.id);
+        await db.logTeamActivity({
+          userId: ctx.user.id,
+          actionType: "content_published",
+          description: `Bibliotheks-Content "${item.title}" auf ${platforms.join(", ")} veroeffentlicht`,
+          metadata: { platforms, postIds, libraryItemId: input.id },
+        });
+        return { success: true, postIds, platformCount: postIds.length };
+      }),
   }),
 
   // ─── A/B Testing ───────────────────────────────────────────
