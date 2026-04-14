@@ -239,7 +239,9 @@ export async function getContentPostsByDateRange(start: Date, end: Date) {
 export async function getContentStats(userId?: number) {
   const db = await getDb();
   if (!db) return { pending: 0, approved: 0, rejected: 0, scheduled: 0, published: 0, total: 0 };
-  const conditions = userId ? [eq(contentPosts.createdById, userId)] : [];
+  // isInternal-Posts ausschliessen – sie erscheinen nicht im Freigabe-Center
+  const conditions: any[] = [sql`(${contentPosts.isInternal} IS NULL OR ${contentPosts.isInternal} = 0)`];
+  if (userId) conditions.push(eq(contentPosts.createdById, userId));
   const result = await db.select({
     status: contentPosts.status,
     count: sql<number>`count(*)`,
