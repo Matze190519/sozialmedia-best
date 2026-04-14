@@ -32,8 +32,9 @@ export const appRouter = router({
   // ─── Dashboard Stats ───────────────────────────────────────
   dashboard: router({
     stats: approvedProcedure.query(async ({ ctx }) => {
-      // Jeder User sieht nur seine eigenen Stats
-      return db.getContentStats(ctx.user.id);
+      // Admin sieht alle Posts (inkl. Team), Partner nur eigene
+      const userId = ctx.user.role === 'admin' ? undefined : ctx.user.id;
+      return db.getContentStats(userId);
     }),
   }),
 
