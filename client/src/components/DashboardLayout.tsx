@@ -54,6 +54,7 @@ const menuSections = [
   {
     title: "KI-Power",
     items: [
+      { icon: Flame, label: "Viral Vault", path: "/viral-vault", desc: "50+ virale Hooks, CTAs & Formeln" },
       { icon: Sparkles, label: "Lifestyle-Engine", path: "/lifestyle", desc: "Traumauto, Freiheit & Erfolg als Content" },
       { icon: Bot, label: "Lina Avatar", path: "/lina-avatar", desc: "Lina erklärt dein Produkt als Video" },
       { icon: Repeat, label: "Remix 1→7", path: "/remix7", desc: "1 Idee → 7 fertige Formate (inkl. ASMR)" },
