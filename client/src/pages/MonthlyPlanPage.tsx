@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Sparkles, Loader2, ChevronRight, Rocket, CheckCircle, Clock, FileText } from "lucide-react";
 import { toast } from "sonner";
@@ -126,7 +127,16 @@ export default function MonthlyPlanPage() {
       </Card>
 
       {/* Previous Plans */}
-      {plansQuery.data && plansQuery.data.length > 0 && (
+      {plansQuery.isLoading ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Gespeicherte Monatspläne</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
+          </CardContent>
+        </Card>
+      ) : plansQuery.data && plansQuery.data.length > 0 ? (
         <Card>
           <CardHeader>
             <CardTitle>Gespeicherte Monatspläne</CardTitle>
@@ -155,6 +165,16 @@ export default function MonthlyPlanPage() {
                 </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="border-dashed">
+          <CardContent className="py-12 text-center">
+            <Calendar className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="text-sm font-medium">Noch kein Monatsplan gespeichert</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Erstelle oben deinen ersten Plan, dann kannst du ihn hier erneut öffnen und in einzelne Posts umwandeln.
+            </p>
           </CardContent>
         </Card>
       )}
@@ -223,6 +243,18 @@ export default function MonthlyPlanPage() {
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
+      )}
+
+      {selectedPlanId && !selectedPlan.isLoading && selectedPlan.data && planData.length === 0 && (
+        <Card className="border-dashed">
+          <CardContent className="py-12 text-center">
+            <FileText className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="text-sm font-medium">Dieser Monatsplan enthält noch keine Posts</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Erstelle einen neuen Monatsplan oder wähle einen anderen gespeicherten Plan aus.
+            </p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

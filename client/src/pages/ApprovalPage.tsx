@@ -59,7 +59,7 @@ export default function ApprovalPage() {
   const isAdmin = user?.role === "admin";
   const utils = trpc.useUtils();
   const { data: pendingPosts, isLoading } = trpc.content.list.useQuery({ status: "pending", limit: 50 });
-  const { data: approvedPosts } = trpc.content.list.useQuery({ status: "approved", limit: 20 });
+  const { data: approvedPosts, isLoading: approvedLoading } = trpc.content.list.useQuery({ status: "approved", limit: 20 });
 
   const approveMut = trpc.approval.approve.useMutation({
     onSuccess: () => { utils.content.list.invalidate(); utils.dashboard.stats.invalidate(); toast.success("Post genehmigt!"); setApproveDialog({ id: 0, open: false, platforms: [] }); },
@@ -99,10 +99,18 @@ export default function ApprovalPage() {
     () => approveDialog.open ? approveDialog.platforms : publishDialog.platforms,
     [approveDialog.open, approveDialog.platforms, publishDialog.open, publishDialog.platforms]
   );
-  const { data: dialogSmartTimes } = trpc.postingTimes.smartNextMulti.useQuery(
+  const { data: dialogSmartTimes, isLoading: dialogSmartTimesLoading } = trpc.postingTimes.smartNextMulti.useQuery(
     { platforms: dialogPlatforms },
     { enabled: dialogPlatforms.length > 0 && (approveDialog.open || publishDialog.open) }
   );
+
+  const hasActiveMutation =
+    approveMut.isPending ||
+    rejectMut.isPending ||
+    publishMut.isPending ||
+    editMut.isPending ||
+    deleteMut.isPending ||
+    deleteWithoutMediaMut.isPending;
 
   const handleUseSmartTime = () => {
     if (dialogSmartTimes && dialogSmartTimes.length > 0) {
@@ -147,6 +155,7 @@ export default function ApprovalPage() {
               size="sm"
               className="gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold shadow-lg shadow-amber-500/20"
               onClick={handleBatchApprove}
+              disabled={approveMut.isPending || deleteWithoutMediaMut.isPending}
             >
               <Sparkles className="h-3.5 w-3.5" />
               Alle freigeben
@@ -224,6 +233,7 @@ export default function ApprovalPage() {
                       setApproveAutoPublish(false);
                       setApproveScheduledAt("");
                     }}
+                    disabled={hasActiveMutation}
                   >
                     <CheckCircle className="h-4 w-4" />
                     Freigeben
@@ -233,6 +243,7 @@ export default function ApprovalPage() {
                     variant="outline"
                     className="gap-2 text-sm h-12 border-red-500/30 text-red-400 hover:bg-red-500/10"
                     onClick={() => { setRejectDialog({ id: item.post.id, open: true }); setRejectComment(""); }}
+                    disabled={hasActiveMutation}
                   >
                     <XCircle className="h-4 w-4" />
                     Ablehnen
@@ -242,6 +253,7 @@ export default function ApprovalPage() {
                     variant="outline"
                     className="gap-2 text-sm h-12 col-span-2 border-amber-500/20 hover:bg-amber-500/10"
                     onClick={() => setEditDialog({ id: item.post.id, content: item.post.editedContent || item.post.content, open: true })}
+                    disabled={hasActiveMutation}
                   >
                     <Edit3 className="h-4 w-4" />
                     Bearbeiten
@@ -254,6 +266,7 @@ export default function ApprovalPage() {
                       onClick={() => {
                         if (confirm("Diesen Post endgültig löschen?")) deleteMut.mutate({ id: item.post.id });
                       }}
+                      disabled={hasActiveMutation}
                     >
                       🗑️ Löschen
                     </Button>
@@ -273,7 +286,15 @@ export default function ApprovalPage() {
       </div>
 
       {/* Approved Posts */}
-      {approvedPosts && approvedPosts.length > 0 && (
+      {approvedLoading ? (
+        <div>
+          <h2 className="text-base font-semibold mb-3 flex items-center gap-2 font-[Montserrat]">
+            <CheckCircle className="h-4 w-4 text-emerald-400" />
+            Bereit zum Posten
+          </h2>
+          <div className="space-y-4">{[1, 2].map(i => <Skeleton key={i} className="h-72 w-full rounded-xl" />)}</div>
+        </div>
+      ) : approvedPosts && approvedPosts.length > 0 ? (
         <div>
           <h2 className="text-base font-semibold mb-3 flex items-center gap-2 font-[Montserrat]">
             <CheckCircle className="h-4 w-4 text-emerald-400" />
@@ -297,6 +318,7 @@ export default function ApprovalPage() {
                       setPublishDialog({ id: item.post.id, open: true, platforms: (item.post.platforms as string[]) || [] });
                       setPublishScheduledDate("");
                     }}
+                    disabled={hasActiveMutation}
                   >
                     <Send className="h-4 w-4" />
                     Auf Blotato veröffentlichen
@@ -309,6 +331,13 @@ export default function ApprovalPage() {
             ))}
           </div>
         </div>
+      ) : (
+        <Card className="border-emerald-500/10 bg-gradient-to-br from-card to-emerald-500/5">
+          <CardContent className="py-12 text-center">
+            <Send className="h-10 w-10 text-emerald-400 mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">Aktuell gibt es keine freigegebenen Posts zum Veröffentlichen.</p>
+          </CardContent>
+        </Card>
       )}
 
       {/* Approve Dialog */}
@@ -332,18 +361,23 @@ export default function ApprovalPage() {
                 <p className="text-sm font-medium">Auch via Blotato posten?</p>
                 <p className="text-xs text-muted-foreground">Optional: Automatisch veröffentlichen</p>
               </div>
-              <Switch checked={approveAutoPublish} onCheckedChange={setApproveAutoPublish} />
+              <Switch checked={approveAutoPublish} onCheckedChange={setApproveAutoPublish} disabled={approveMut.isPending} />
             </div>
 
             {approveAutoPublish && (
               <div className="space-y-3">
-                {dialogSmartTimes && dialogSmartTimes.length > 0 && (
+                {dialogSmartTimesLoading ? (
+                  <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                    <Skeleton className="h-4 w-32 mb-2" />
+                    <Skeleton className="h-3 w-full" />
+                  </div>
+                ) : dialogSmartTimes && dialogSmartTimes.length > 0 && (
                   <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-amber-300 flex items-center gap-1.5">
                         <TrendingUp className="h-4 w-4" /> Beste Zeiten
                       </span>
-                      <Button size="sm" variant="outline" className="h-8 text-xs gap-1 border-amber-500/30 text-amber-300" onClick={handleUseSmartTime}>
+                      <Button size="sm" variant="outline" className="h-8 text-xs gap-1 border-amber-500/30 text-amber-300" onClick={handleUseSmartTime} disabled={approveMut.isPending}>
                         <Zap className="h-3 w-3" /> Übernehmen
                       </Button>
                     </div>
@@ -359,7 +393,7 @@ export default function ApprovalPage() {
                   <Label className="text-sm flex items-center gap-2">
                     <CalendarClock className="h-4 w-4" /> Zeitpunkt (optional)
                   </Label>
-                  <Input type="datetime-local" value={approveScheduledAt} onChange={(e) => setApproveScheduledAt(e.target.value)} className="h-12 text-base" />
+                  <Input type="datetime-local" value={approveScheduledAt} onChange={(e) => setApproveScheduledAt(e.target.value)} className="h-12 text-base" disabled={approveMut.isPending} />
                   <p className="text-[10px] text-muted-foreground">Leer = sofort posten</p>
                 </div>
               </div>
@@ -375,7 +409,7 @@ export default function ApprovalPage() {
               {approveMut.isPending ? <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" /> : <Rocket className="h-4 w-4" />}
               {approveAutoPublish ? (approveScheduledAt ? "Freigeben & Planen" : "Freigeben & Posten") : "Freigeben & In Bibliothek"}
             </Button>
-            <Button variant="outline" size="lg" className="w-full h-12" onClick={() => setApproveDialog({ id: 0, open: false, platforms: [] })}>
+            <Button variant="outline" size="lg" className="w-full h-12" onClick={() => setApproveDialog({ id: 0, open: false, platforms: [] })} disabled={approveMut.isPending}>
               Abbrechen
             </Button>
           </DialogFooter>
@@ -391,13 +425,18 @@ export default function ApprovalPage() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {dialogSmartTimes && dialogSmartTimes.length > 0 && (
+            {dialogSmartTimesLoading ? (
+              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                <Skeleton className="h-4 w-32 mb-2" />
+                <Skeleton className="h-3 w-full" />
+              </div>
+            ) : dialogSmartTimes && dialogSmartTimes.length > 0 && (
               <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-amber-300 flex items-center gap-1.5">
                     <TrendingUp className="h-4 w-4" /> Beste Zeiten
                   </span>
-                  <Button size="sm" variant="outline" className="h-8 text-xs gap-1 border-amber-500/30 text-amber-300" onClick={handleUseSmartTime}>
+                  <Button size="sm" variant="outline" className="h-8 text-xs gap-1 border-amber-500/30 text-amber-300" onClick={handleUseSmartTime} disabled={publishMut.isPending}>
                     <Zap className="h-3 w-3" /> Übernehmen
                   </Button>
                 </div>
@@ -413,7 +452,7 @@ export default function ApprovalPage() {
               <Label className="text-sm flex items-center gap-2">
                 <CalendarClock className="h-4 w-4" /> Wann live gehen?
               </Label>
-              <Input type="datetime-local" value={publishScheduledDate} onChange={(e) => setPublishScheduledDate(e.target.value)} className="h-12 text-base" />
+              <Input type="datetime-local" value={publishScheduledDate} onChange={(e) => setPublishScheduledDate(e.target.value)} className="h-12 text-base" disabled={publishMut.isPending} />
               <p className="text-[10px] text-muted-foreground">Leer = sofort posten</p>
             </div>
           </div>
@@ -427,7 +466,7 @@ export default function ApprovalPage() {
               {publishMut.isPending ? <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" /> : <Send className="h-4 w-4" />}
               {publishScheduledDate ? "Planen" : "Jetzt posten"}
             </Button>
-            <Button variant="outline" size="lg" className="w-full h-12" onClick={() => setPublishDialog({ id: 0, open: false, platforms: [] })}>
+            <Button variant="outline" size="lg" className="w-full h-12" onClick={() => setPublishDialog({ id: 0, open: false, platforms: [] })} disabled={publishMut.isPending}>
               Abbrechen
             </Button>
           </DialogFooter>
@@ -446,6 +485,7 @@ export default function ApprovalPage() {
             onChange={(e) => setRejectComment(e.target.value)}
             rows={3}
             className="text-base"
+            disabled={rejectMut.isPending}
           />
           <DialogFooter className="flex-col gap-2 sm:flex-col">
             <Button
@@ -457,10 +497,11 @@ export default function ApprovalPage() {
                 rejectMut.mutate({ id: rejectDialog.id, comment: rejectComment });
                 setRejectDialog({ id: 0, open: false });
               }}
+              disabled={rejectMut.isPending || !rejectComment.trim()}
             >
               Ablehnen
             </Button>
-            <Button variant="outline" size="lg" className="w-full h-12" onClick={() => setRejectDialog({ id: 0, open: false })}>
+            <Button variant="outline" size="lg" className="w-full h-12" onClick={() => setRejectDialog({ id: 0, open: false })} disabled={rejectMut.isPending}>
               Abbrechen
             </Button>
           </DialogFooter>
@@ -478,6 +519,7 @@ export default function ApprovalPage() {
             onChange={(e) => setEditDialog(prev => ({ ...prev, content: e.target.value }))}
             rows={10}
             className="font-mono text-sm"
+            disabled={editMut.isPending}
           />
           <DialogFooter className="flex-col gap-2 sm:flex-col">
             <Button
@@ -488,7 +530,7 @@ export default function ApprovalPage() {
             >
               Speichern
             </Button>
-            <Button variant="outline" size="lg" className="w-full h-12" onClick={() => setEditDialog({ id: 0, content: "", open: false })}>
+            <Button variant="outline" size="lg" className="w-full h-12" onClick={() => setEditDialog({ id: 0, content: "", open: false })} disabled={editMut.isPending}>
               Abbrechen
             </Button>
           </DialogFooter>

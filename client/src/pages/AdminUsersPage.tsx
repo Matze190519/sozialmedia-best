@@ -217,6 +217,7 @@ export default function AdminUsersPage() {
                           const pn = prompt("Partnernummer eingeben:");
                           if (pn) approvePartner.mutate({ userId: u.id, partnerNumber: pn });
                         }}
+                        disabled={approvePartner.isPending}
                       >
                         <CheckCircle className="h-3 w-3 mr-1" />
                         Freischalten
@@ -232,6 +233,7 @@ export default function AdminUsersPage() {
                             revokePartner.mutate({ userId: u.id });
                           }
                         }}
+                        disabled={revokePartner.isPending}
                       >
                         <XCircle className="h-3 w-3 mr-1" />
                         Sperren

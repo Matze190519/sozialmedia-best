@@ -323,6 +323,7 @@ export default function LibraryPage() {
                                   variant="secondary"
                                   className="opacity-0 group-hover:opacity-100 transition-opacity gap-1.5"
                                   onClick={() => setPreviewItem(item)}
+                                  disabled={copyMutation.isPending || deleteMutation.isPending || publishToBlotato.isPending}
                                 >
                                   <Eye className="h-3 w-3" /> Vorschau
                                 </Button>
@@ -401,6 +402,7 @@ export default function LibraryPage() {
                               size="sm"
                               className={`w-full h-9 text-xs gap-1.5 font-semibold ${isCopied ? 'btn-gold' : 'border-primary/30 hover:bg-primary/10 hover:border-primary/50'}`}
                               onClick={() => handleCopyAll(entry)}
+                              disabled={copyMutation.isPending}
                             >
                               {isCopied ? <CheckCircle className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                               {isCopied ? "Kopiert!" : "Text + Hashtags kopieren"}
@@ -412,6 +414,7 @@ export default function LibraryPage() {
                                   size="sm"
                                   className="flex-1 h-8 text-[10px] gap-1 border-primary/20 hover:bg-primary/10"
                                   onClick={() => handleDownloadImage(item.imageUrl, item.title)}
+                                  disabled={publishToBlotato.isPending || deleteMutation.isPending}
                                 >
                                   <Download className="h-3 w-3" /> Bild speichern
                                 </Button>
@@ -421,6 +424,7 @@ export default function LibraryPage() {
                                 size="sm"
                                 className="h-8 px-2 text-[10px]"
                                 onClick={() => setPreviewItem(item)}
+                                disabled={copyMutation.isPending || deleteMutation.isPending || publishToBlotato.isPending}
                               >
                                 <Eye className="h-3 w-3" />
                               </Button>
@@ -431,6 +435,7 @@ export default function LibraryPage() {
                                 onClick={() => {
                                   if (confirm("Wirklich löschen?")) deleteMutation.mutate({ id: item.id });
                                 }}
+                                disabled={deleteMutation.isPending}
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
@@ -508,11 +513,12 @@ export default function LibraryPage() {
                               size="sm"
                               className="h-7 px-2 text-[10px] gap-1"
                               onClick={() => handleCopy(entry)}
+                              disabled={copyMutation.isPending}
                             >
                               {isCopied ? <CheckCircle className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                               {isCopied ? "Kopiert!" : "Kopieren"}
                             </Button>
-                            <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => setPreviewItem(item)}>
+                            <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => setPreviewItem(item)} disabled={copyMutation.isPending || deleteMutation.isPending || publishToBlotato.isPending}>
                               <Eye className="h-3 w-3" />
                             </Button>
                           </div>
@@ -602,7 +608,7 @@ export default function LibraryPage() {
                     <Rocket className="h-4 w-4" />
                     Auf Blotato posten
                   </Button>
-                  <Button variant="outline" className="flex-1 gap-2" onClick={() => { handleCopy({ item: previewItem }); }}>
+                  <Button variant="outline" className="flex-1 gap-2" onClick={() => { handleCopy({ item: previewItem }); }} disabled={copyMutation.isPending}>
                     <Copy className="h-4 w-4" /> Text kopieren
                   </Button>
                   {previewItem.imageUrl && (
@@ -617,7 +623,7 @@ export default function LibraryPage() {
                       deleteMutation.mutate({ id: previewItem.id });
                       setPreviewItem(null);
                     }
-                  }}>
+                  }} disabled={deleteMutation.isPending}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>

@@ -3,11 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useState, useMemo } from "react";
 import {
   TrendingUp, Star, Flame, Lightbulb, ArrowUp, ArrowDown,
-  BarChart3, Target, Zap, Clock,
+  BarChart3, Target, Zap, Clock, CheckCircle,
 } from "lucide-react";
 
 const SCORE_LABELS: Record<number, { label: string; color: string }> = {
@@ -23,7 +24,7 @@ export default function FeedbackPage() {
 
   const { data: topPosts, isLoading: loadingTop } = trpc.feedback.topPerforming.useQuery({ limit: 10 });
   const { data: optimalTimes, isLoading: loadingTimes } = trpc.postingTimes.get.useQuery({});
-  const { data: allPosts, refetch } = trpc.content.list.useQuery({});
+  const { data: allPosts, isLoading: loadingAll, refetch } = trpc.content.list.useQuery({});
   const pendingFeedback = (allPosts || []).filter((p: any) => p.status === 'published' && !p.feedbackScore);
 
   const scoreMutation = trpc.feedback.updateScore.useMutation({
@@ -43,7 +44,19 @@ export default function FeedbackPage() {
       </div>
 
       {/* Pending Feedback */}
-      {pendingFeedback && pendingFeedback.length > 0 && (
+      {loadingAll ? (
+        <Card className="border-amber-500/20">
+          <CardHeader className="pb-3">
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-4 w-56" />
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-20 w-full" />
+            ))}
+          </CardContent>
+        </Card>
+      ) : pendingFeedback && pendingFeedback.length > 0 ? (
         <Card className="border-amber-500/20">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-3">
@@ -72,6 +85,7 @@ export default function FeedbackPage() {
                     <button
                       key={score}
                       onClick={() => scoreMutation.mutate({ postId: post.id, feedbackScore: score, successFactors: [] })}
+                      disabled={scoreMutation.isPending}
                       className={`h-8 w-8 rounded-lg text-xs font-bold transition-all hover:scale-110 ${
                         score <= 2 ? "bg-red-500/10 hover:bg-red-500/20 text-red-400" :
                         score === 3 ? "bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400" :
@@ -87,6 +101,20 @@ export default function FeedbackPage() {
               </div>
             ))}
           </CardContent>
+        </Card>
+      ) : (
+        <Card className="border-dashed">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                <CheckCircle className="h-5 w-5 text-emerald-500" />
+              </div>
+              <div>
+                <CardTitle className="text-base">Kein offenes Feedback</CardTitle>
+                <CardDescription>Aktuell gibt es keine veröffentlichten Posts, die noch bewertet werden müssen.</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
         </Card>
       )}
 
