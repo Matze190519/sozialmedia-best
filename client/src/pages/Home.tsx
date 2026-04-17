@@ -16,9 +16,10 @@ import {
   Zap, TrendingUp, ArrowRight, Rocket,
   Image, Video, AlertCircle, Flame,
   Library, Eye, Sparkles, Hash,
-  CalendarDays, BarChart3,
+  CalendarDays, BarChart3, Play,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
+import { toast } from "sonner";
 
 const PLATFORM_COLORS: Record<string, string> = {
   instagram: "bg-pink-500/20 text-pink-300",
@@ -67,6 +68,44 @@ export default function Home() {
   }, [recentPosts]);
 
   const firstName = user?.name?.split(" ")[0] || "Team";
+  const utils = trpc.useUtils();
+
+  const DAILY_PILLARS: Record<number, { pillar: string; label: string; topics: string[] }> = {
+    1: { pillar: "motivation", label: "Motivation", topics: ["Warum ich jeden Morgen dankbar bin", "Dein Erfolg beginnt mit einem Entschluss", "Was mich antreibt: Freiheit und Familie"] },
+    2: { pillar: "product", label: "Produkt", topics: ["Aloe Vera Gel - Mein täglicher Begleiter", "Lifetakt Energie - Mehr Power im Alltag", "Collagen Plus - Beauty von innen"] },
+    3: { pillar: "success", label: "Erfolg", topics: ["Von 0 auf erfolgreich - Meine LR Reise", "Was ich in 6 Monaten gelernt habe", "Erfolgsgeschichte: Mein erstes Auto mit LR"] },
+    4: { pillar: "behind_the_scenes", label: "Behind the Scenes", topics: ["So sieht mein Tag als LR Partner aus", "Hinter den Kulissen meines Business", "Mein Setup für Social Media Content"] },
+    5: { pillar: "lifestyle", label: "Lifestyle", topics: ["Freiheit leben - Arbeiten von überall", "Mallorca Lifestyle dank Network Marketing", "Traumauto und finanzielle Freiheit"] },
+    6: { pillar: "lifestyle", label: "Lifestyle & Reise", topics: ["Wochenende genießen - weil ich es mir leisten kann", "Reisen und dabei Geld verdienen", "Work-Life-Balance die sich lohnt"] },
+    0: { pillar: "motivation", label: "Motivation & Reflexion", topics: ["Sonntagsgedanken: Wo stehst du in einem Jahr?", "Reflexion: Was habe ich diese Woche erreicht?", "Dein Warum ist stärker als jede Ausrede"] },
+  };
+
+  const generateMutation = trpc.content.generate.useMutation();
+  const [autopilotRunning, setAutopilotRunning] = useState(false);
+
+  const runAutopilot = useCallback(async () => {
+    const dayConfig = DAILY_PILLARS[new Date().getDay()];
+    const contentTypes = ["post", "story", "hooks"] as const;
+    setAutopilotRunning(true);
+    try {
+      for (let i = 0; i < 3; i++) {
+        await generateMutation.mutateAsync({
+          contentType: contentTypes[i],
+          topic: dayConfig.topics[i],
+          pillar: dayConfig.pillar,
+          platforms: ["instagram", "tiktok", "facebook"],
+          autoGenerateImage: true,
+        });
+      }
+      utils.content.list.invalidate();
+      utils.dashboard.stats.invalidate();
+      toast.success(`3 ${dayConfig.label}-Posts erstellt! Schau in die Freigabe.`);
+    } catch {
+      toast.error("Autopilot fehlgeschlagen — bitte nochmal versuchen.");
+    } finally {
+      setAutopilotRunning(false);
+    }
+  }, [generateMutation, utils]);
 
   return (
     <motion.div
@@ -98,6 +137,40 @@ export default function Home() {
             </Badge>
           )}
         </motion.div>
+      </motion.div>
+
+      {/* Daily Autopilot Banner */}
+      <motion.div variants={itemVariants}>
+        <Card className="border-primary/30 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent overflow-hidden">
+          <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row items-center gap-4">
+            <div className="flex-1 text-center sm:text-left">
+              <h3 className="text-lg font-bold gold-text" style={{ fontFamily: 'var(--font-heading)' }}>
+                Tages-Autopilot
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                1 Klick → 3 Posts für heute ({DAILY_PILLARS[new Date().getDay()].label}). KI generiert Text + Bild. Du musst nur noch freigeben.
+              </p>
+            </div>
+            <Button
+              size="lg"
+              className="btn-gold h-12 px-8 text-base font-semibold shadow-lg hover:shadow-xl transition-all whitespace-nowrap"
+              onClick={runAutopilot}
+              disabled={autopilotRunning}
+            >
+              {autopilotRunning ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  KI arbeitet...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Play className="h-5 w-5" />
+                  Mein Tag starten
+                </span>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
       </motion.div>
 
       {/* Quick Actions - 3 Big Buttons with Glow */}
