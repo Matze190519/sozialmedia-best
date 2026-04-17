@@ -29,7 +29,7 @@ import {
   Settings, Package, Library, Rocket,
   FileText, FlaskConical, TrendingUp, BookTemplate,
   HelpCircle, Hash, CalendarDays, Recycle, Sparkles,
-  Wand2, Globe, Repeat, Layers, Kanban, Trophy, Activity, UserPlus, DollarSign,
+  Wand2, Globe, Repeat, Layers, Kanban, Trophy, Activity, UserPlus, DollarSign, Target,
   MoreHorizontal, Video, ShieldCheck, Bot,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
@@ -55,6 +55,7 @@ const menuSections = [
     title: "KI-Power",
     items: [
       { icon: Flame, label: "Viral Vault", path: "/viral-vault", desc: "50+ virale Hooks, CTAs & Formeln" },
+      { icon: Target, label: "Lead Capture", path: "/lead-capture", desc: "DM & WhatsApp Flows für Kontakte" },
       { icon: Sparkles, label: "Lifestyle-Engine", path: "/lifestyle", desc: "Traumauto, Freiheit & Erfolg als Content" },
       { icon: Bot, label: "Lina Avatar", path: "/lina-avatar", desc: "Lina erklärt dein Produkt als Video" },
       { icon: Repeat, label: "Remix 1→7", path: "/remix7", desc: "1 Idee → 7 fertige Formate (inkl. ASMR)" },

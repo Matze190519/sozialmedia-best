@@ -46,6 +46,7 @@ import LinaAvatarPage from "./pages/LinaAvatarPage";
 import DuplicateCheckPage from "./pages/DuplicateCheckPage";
 import AutoLoopPage from "./pages/AutoLoopPage";
 import ViralVaultPage from "./pages/ViralVaultPage";
+import LeadCapturePage from "./pages/LeadCapturePage";
 
 function JoinRouter() {
   return (
@@ -76,6 +77,7 @@ function Router() {
         <Route path="/trends" component={TrendScannerPage} />
         <Route path="/auto-loop" component={AutoLoopPage} />
         <Route path="/viral-vault" component={ViralVaultPage} />
+        <Route path="/lead-capture" component={LeadCapturePage} />
         <Route path="/hashtags" component={HashtagPage} />
         <Route path="/monthly-plan" component={MonthlyPlanPage} />
         <Route path="/evergreen" component={EvergreenPage} />
