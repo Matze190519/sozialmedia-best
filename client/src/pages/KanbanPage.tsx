@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useState, useMemo } from "react";
-import { toast } from "sonner";
+import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Kanban, Clock, CheckCircle, Send, XCircle, Edit3,
@@ -130,22 +130,13 @@ function KanbanCard({
 }
 
 export default function KanbanPage() {
-  const [movingPostId, setMovingPostId] = useState<number | null>(null);
+  const [, setLocation] = useLocation();
+  const [movingPostId] = useState<number | null>(null);
   // Mobile: show one column at a time
   const [mobileColumnIdx, setMobileColumnIdx] = useState(0);
 
-  const { data: posts, isLoading, refetch } = trpc.content.list.useQuery({
+  const { data: posts, isLoading } = trpc.content.list.useQuery({
     limit: 200,
-  });
-
-  const approveMut = trpc.approval.approve.useMutation({
-    onSuccess: () => { refetch(); setMovingPostId(null); toast.success("Post freigegeben!"); },
-    onError: () => { setMovingPostId(null); toast.error("Fehler beim Freigeben"); },
-  });
-
-  const publishMut = trpc.approval.publish.useMutation({
-    onSuccess: () => { refetch(); setMovingPostId(null); toast.success("Post veröffentlicht!"); },
-    onError: () => { setMovingPostId(null); toast.error("Fehler beim Veröffentlichen"); },
   });
 
   const columns = useMemo(() => {
@@ -170,13 +161,10 @@ export default function KanbanPage() {
     }));
   }, [posts]);
 
-  const handleMoveRight = (postId: number, currentStatus: string) => {
-    setMovingPostId(postId);
-    if (currentStatus === "pending") {
-      approveMut.mutate({ id: postId });
-    } else if (currentStatus === "approved") {
-      publishMut.mutate({ id: postId });
-    }
+  const handleMoveRight = (_postId: number, _currentStatus: string) => {
+    // Konsolidierung: Alle Approval/Publish-Aktionen passieren zentral auf /approval.
+    // Vermeidet UX-Chaos und Doppel-Posts.
+    setLocation("/approval");
   };
 
   const renderColumn = (col: typeof columns[number], fullHeight = true) => (
