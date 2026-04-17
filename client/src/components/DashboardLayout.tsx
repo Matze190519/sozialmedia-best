@@ -46,21 +46,27 @@ const menuSections = [
       { icon: Wand2, label: "Content Wizard", path: "/wizard", desc: "In 3 Schritten zum fertigen Post" },
       { icon: Zap, label: "Content erstellen", path: "/generator", desc: "Text, Bild & Video auf Knopfdruck" },
       { icon: CheckCircle, label: "Freigabe", path: "/approval", desc: "Posts prüfen, freigeben & posten", badge: "pending" as const },
+      { icon: Kanban, label: "Pipeline", path: "/kanban", desc: "Deine Posts im Überblick (Kanban)" },
       { icon: Library, label: "Bibliothek", path: "/library", desc: "Fertige Posts kopieren & direkt nutzen" },
     ],
   },
   {
     title: "KI-Power",
     items: [
+      { icon: Sparkles, label: "Lifestyle-Engine", path: "/lifestyle", desc: "Traumauto, Freiheit & Erfolg als Content" },
+      { icon: Bot, label: "Lina Avatar", path: "/lina-avatar", desc: "Lina erklärt dein Produkt als Video" },
+      { icon: Repeat, label: "Remix 1→7", path: "/remix7", desc: "1 Idee → 7 fertige Formate (inkl. ASMR)" },
+      { icon: Repeat, label: "Content Remix", path: "/remix", desc: "1 Thema → 5 verschiedene Formate" },
+      { icon: Layers, label: "Karussell", path: "/carousel", desc: "Mehrteilige Slide-Posts erstellen" },
+    ],
+  },
+  {
+    title: "Optimieren",
+    items: [
       { icon: Flame, label: "Viral Predictor", path: "/viral-predictor", desc: "KI bewertet deinen Post vor dem Posten" },
       { icon: Shield, label: "Compliance Shield", path: "/compliance", desc: "Prüft ob dein Post rechtlich sicher ist" },
-      { icon: Repeat, label: "Remix 1→7", path: "/remix7", desc: "1 Idee → 7 fertige Formate (inkl. ASMR)" },
-      { icon: Bot, label: "Lina Avatar", path: "/lina-avatar", desc: "Lina erklärt dein Produkt als Video" },
       { icon: ShieldCheck, label: "Duplicate Check", path: "/duplicate-check", desc: "Verhindert dass alle denselben Text posten" },
-      { icon: Sparkles, label: "Lifestyle-Engine", path: "/lifestyle", desc: "Traumauto, Freiheit & Erfolg als Content" },
-      { icon: Layers, label: "Karussell", path: "/carousel", desc: "Mehrteilige Slide-Posts erstellen" },
-      { icon: Kanban, label: "Pipeline", path: "/kanban", desc: "Deine Posts im Überblick (Kanban)" },
-      { icon: Repeat, label: "Content Remix", path: "/remix", desc: "1 Thema → 5 verschiedene Formate" },
+      { icon: Hash, label: "Hashtag-Engine", path: "/hashtags", desc: "Die besten Hashtags für mehr Reichweite" },
     ],
   },
   {
@@ -68,7 +74,7 @@ const menuSections = [
     items: [
       { icon: Flame, label: "Trend-Scanner", path: "/trends", desc: "Was ist gerade viral? Jetzt nutzen!" },
       { icon: Eye, label: "Creator Spy", path: "/creator-spy", desc: "Was machen erfolgreiche Creator?" },
-      { icon: Hash, label: "Hashtag-Engine", path: "/hashtags", desc: "Die besten Hashtags für mehr Reichweite" },
+      { icon: Rocket, label: "Instagram Growth", path: "/instagram-growth", desc: "AutoDM & neue Leads gewinnen" },
     ],
   },
   {
@@ -77,34 +83,44 @@ const menuSections = [
       { icon: Calendar, label: "Kalender", path: "/calendar", desc: "Wann wird was gepostet?" },
       { icon: CalendarDays, label: "Monatsplan", path: "/monthly-plan", desc: "30 Posts für den ganzen Monat" },
       { icon: TrendingUp, label: "Posting-Zeiten", path: "/posting-times", desc: "Wann ist dein Publikum online?" },
+      { icon: Recycle, label: "Evergreen", path: "/evergreen", desc: "Deine besten Posts nochmal posten" },
     ],
   },
   {
-    title: "Mehr",
+    title: "Auswerten",
     items: [
-      { icon: Package, label: "Produktbilder", path: "/products", desc: "Offizielle LR Produktfotos" },
-      { icon: BookTemplate, label: "Vorlagen", path: "/templates", desc: "Bewährte Texte & Hooks zum Anpassen" },
-      { icon: FileText, label: "Content Queue", path: "/queue", desc: "Alle Posts in der Warteschlange" },
-      { icon: FlaskConical, label: "A/B Tests", path: "/ab-test", desc: "Welche Version performt besser?" },
       { icon: BarChart3, label: "Analytics", path: "/analytics", desc: "Wie laufen deine Posts?" },
       { icon: Activity, label: "Analytics+", path: "/analytics-plus", desc: "Tiefe Analyse: Heatmap & Trends" },
-      { icon: Recycle, label: "Evergreen", path: "/evergreen", desc: "Deine besten Posts nochmal posten" },
+      { icon: Trophy, label: "Leaderboard", path: "/leaderboard", desc: "Wer im Team postet am meisten?" },
+      { icon: FlaskConical, label: "A/B Tests", path: "/ab-test", desc: "Welche Version performt besser?" },
       { icon: TrendingUp, label: "Feedback", path: "/feedback", desc: "Was hat am besten funktioniert?" },
     ],
   },
   {
-    title: "System",
+    title: "Ressourcen",
+    items: [
+      { icon: Package, label: "Produktbilder", path: "/products", desc: "Offizielle LR Produktfotos" },
+      { icon: BookTemplate, label: "Vorlagen", path: "/templates", desc: "Bewährte Texte & Hooks zum Anpassen" },
+      { icon: FileText, label: "Content Queue", path: "/queue", desc: "Alle Posts in der Warteschlange" },
+    ],
+  },
+  {
+    title: "Einstellungen",
     items: [
       { icon: Globe, label: "Blotato Command", path: "/blotato", desc: "Auf 9 Kanäle gleichzeitig posten" },
-      { icon: Trophy, label: "Leaderboard", path: "/leaderboard", desc: "Wer im Team postet am meisten?" },
+      { icon: Settings, label: "Einstellungen", path: "/settings", desc: "Blotato verbinden & Branding" },
+      { icon: HelpCircle, label: "Quick-Start", path: "/onboarding", desc: "Neu hier? Hier starten!" },
+    ],
+  },
+  {
+    title: "Admin",
+    adminOnly: true,
+    items: [
       { icon: Activity, label: "Team-Aktivitäten", path: "/team-activity", desc: "Was macht das Team gerade?" },
       { icon: UserPlus, label: "Einladungen", path: "/invite-tokens", desc: "Neue Partner ins Team einladen" },
       { icon: Users, label: "Team", path: "/team", desc: "Alle Partner verwalten" },
       { icon: Shield, label: "Nutzer-Übersicht", path: "/admin-users", desc: "Admin: Zugänge & Rollen" },
       { icon: DollarSign, label: "Kosten-Übersicht", path: "/budget", desc: "Was kostet das Tool pro Monat?" },
-      { icon: Settings, label: "Einstellungen", path: "/settings", desc: "Blotato verbinden & Branding" },
-      { icon: HelpCircle, label: "Quick-Start", path: "/onboarding", desc: "Neu hier? Hier starten!" },
-      { icon: Rocket, label: "Instagram Growth", path: "/instagram-growth", desc: "AutoDM & neue Leads gewinnen" },
     ],
   },
 ];
@@ -357,7 +373,7 @@ function DashboardLayoutContent({
           </SidebarHeader>
 
           <SidebarContent className="gap-0">
-            {menuSections.map((section) => (
+            {menuSections.filter(s => !('adminOnly' in s && s.adminOnly) || user?.role === 'admin').map((section) => (
               <div key={section.title} className="mb-1">
                 {!isCollapsed && (
                   <div className="px-4 pt-4 pb-1">
@@ -440,6 +456,7 @@ function DashboardLayoutContent({
 function SidebarMobileDrawer() {
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar } = useSidebar();
+  const { user } = useAuth();
   const isOpen = state === "expanded";
 
   if (!isOpen) return null;
@@ -460,7 +477,7 @@ function SidebarMobileDrawer() {
           </button>
         </div>
         <div className="py-2">
-          {menuSections.map((section) => (
+          {menuSections.filter(s => !('adminOnly' in s && s.adminOnly) || user?.role === 'admin').map((section) => (
             <div key={section.title} className="mb-2">
               <div className="px-4 pt-3 pb-1">
                 <span className="text-[10px] font-semibold uppercase tracking-widest text-primary/50" style={{ fontFamily: 'var(--font-heading)' }}>{section.title}</span>
