@@ -579,32 +579,39 @@ export const appRouter = router({
 
         // Auto-publish if requested and user has Blotato key or system key exists
         if (input.autoPublish) {
-          try {
-            const creator = await db.getUserById(post.post.createdById);
-            const blotatoKey = creator?.blotatoApiKey || process.env.BLOTATO_API_KEY;
-            if (blotatoKey) {
-              const contentToPublish = post.post.editedContent || post.post.content;
-              const platforms = post.post.platforms as string[];
-              let accounts = await api.getBlotatoAccounts(blotatoKey);
-              if (accounts.length === 0) accounts = api.LR_BLOTATO_ACCOUNTS;
-              const mediaUrls: string[] = [];
-              if (post.post.mediaUrl) mediaUrls.push(post.post.mediaUrl);
-              if (post.post.videoUrl) mediaUrls.push(post.post.videoUrl);
-              const postIds = await api.publishToAllPlatforms(contentToPublish, platforms, accounts, mediaUrls.length > 0 ? mediaUrls : undefined, input.scheduledAt, blotatoKey);
-              await db.setBlotatoPostIds(input.id, postIds);
-              await db.updateContentPostStatus(input.id, "scheduled", ctx.user.id);
-              await db.createApprovalLog({
-                contentPostId: input.id,
-                userId: ctx.user.id,
-                action: "scheduled",
-                comment: `Auto-Published auf ${platforms.join(", ")} via Blotato`,
-                previousStatus: "approved",
-                newStatus: "scheduled",
-              });
+          // Doppel-Post-Schutz: Frischen Post nochmal aus DB laden + prüfen ob bereits Blotato-IDs existieren
+          const freshPost = await db.getContentPostById(input.id);
+          const existingBlotatoIds = freshPost?.post.blotatoPostIds as string[] | null | undefined;
+          if (existingBlotatoIds && existingBlotatoIds.length > 0) {
+            console.warn(`[Auto-Publish] Post ${input.id} wurde bereits veröffentlicht — kein Doppel-Post.`);
+          } else {
+            try {
+              const creator = await db.getUserById(post.post.createdById);
+              const blotatoKey = creator?.blotatoApiKey || process.env.BLOTATO_API_KEY;
+              if (blotatoKey) {
+                const contentToPublish = post.post.editedContent || post.post.content;
+                const platforms = post.post.platforms as string[];
+                let accounts = await api.getBlotatoAccounts(blotatoKey);
+                if (accounts.length === 0) accounts = api.LR_BLOTATO_ACCOUNTS;
+                const mediaUrls: string[] = [];
+                if (post.post.mediaUrl) mediaUrls.push(post.post.mediaUrl);
+                if (post.post.videoUrl) mediaUrls.push(post.post.videoUrl);
+                const postIds = await api.publishToAllPlatforms(contentToPublish, platforms, accounts, mediaUrls.length > 0 ? mediaUrls : undefined, input.scheduledAt, blotatoKey);
+                await db.setBlotatoPostIds(input.id, postIds);
+                await db.updateContentPostStatus(input.id, "scheduled", ctx.user.id);
+                await db.createApprovalLog({
+                  contentPostId: input.id,
+                  userId: ctx.user.id,
+                  action: "scheduled",
+                  comment: `Auto-Published auf ${platforms.join(", ")} via Blotato`,
+                  previousStatus: "approved",
+                  newStatus: "scheduled",
+                });
+              }
+            } catch (err) {
+              console.error("[Auto-Publish] Failed:", err);
+              // Don't fail the approval, just log the error
             }
-          } catch (err) {
-            console.error("[Auto-Publish] Failed:", err);
-            // Don't fail the approval, just log the error
           }
         }
 
@@ -657,6 +664,11 @@ export const appRouter = router({
         if (ctx.user.role !== 'admin' && post.post.createdById !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Du kannst nur deinen eigenen Content veröffentlichen." });
         if (post.post.status !== "approved") {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Nur genehmigte Posts können veröffentlicht werden. Bitte zuerst genehmigen!" });
+        }
+        // Doppel-Post-Schutz: Wenn bereits Blotato-Post-IDs existieren, wurde der Post schon veröffentlicht
+        const existingBlotatoIds = post.post.blotatoPostIds as string[] | null | undefined;
+        if (existingBlotatoIds && existingBlotatoIds.length > 0) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Dieser Post wurde bereits via Blotato veröffentlicht — kein Doppel-Post möglich." });
         }
         // Skripte können nicht direkt gepostet werden
         if (post.post.contentType === "reel_script" || post.post.contentType === "youtube_script") {
