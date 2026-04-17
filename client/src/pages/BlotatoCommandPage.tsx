@@ -179,6 +179,27 @@ export default function BlotatoCommandPage() {
           <Globe className="h-4 w-4 text-primary" />
           Verbundene Kanäle
         </h2>
+        {accounts.length === 0 ? (
+          <GlowCard glowColor="rgba(234, 179, 8, 0.08)">
+            <div className="p-6 text-center">
+              <WifiOff className="h-8 w-8 text-amber-400 mx-auto mb-2" />
+              <p className="text-sm font-medium">Noch keine Blotato-Kanäle verbunden</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Verbinde zuerst deine Accounts in Blotato oder hinterlege deinen API-Key in den Einstellungen.
+              </p>
+              <div className="flex items-center justify-center gap-2 mt-4">
+                <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setLocation("/settings")}>
+                  <Settings className="h-3.5 w-3.5" />
+                  Einstellungen
+                </Button>
+                <Button size="sm" className="gap-1.5" onClick={() => window.open("https://app.blotato.com/accounts", "_blank")}>
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Blotato öffnen
+                </Button>
+              </div>
+            </div>
+          </GlowCard>
+        ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {accounts.map((account: any, i: number) => {
             const meta = PLATFORM_META[account.platform?.toLowerCase()] || {
@@ -265,6 +286,7 @@ export default function BlotatoCommandPage() {
             </GlowCard>
           </motion.div>
         </div>
+        )}
       </div>
 
       {/* Scheduled Posts Preview */}

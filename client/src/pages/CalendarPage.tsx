@@ -216,6 +216,7 @@ function BlotatoCalendar() {
 
   const dates = calendarData?.dates || [];
   const totalCount = calendarData?.totalCount || 0;
+  const actionPending = deleteMutation.isPending || rescheduleMutation.isPending || updateMutation.isPending;
 
   return (
     <div className="space-y-4">
@@ -300,6 +301,7 @@ function BlotatoCalendar() {
                           setEditText(post.draft.content.text);
                         }}
                         title="Text bearbeiten"
+                        disabled={actionPending}
                       >
                         <Edit3 className="h-4 w-4" />
                       </Button>
@@ -311,6 +313,7 @@ function BlotatoCalendar() {
                           setNewTime(post.scheduledAt.slice(0, 16));
                         }}
                         title="Verschieben"
+                        disabled={actionPending}
                       >
                         <MoveRight className="h-4 w-4" />
                       </Button>
@@ -323,6 +326,7 @@ function BlotatoCalendar() {
                           }
                         }}
                         title="Löschen"
+                        disabled={actionPending}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -360,7 +364,7 @@ function BlotatoCalendar() {
             <p className="text-xs text-muted-foreground">{editText.length} Zeichen</p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditPost(null)}>Abbrechen</Button>
+            <Button variant="outline" onClick={() => setEditPost(null)} disabled={updateMutation.isPending}>Abbrechen</Button>
             <Button
               onClick={() => {
                 if (editPost) {
@@ -404,7 +408,7 @@ function BlotatoCalendar() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setReschedulePost(null)}>Abbrechen</Button>
+            <Button variant="outline" onClick={() => setReschedulePost(null)} disabled={rescheduleMutation.isPending}>Abbrechen</Button>
             <Button
               onClick={() => {
                 if (reschedulePost && newTime) {

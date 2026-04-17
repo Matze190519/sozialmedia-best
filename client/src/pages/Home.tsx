@@ -48,8 +48,8 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const { data: stats, isLoading: statsLoading } = trpc.dashboard.stats.useQuery();
   const { data: apiHealth } = trpc.apiHealth.goViralBitch.useQuery();
-  const { data: pendingPosts } = trpc.content.list.useQuery({ status: "pending", limit: 5 });
-  const { data: approvedPosts } = trpc.content.list.useQuery({ status: "approved", limit: 3 });
+  const { data: pendingPosts, isLoading: pendingLoading } = trpc.content.list.useQuery({ status: "pending", limit: 5 });
+  const { data: approvedPosts, isLoading: approvedLoading } = trpc.content.list.useQuery({ status: "approved", limit: 3 });
   const { data: recentPosts, isLoading: postsLoading } = trpc.content.list.useQuery({ limit: 8 });
   const { data: userSettings } = trpc.userSettings.get.useQuery();
 
@@ -193,7 +193,17 @@ export default function Home() {
         <div className="lg:col-span-3 space-y-4">
           {/* Pending Posts */}
           <AnimatePresence>
-            {pendingPosts && pendingPosts.length > 0 && (
+            {pendingLoading ? (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <GlowCard glowColor="rgba(234, 179, 8, 0.15)" className="border-yellow-500/30 bg-yellow-500/5">
+                  <div className="p-4 space-y-2">
+                    <Skeleton className="h-5 w-40" />
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
+                  </div>
+                </GlowCard>
+              </motion.div>
+            ) : pendingPosts && pendingPosts.length > 0 ? (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
@@ -253,12 +263,33 @@ export default function Home() {
                   </div>
                 </GlowCard>
               </motion.div>
+            ) : (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <GlowCard glowColor="rgba(16, 185, 129, 0.08)" className="border-emerald-500/20 bg-emerald-500/5">
+                  <div className="p-4 text-center">
+                    <CheckCircle className="h-8 w-8 text-emerald-400 mx-auto mb-2" />
+                    <p className="text-sm font-medium">Keine offenen Freigaben</p>
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      Aktuell wartet kein Content auf deine Prüfung.
+                    </p>
+                  </div>
+                </GlowCard>
+              </motion.div>
             )}
           </AnimatePresence>
 
           {/* Approved - Ready to Post */}
           <AnimatePresence>
-            {approvedPosts && approvedPosts.length > 0 && (
+            {approvedLoading ? (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <GlowCard glowColor="rgba(16, 185, 129, 0.15)" className="border-emerald-500/30 bg-emerald-500/5">
+                  <div className="p-4 space-y-2">
+                    <Skeleton className="h-5 w-40" />
+                    <Skeleton className="h-14 w-full" />
+                  </div>
+                </GlowCard>
+              </motion.div>
+            ) : approvedPosts && approvedPosts.length > 0 ? (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
@@ -293,6 +324,18 @@ export default function Home() {
                         </div>
                       ))}
                     </div>
+                  </div>
+                </GlowCard>
+              </motion.div>
+            ) : (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <GlowCard glowColor="rgba(255, 255, 255, 0.03)">
+                  <div className="p-4 text-center">
+                    <Library className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                    <p className="text-sm font-medium">Nichts zum Posten bereit</p>
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      Freigegebene Posts tauchen hier auf, sobald du Content bestätigst.
+                    </p>
                   </div>
                 </GlowCard>
               </motion.div>

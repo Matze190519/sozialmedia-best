@@ -207,10 +207,10 @@ export default function InviteTokensPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => copyInviteLink(token.token)}>
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => copyInviteLink(token.token)} disabled={deleteToken.isPending}>
                             <Copy className="h-3.5 w-3.5" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-emerald-400" onClick={() => shareViaWhatsApp(token.token, token.name)}>
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-emerald-400" onClick={() => shareViaWhatsApp(token.token, token.name)} disabled={deleteToken.isPending}>
                             <MessageCircle className="h-3.5 w-3.5" />
                           </Button>
                           <Button
@@ -218,6 +218,7 @@ export default function InviteTokensPage() {
                             variant="ghost"
                             className="h-7 w-7 p-0 text-destructive"
                             onClick={() => deleteToken.mutate({ id: token.id })}
+                            disabled={deleteToken.isPending}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
@@ -230,6 +231,18 @@ export default function InviteTokensPage() {
             </AnimatePresence>
           </div>
         </div>
+      )}
+
+      {!isLoading && activeTokens.length === 0 && tokens && tokens.length > 0 && (
+        <Card className="border-dashed">
+          <CardContent className="py-10 text-center">
+            <Clock className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="text-sm font-medium">Keine aktiven Einladungen mehr</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Alle vorhandenen Links wurden bereits eingelöst oder sind abgelaufen. Erstelle bei Bedarf einen neuen Link.
+            </p>
+          </CardContent>
+        </Card>
       )}
 
       {/* Used Tokens */}

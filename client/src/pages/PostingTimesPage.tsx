@@ -49,6 +49,32 @@ export default function PostingTimesPage() {
     );
   }
 
+  if (!allSchedules || allSchedules.length === 0) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <Clock className="h-6 w-6 text-emerald-400" />
+            Smart Posting-Zeiten
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Datenbasierte optimale Posting-Zeiten pro Plattform und Wochentag. Basierend auf Engagement-Studien der DACH-Region.
+          </p>
+        </div>
+
+        <Card className="border-dashed">
+          <CardContent className="py-12 text-center">
+            <Calendar className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="text-sm font-medium">Noch keine Posting-Zeiten verfügbar</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Sobald Zeitfenster berechnet wurden, siehst du hier Empfehlungen pro Plattform.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <div>

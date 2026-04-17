@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useLocation } from "wouter";
 import {
   Rocket, CheckCircle, Circle, ArrowRight, Zap, Key,
@@ -58,8 +59,28 @@ const ONBOARDING_STEPS = [
 export default function OnboardingPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const { data: settings } = trpc.userSettings.get.useQuery();
-  const { data: stats } = trpc.dashboard.stats.useQuery();
+  const { data: settings, isLoading: settingsLoading } = trpc.userSettings.get.useQuery();
+  const { data: stats, isLoading: statsLoading } = trpc.dashboard.stats.useQuery();
+
+  if (settingsLoading || statsLoading) {
+    return (
+      <div className="space-y-8 max-w-4xl mx-auto">
+        <div className="text-center space-y-3">
+          <Skeleton className="h-10 w-80 mx-auto" />
+          <Skeleton className="h-4 w-96 max-w-full mx-auto" />
+        </div>
+        <Card>
+          <CardContent className="p-6 space-y-3">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-3 w-full" />
+          </CardContent>
+        </Card>
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-24 w-full" />)}
+        </div>
+      </div>
+    );
+  }
 
   const completedSteps = [
     true,

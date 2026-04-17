@@ -200,6 +200,7 @@ export default function TeamPage() {
                             size="sm"
                             onClick={() => openApproveDialog(member.id)}
                             className="gap-1.5"
+                            disabled={approveMut.isPending}
                           >
                             <UserPlus className="h-3.5 w-3.5" />
                             Freischalten
@@ -291,7 +292,7 @@ export default function TeamPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setApproveOpen(false)}>Abbrechen</Button>
+            <Button variant="outline" onClick={() => setApproveOpen(false)} disabled={approveMut.isPending}>Abbrechen</Button>
             <Button onClick={handleApprove} disabled={approveMut.isPending || !partnerNumber.trim()}>
               <Unlock className="h-4 w-4 mr-1.5" />
               Freischalten
