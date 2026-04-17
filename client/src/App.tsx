@@ -44,6 +44,7 @@ import ComplianceShieldPage from "./pages/ComplianceShieldPage";
 import ContentRemix7Page from "./pages/ContentRemix7Page";
 import LinaAvatarPage from "./pages/LinaAvatarPage";
 import DuplicateCheckPage from "./pages/DuplicateCheckPage";
+import AutoLoopPage from "./pages/AutoLoopPage";
 
 function JoinRouter() {
   return (
@@ -72,6 +73,7 @@ function Router() {
         <Route path="/team" component={TeamPage} />
         <Route path="/settings" component={SettingsPage} />
         <Route path="/trends" component={TrendScannerPage} />
+        <Route path="/auto-loop" component={AutoLoopPage} />
         <Route path="/hashtags" component={HashtagPage} />
         <Route path="/monthly-plan" component={MonthlyPlanPage} />
         <Route path="/evergreen" component={EvergreenPage} />

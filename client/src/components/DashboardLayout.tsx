@@ -74,6 +74,7 @@ const menuSections = [
     title: "Recherche",
     items: [
       { icon: Flame, label: "Trend-Scanner", path: "/trends", desc: "Was ist gerade viral? Jetzt nutzen!" },
+      { icon: Rocket, label: "Auto-Loop", path: "/auto-loop", desc: "Trend → Post → Check → Freigabe automatisch" },
       { icon: Eye, label: "Creator Spy", path: "/creator-spy", desc: "Was machen erfolgreiche Creator?" },
       { icon: Rocket, label: "Instagram Growth", path: "/instagram-growth", desc: "AutoDM & neue Leads gewinnen" },
     ],
