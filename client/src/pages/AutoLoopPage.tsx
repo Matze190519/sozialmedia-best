@@ -66,7 +66,7 @@ export default function AutoLoopPage() {
             trendTitle: trend.title,
             trendPlatform: trend.platform,
             trendPillar: trend.pillar || "lifestyle",
-            trendViralScore: trend.viralScore,
+            trendViralScore: trend.viralScore ?? undefined,
             generateImage: true,
           });
 
@@ -93,7 +93,7 @@ export default function AutoLoopPage() {
             complianceStatus,
             complianceMessage,
             hashtags: post.hashtags || [],
-            imageUrl: post.imageUrl,
+            imageUrl: post.imageUrl ?? undefined,
           });
         } catch {
           loopResults.push({

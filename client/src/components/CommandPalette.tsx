@@ -16,7 +16,7 @@ import {
   TrendingUp, Recycle, Package, BookTemplate,
   FileText, FlaskConical, BarChart3, Activity,
   Trophy, Globe, Settings, HelpCircle,
-  Users, UserPlus, DollarSign, Play,
+  Users, UserPlus, DollarSign, Play, Target,
 } from "lucide-react";
 
 const commands = [
