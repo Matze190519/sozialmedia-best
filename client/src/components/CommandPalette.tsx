@@ -21,6 +21,7 @@ import {
 
 const commands = [
   { icon: Play, label: "Tages-Autopilot starten", path: "/", keywords: "autopilot tag heute starten post" },
+  { icon: Rocket, label: "Auto-Content-Loop", path: "/auto-loop", keywords: "auto loop trend post compliance automatisch" },
   { icon: Wand2, label: "Content Wizard", path: "/wizard", keywords: "wizard erstellen post schreiben" },
   { icon: Zap, label: "Content erstellen", path: "/generator", keywords: "generator schnell post erstellen" },
   { icon: CheckCircle, label: "Freigabe", path: "/approval", keywords: "freigabe genehmigen prüfen approval" },
