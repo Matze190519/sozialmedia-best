@@ -543,7 +543,7 @@ export function registerLinaRoutes(app: Express) {
       let apiResponse: any;
       switch (contentType) {
         case "reel":
-          apiResponse = await generateReel({ topic, pillar, duration: "30", count: 1 });
+          apiResponse = await generateReel({ topic, pillar, duration: 30, count: 1 });
           break;
         case "story":
           apiResponse = await generateStory({ topic, pillar, platform, count: 1 });
