@@ -1,5 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { CommandPalette } from "@/components/CommandPalette";
+import LandingPage from "@/pages/LandingPage";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -20,7 +21,6 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
 import {
   LayoutDashboard, LogOut, PanelLeft, Users,
@@ -165,28 +165,8 @@ export default function DashboardLayout({
   }
 
   if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background bg-grid">
-        <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
-          <div className="flex flex-col items-center gap-5">
-            <div className="flex items-center gap-3">
-              <Rocket className="h-10 w-10 text-primary" />
-              <h1 className="text-3xl font-bold tracking-tight gold-shimmer" style={{ fontFamily: 'var(--font-heading)' }}>LR Content Hub</h1>
-            </div>
-            <p className="text-sm text-muted-foreground text-center max-w-sm">
-              Die Content-Maschine für das LR Lifestyle Team. Erstelle viralen Content, lass ihn freigeben und poste automatisch auf allen Plattformen.
-            </p>
-          </div>
-          <Button
-            onClick={() => { window.location.href = getLoginUrl(); }}
-            size="lg"
-            className="w-full btn-gold text-base h-12 rounded-xl shadow-lg hover:shadow-xl transition-all"
-          >
-            Anmelden
-          </Button>
-        </div>
-      </div>
-    );
+    // Öffentliche Landingpage für Ad-Traffic und neue Partner (Login via Nav-Button)
+    return <LandingPage />;
   }
 
   // Gate: Non-approved users see a waiting page

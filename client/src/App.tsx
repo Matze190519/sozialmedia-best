@@ -47,6 +47,8 @@ import DuplicateCheckPage from "./pages/DuplicateCheckPage";
 import AutoLoopPage from "./pages/AutoLoopPage";
 import ViralVaultPage from "./pages/ViralVaultPage";
 import LeadCapturePage from "./pages/LeadCapturePage";
+import ImpressumPage from "./pages/ImpressumPage";
+import DatenschutzPage from "./pages/DatenschutzPage";
 
 function JoinRouter() {
   return (
@@ -116,6 +118,8 @@ function App() {
           <Toaster />
           <Switch>
             <Route path="/join">{() => <JoinRouter />}</Route>
+            <Route path="/impressum" component={ImpressumPage} />
+            <Route path="/datenschutz" component={DatenschutzPage} />
             <Route>{() => <Router />}</Route>
           </Switch>
         </TooltipProvider>
