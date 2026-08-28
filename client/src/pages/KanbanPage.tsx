@@ -135,7 +135,7 @@ export default function KanbanPage() {
   // Mobile: show one column at a time
   const [mobileColumnIdx, setMobileColumnIdx] = useState(0);
 
-  const { data: posts, isLoading } = trpc.content.list.useQuery({
+  const { data: posts, isLoading, refetch } = trpc.content.list.useQuery({
     limit: 200,
   });
 
